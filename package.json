@@ -8,6 +8,9 @@
   "files": [
     "build"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "rollup --config",
     "dev": "rollup --config --watch",
