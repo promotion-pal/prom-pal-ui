@@ -1,5 +1,5 @@
 {
-  "name": "@promotion-pal/prom-ui",
+  "name": "prom-pal-ui",
   "version": "1.0.0",
   "type": "module",
   "main": "build/cjs/index.js",
