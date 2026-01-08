@@ -1,5 +1,5 @@
 {
-  "name": "prom-ui",
+  "name": "@promotion-pal/prom-ui",
   "version": "1.0.0",
   "type": "module",
   "main": "build/cjs/index.js",
@@ -14,7 +14,7 @@
     "clean": "rm -rf build"
   },
   "keywords": [],
-  "author": "PromPal",
+  "author": "promotion-pal",
   "license": "ISC",
   "devDependencies": {
     "@hookform/resolvers": "^5.2.2",
