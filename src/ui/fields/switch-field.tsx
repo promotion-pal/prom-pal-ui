@@ -4,12 +4,13 @@ import * as React from "react";
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { PromFormFiled } from "./form";
 import { useFormContext } from "react-hook-form";
-import { PromSkeleton } from "../skeleton";
-import { PromSwitch } from "../switch";
 import { PromLabel } from "./label";
+import { PromSwitch } from "../ui/switch";
+import { PromSkeleton } from "../ui/skeleton";
 
-interface PromSwitchFieldProps
-  extends React.ComponentProps<typeof SwitchPrimitive.Root> {
+interface PromSwitchFieldProps extends React.ComponentProps<
+  typeof SwitchPrimitive.Root
+> {
   name: string;
   label?: string;
   isLoad?: boolean;

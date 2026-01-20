@@ -4,13 +4,12 @@ import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import postcss from "rollup-plugin-postcss";
 
-export default {
-  input: "src/index.ts",
+const uiConfig = {
+  input: "src/ui/index.ts",
   external: ["react", "react-dom", "react-hook-form", "tslib"],
   output: [
-    { dir: "build/cjs", format: "cjs", exports: "named" },
-    { dir: "build/min", format: "cjs", plugins: [terser()] },
-    { dir: "build/esm", format: "esm" },
+    { dir: "build/ui/cjs", format: "cjs", exports: "named" },
+    { dir: "build/ui/esm", format: "esm" },
   ],
   plugins: [
     resolve(),
@@ -27,3 +26,19 @@ export default {
     }),
   ],
 };
+
+const functionConfig = {
+  input: "src/function/index.ts",
+  external: ["react", "react-dom", "react-hook-form", "tslib"],
+  output: [
+    { dir: "build/function/cjs", format: "cjs", exports: "named" },
+    { dir: "build/function/esm", format: "esm" },
+  ],
+  plugins: [
+    resolve(),
+    commonjs(),
+    typescript({ useTsconfigDeclarationDir: true }),
+  ],
+};
+
+export default [uiConfig, functionConfig];

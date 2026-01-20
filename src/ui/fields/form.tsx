@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import {
   useForm,
   Controller,
@@ -16,24 +16,28 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CommonPromComponentProps } from "../types";
 
+interface ExtendedFormMethods<
+  T extends FieldValues = FieldValues,
+> extends UseFormReturn<T> {
+  setServerError: (error: string) => void;
+  getServerError: () => string;
+}
+
 type PromFormRenderProps = {
   isValid: boolean;
+  serverError?: string;
   isSubmitting: boolean;
   errors: Record<string, any>;
-  form: UseFormReturn<z.infer<any>>;
+  form: ExtendedFormMethods<z.infer<any>>;
 };
 
 interface PromFromProps extends CommonPromComponentProps {
   children?: ReactNode;
   schema?: z.ZodObject<any>;
   defaultValues?: z.infer<any>;
-  onSubmit?: (data: z.infer<any>) => void;
+  form?: ExtendedFormMethods<z.infer<any>>;
+  onSubmit?: (data: z.infer<any>) => Promise<void>;
   render?: (props: PromFormRenderProps) => ReactNode;
-
-  form?: UseFormReturn<z.infer<any>>;
-
-  // Todo: Доделать функционал
-  errorDisplay?: ReactNode;
 }
 
 const PromFrom = ({
@@ -51,10 +55,35 @@ const PromFrom = ({
     defaultValues: defaultValues,
   });
 
-  const form = externalForm || internalForm;
+  const [serverError, setServerError] = useState<string>("");
+
+  const form = externalForm || {
+    ...internalForm,
+    setServerError,
+    getServerError: () => serverError,
+  };
+
   const { errors, isSubmitting, isValid } = form.formState;
 
-  const handleSubmit = onSubmit ? form.handleSubmit(onSubmit) : undefined;
+  const handleOnSubmit = async (data: FormData) => {
+    setServerError("");
+
+    try {
+      if (onSubmit) {
+        await onSubmit(data);
+      }
+    } catch (error) {
+      let errorMessage = "Произошла ошибка при отправке формы";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      setServerError(errorMessage);
+    }
+  };
+
+  const handleSubmit = handleOnSubmit
+    ? form.handleSubmit(handleOnSubmit)
+    : undefined;
 
   return (
     <FormProvider {...form}>
@@ -67,14 +96,22 @@ const PromFrom = ({
           }
         }}
       >
-        {render ? render({ form, errors, isSubmitting, isValid }) : children}
+        {render
+          ? render({
+              form,
+              errors,
+              isSubmitting,
+              isValid,
+              serverError,
+            })
+          : children}
       </form>
     </FormProvider>
   );
 };
 
 const usePromForm = <T extends FieldValues>() => {
-  const form = useFormContext<T>();
+  const form = useFormContext<T>() as ExtendedFormMethods<T>;
   const { errors, isSubmitting, isValid } = form.formState;
 
   return {
@@ -82,28 +119,30 @@ const usePromForm = <T extends FieldValues>() => {
     errors,
     isValid,
     isSubmitting,
+    serverError: form.getServerError?.() || "",
     reset: form.reset,
     watch: form.watch,
     control: form.control,
-    setValue: form.setValue,
-    register: form.register,
-    handleSubmit: form.handleSubmit,
-    getValues: form.getValues,
     trigger: form.trigger,
+    register: form.register,
+    setValue: form.setValue,
+    getValues: form.getValues,
+    setServerError: form.setServerError,
+    handleSubmit: form.handleSubmit,
   };
 };
 
 type PromFormFiledProps<
   TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = ControllerProps<TFieldValues, TName>;
 
 const PromFormFiled = <
   TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
   ...props
-}: PromFormFiledProps<TFieldValues, TName>) => {
+}: ControllerProps<TFieldValues, TName>) => {
   return <Controller {...props} />;
 };
 
@@ -115,6 +154,7 @@ const PromMessage = () => {
     console.log(errors);
     return <p>Ошибка</p>;
   }
+  return null;
 };
 
 const useCreatePromForm = ({
@@ -139,115 +179,3 @@ export {
   type PromFromProps,
   type PromFormRenderProps,
 };
-
-// "use client";
-
-// import { ReactNode } from "react";
-// import {
-//   useForm,
-//   Controller,
-//   FormProvider,
-//   useFormState,
-//   useFormContext,
-//   type ControllerProps,
-//   type FieldPath,
-//   type FieldValues,
-//   UseFormReturn,
-// } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// import { z } from "zod";
-// import { CommonPromComponentProps } from "../types";
-
-// type PromFormRenderProps = {
-//   isValid: boolean;
-//   isSubmitting: boolean;
-//   errors: Record<string, any>;
-//   form: UseFormReturn<z.infer<any>>;
-// };
-// interface PromFromProps extends CommonPromComponentProps {
-//   children?: ReactNode;
-//   schema: z.ZodObject<any>;
-//   defaultValues?: z.infer<any>;
-//   onSubmit: (data: z.infer<any>) => void;
-//   render?: (props: PromFormRenderProps) => ReactNode;
-
-//   // Todo: Доделать функционал
-//   errorDisplay?: ReactNode;
-// }
-// const PromFrom = ({
-//   schema,
-//   render,
-//   children,
-//   onSubmit,
-//   defaultValues = {},
-// }: PromFromProps) => {
-//   type FormData = z.infer<typeof schema>;
-
-//   const form = useForm<FormData>({
-//     resolver: zodResolver(schema),
-//     defaultValues: defaultValues,
-//   });
-
-//   const { errors, isSubmitting, isValid } = form.formState;
-
-//   return (
-//     <FormProvider {...form}>
-//       <form
-//         onSubmit={onSubmit ? form.handleSubmit(onSubmit) : undefined}
-//         className="space-y-4"
-//       >
-//         {render ? render({ form, errors, isSubmitting, isValid }) : children}
-//       </form>
-//     </FormProvider>
-//   );
-// };
-
-// const usePromForm = <T extends FieldValues>() => {
-//   const form = useFormContext<T>();
-//   const { errors, isSubmitting, isValid } = form.formState;
-
-//   return {
-//     form,
-//     errors,
-//     isValid,
-//     isSubmitting,
-//     reset: form.reset,
-//     watch: form.watch,
-//     control: form.control,
-//     setValue: form.setValue,
-//     register: form.register,
-//     handleSubmit: form.handleSubmit,
-//   };
-// };
-
-// type PromFormFiledProps<
-//   TFieldValues extends FieldValues = FieldValues,
-//   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
-// > = ControllerProps<TFieldValues, TName>;
-// const PromFormFiled = <
-//   TFieldValues extends FieldValues = FieldValues,
-//   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
-// >({
-//   ...props
-// }: PromFormFiledProps<TFieldValues, TName>) => {
-//   return <Controller {...props} />;
-// };
-
-// const PromMessage = () => {
-//   const { control } = useFormContext();
-//   const { errors } = useFormState({ control });
-
-//   if (Object.keys(errors).length > 0) {
-//     console.log(errors);
-//     return <p>Ошибка</p>;
-//   }
-// };
-
-// export {
-//   PromFrom,
-//   usePromForm,
-//   PromMessage,
-//   PromFormFiled,
-//   type PromFromProps,
-//   type PromFormRenderProps,
-// };

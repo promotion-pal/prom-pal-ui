@@ -9,8 +9,8 @@ import {
   PromSelectItem,
   PromSelectTrigger,
   PromSelectValue,
-} from "../select";
-import { PromSkeleton } from "../skeleton";
+} from "../ui/select";
+import { PromSkeleton } from "../ui/skeleton";
 
 interface PromSelectType {
   key: string | number;
@@ -81,7 +81,7 @@ const PromSelectField: FC<PromSelectFieldProps> = ({
 
 function promSelectFilterOptions<
   T extends Record<string, any>,
-  K extends keyof T
+  K extends keyof T,
 >(obj: T, allowedKeys: K[]): Array<{ key: K; value: T[K] }> {
   return Object.entries(obj)
     .filter(([key]) => allowedKeys.includes(key as K))

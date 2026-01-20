@@ -1,29 +1,9 @@
-'use strict';
-
-var tslib = require('tslib');
-var React = require('react');
-var ReactDOM = require('react-dom');
-var reactHookForm = require('react-hook-form');
-
-function _interopNamespaceDefault(e) {
-  var n = Object.create(null);
-  if (e) {
-    Object.keys(e).forEach(function (k) {
-      if (k !== 'default') {
-        var d = Object.getOwnPropertyDescriptor(e, k);
-        Object.defineProperty(n, k, d.get ? d : {
-          enumerable: true,
-          get: function () { return e[k]; }
-        });
-      }
-    });
-  }
-  n.default = e;
-  return Object.freeze(n);
-}
-
-var React__namespace = /*#__PURE__*/_interopNamespaceDefault(React);
-var ReactDOM__namespace = /*#__PURE__*/_interopNamespaceDefault(ReactDOM);
+import { __rest, __assign, __spreadArray, __awaiter, __generator } from 'tslib';
+import * as React from 'react';
+import React__default, { forwardRef, createElement, useLayoutEffect, useState } from 'react';
+import * as ReactDOM from 'react-dom';
+import ReactDOM__default from 'react-dom';
+import { get, set as set$1, appendErrors, useForm, FormProvider, useFormContext, useFormState, Controller } from 'react-hook-form';
 
 var jsxRuntime = {exports: {}};
 
@@ -361,7 +341,7 @@ function requireReactJsxRuntime_development () {
 	        object.$$typeof === REACT_ELEMENT_TYPE
 	      );
 	    }
-	    var React$1 = React,
+	    var React = React__default,
 	      REACT_ELEMENT_TYPE = Symbol.for("react.transitional.element"),
 	      REACT_PORTAL_TYPE = Symbol.for("react.portal"),
 	      REACT_FRAGMENT_TYPE = Symbol.for("react.fragment"),
@@ -377,7 +357,7 @@ function requireReactJsxRuntime_development () {
 	      REACT_ACTIVITY_TYPE = Symbol.for("react.activity"),
 	      REACT_CLIENT_REFERENCE = Symbol.for("react.client.reference"),
 	      ReactSharedInternals =
-	        React$1.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,
+	        React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,
 	      hasOwnProperty = Object.prototype.hasOwnProperty,
 	      isArrayImpl = Array.isArray,
 	      createTask = console.createTask
@@ -385,15 +365,15 @@ function requireReactJsxRuntime_development () {
 	        : function () {
 	            return null;
 	          };
-	    React$1 = {
+	    React = {
 	      react_stack_bottom_frame: function (callStackForError) {
 	        return callStackForError();
 	      }
 	    };
 	    var specialPropKeyWarningShown;
 	    var didWarnAboutElementRef = {};
-	    var unknownOwnerDebugStack = React$1.react_stack_bottom_frame.bind(
-	      React$1,
+	    var unknownOwnerDebugStack = React.react_stack_bottom_frame.bind(
+	      React,
 	      UnknownOwner
 	    )();
 	    var unknownOwnerDebugTask = createTask(getTaskName(UnknownOwner));
@@ -480,12 +460,12 @@ function composeRefs(...refs) {
   };
 }
 function useComposedRefs(...refs) {
-  return React__namespace.useCallback(composeRefs(...refs), refs);
+  return React.useCallback(composeRefs(...refs), refs);
 }
 
 // src/slot.tsx
 var REACT_LAZY_TYPE = Symbol.for("react.lazy");
-var use = React__namespace[" use ".trim().toString()];
+var use = React[" use ".trim().toString()];
 function isPromiseLike(value) {
   return typeof value === "object" && value !== null && "then" in value;
 }
@@ -495,24 +475,24 @@ function isLazyComponent(element) {
 // @__NO_SIDE_EFFECTS__
 function createSlot$1(ownerName) {
   const SlotClone = /* @__PURE__ */ createSlotClone$1(ownerName);
-  const Slot2 = React__namespace.forwardRef((props, forwardedRef) => {
+  const Slot2 = React.forwardRef((props, forwardedRef) => {
     let { children, ...slotProps } = props;
     if (isLazyComponent(children) && typeof use === "function") {
       children = use(children._payload);
     }
-    const childrenArray = React__namespace.Children.toArray(children);
+    const childrenArray = React.Children.toArray(children);
     const slottable = childrenArray.find(isSlottable$1);
     if (slottable) {
       const newElement = slottable.props.children;
       const newChildren = childrenArray.map((child) => {
         if (child === slottable) {
-          if (React__namespace.Children.count(newElement) > 1) return React__namespace.Children.only(null);
-          return React__namespace.isValidElement(newElement) ? newElement.props.children : null;
+          if (React.Children.count(newElement) > 1) return React.Children.only(null);
+          return React.isValidElement(newElement) ? newElement.props.children : null;
         } else {
           return child;
         }
       });
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children: React__namespace.isValidElement(newElement) ? React__namespace.cloneElement(newElement, void 0, newChildren) : null });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children: React.isValidElement(newElement) ? React.cloneElement(newElement, void 0, newChildren) : null });
     }
     return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children });
   });
@@ -522,27 +502,27 @@ function createSlot$1(ownerName) {
 var Slot$1 = /* @__PURE__ */ createSlot$1("Slot");
 // @__NO_SIDE_EFFECTS__
 function createSlotClone$1(ownerName) {
-  const SlotClone = React__namespace.forwardRef((props, forwardedRef) => {
+  const SlotClone = React.forwardRef((props, forwardedRef) => {
     let { children, ...slotProps } = props;
     if (isLazyComponent(children) && typeof use === "function") {
       children = use(children._payload);
     }
-    if (React__namespace.isValidElement(children)) {
+    if (React.isValidElement(children)) {
       const childrenRef = getElementRef$1(children);
       const props2 = mergeProps$1(slotProps, children.props);
-      if (children.type !== React__namespace.Fragment) {
+      if (children.type !== React.Fragment) {
         props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
       }
-      return React__namespace.cloneElement(children, props2);
+      return React.cloneElement(children, props2);
     }
-    return React__namespace.Children.count(children) > 1 ? React__namespace.Children.only(null) : null;
+    return React.Children.count(children) > 1 ? React.Children.only(null) : null;
   });
   SlotClone.displayName = `${ownerName}.SlotClone`;
   return SlotClone;
 }
 var SLOTTABLE_IDENTIFIER$1 = Symbol("radix.slottable");
 function isSlottable$1(child) {
-  return React__namespace.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER$1;
+  return React.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER$1;
 }
 function mergeProps$1(slotProps, childProps) {
   const overrideProps = { ...childProps };
@@ -679,7 +659,7 @@ var defaultAttributes = {
  */
 
 
-const Icon$1 = React.forwardRef(
+const Icon$1 = forwardRef(
   ({
     color = "currentColor",
     size = 24,
@@ -689,7 +669,7 @@ const Icon$1 = React.forwardRef(
     children,
     iconNode,
     ...rest
-  }, ref) => React.createElement(
+  }, ref) => createElement(
     "svg",
     {
       ref,
@@ -703,7 +683,7 @@ const Icon$1 = React.forwardRef(
       ...rest
     },
     [
-      ...iconNode.map(([tag, attrs]) => React.createElement(tag, attrs)),
+      ...iconNode.map(([tag, attrs]) => createElement(tag, attrs)),
       ...Array.isArray(children) ? children : [children]
     ]
   )
@@ -718,8 +698,8 @@ const Icon$1 = React.forwardRef(
 
 
 const createLucideIcon = (iconName, iconNode) => {
-  const Component = React.forwardRef(
-    ({ className, ...props }, ref) => React.createElement(Icon$1, {
+  const Component = forwardRef(
+    ({ className, ...props }, ref) => createElement(Icon$1, {
       ref,
       iconNode,
       className: mergeClasses(
@@ -18243,12 +18223,12 @@ var skeletonVariants = cva("inline-flex rounded-md bg-muted animate-pulse", {
     },
 });
 function PromButton(_a) {
-    var size = _a.size, variant = _a.variant, children = _a.children, disabled = _a.disabled, className = _a.className, loadingText = _a.loadingText, _b = _a.isLoad, isLoad = _b === void 0 ? false : _b, _c = _a.asChild, asChild = _c === void 0 ? false : _c, _d = _a.skeleton, skeleton = _d === void 0 ? false : _d, props = tslib.__rest(_a, ["size", "variant", "children", "disabled", "className", "loadingText", "isLoad", "asChild", "skeleton"]);
+    var size = _a.size, variant = _a.variant, children = _a.children, disabled = _a.disabled, className = _a.className, loadingText = _a.loadingText, _b = _a.isLoad, isLoad = _b === void 0 ? false : _b, _c = _a.asChild, asChild = _c === void 0 ? false : _c, _d = _a.skeleton, skeleton = _d === void 0 ? false : _d, props = __rest(_a, ["size", "variant", "children", "disabled", "className", "loadingText", "isLoad", "asChild", "skeleton"]);
     var Comp = asChild ? Slot$1 : "button";
     if (skeleton) {
         return (jsxRuntimeExports.jsx("div", { "data-slot": "button-skeleton", className: cn(skeletonVariants({ variant: variant, size: size, className: className })), children: jsxRuntimeExports.jsx("span", { className: "opacity-0", children: children }) }));
     }
-    return (jsxRuntimeExports.jsxs(Comp, tslib.__assign({ "data-slot": "button", className: cn(buttonVariants({ variant: variant, size: size, className: className })), disabled: disabled || isLoad }, props, { children: [isLoad && (jsxRuntimeExports.jsx(LoaderCircle, { className: "size-4 animate-spin", "data-slot": "button-loader" })), isLoad && loadingText ? loadingText : children] })));
+    return (jsxRuntimeExports.jsxs(Comp, __assign({ "data-slot": "button", className: cn(buttonVariants({ variant: variant, size: size, className: className })), disabled: disabled || isLoad }, props, { children: [isLoad && (jsxRuntimeExports.jsx(LoaderCircle, { className: "size-4 animate-spin", "data-slot": "button-loader" })), isLoad && loadingText ? loadingText : children] })));
 }
 
 // packages/core/number/src/number.ts
@@ -18270,19 +18250,19 @@ function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForD
 function createContextScope(scopeName, createContextScopeDeps = []) {
   let defaultContexts = [];
   function createContext3(rootComponentName, defaultContext) {
-    const BaseContext = React__namespace.createContext(defaultContext);
+    const BaseContext = React.createContext(defaultContext);
     const index = defaultContexts.length;
     defaultContexts = [...defaultContexts, defaultContext];
     const Provider = (props) => {
       const { scope, children, ...context } = props;
       const Context = scope?.[scopeName]?.[index] || BaseContext;
-      const value = React__namespace.useMemo(() => context, Object.values(context));
+      const value = React.useMemo(() => context, Object.values(context));
       return /* @__PURE__ */ jsxRuntimeExports.jsx(Context.Provider, { value, children });
     };
     Provider.displayName = rootComponentName + "Provider";
     function useContext2(consumerName, scope) {
       const Context = scope?.[scopeName]?.[index] || BaseContext;
-      const context = React__namespace.useContext(Context);
+      const context = React.useContext(Context);
       if (context) return context;
       if (defaultContext !== void 0) return defaultContext;
       throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
@@ -18291,11 +18271,11 @@ function createContextScope(scopeName, createContextScopeDeps = []) {
   }
   const createScope = () => {
     const scopeContexts = defaultContexts.map((defaultContext) => {
-      return React__namespace.createContext(defaultContext);
+      return React.createContext(defaultContext);
     });
     return function useScope(scope) {
       const contexts = scope?.[scopeName] || scopeContexts;
-      return React__namespace.useMemo(
+      return React.useMemo(
         () => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }),
         [scope, contexts]
       );
@@ -18318,7 +18298,7 @@ function composeContextScopes(...scopes) {
         const currentScope = scopeProps[`__scope${scopeName}`];
         return { ...nextScopes2, ...currentScope };
       }, {});
-      return React__namespace.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
+      return React.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
     };
   };
   createScope.scopeName = baseScope.scopeName;
@@ -18329,21 +18309,21 @@ function composeContextScopes(...scopes) {
 // @__NO_SIDE_EFFECTS__
 function createSlot(ownerName) {
   const SlotClone = /* @__PURE__ */ createSlotClone(ownerName);
-  const Slot2 = React__namespace.forwardRef((props, forwardedRef) => {
+  const Slot2 = React.forwardRef((props, forwardedRef) => {
     const { children, ...slotProps } = props;
-    const childrenArray = React__namespace.Children.toArray(children);
+    const childrenArray = React.Children.toArray(children);
     const slottable = childrenArray.find(isSlottable);
     if (slottable) {
       const newElement = slottable.props.children;
       const newChildren = childrenArray.map((child) => {
         if (child === slottable) {
-          if (React__namespace.Children.count(newElement) > 1) return React__namespace.Children.only(null);
-          return React__namespace.isValidElement(newElement) ? newElement.props.children : null;
+          if (React.Children.count(newElement) > 1) return React.Children.only(null);
+          return React.isValidElement(newElement) ? newElement.props.children : null;
         } else {
           return child;
         }
       });
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children: React__namespace.isValidElement(newElement) ? React__namespace.cloneElement(newElement, void 0, newChildren) : null });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children: React.isValidElement(newElement) ? React.cloneElement(newElement, void 0, newChildren) : null });
     }
     return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children });
   });
@@ -18352,24 +18332,24 @@ function createSlot(ownerName) {
 }
 // @__NO_SIDE_EFFECTS__
 function createSlotClone(ownerName) {
-  const SlotClone = React__namespace.forwardRef((props, forwardedRef) => {
+  const SlotClone = React.forwardRef((props, forwardedRef) => {
     const { children, ...slotProps } = props;
-    if (React__namespace.isValidElement(children)) {
+    if (React.isValidElement(children)) {
       const childrenRef = getElementRef(children);
       const props2 = mergeProps(slotProps, children.props);
-      if (children.type !== React__namespace.Fragment) {
+      if (children.type !== React.Fragment) {
         props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
       }
-      return React__namespace.cloneElement(children, props2);
+      return React.cloneElement(children, props2);
     }
-    return React__namespace.Children.count(children) > 1 ? React__namespace.Children.only(null) : null;
+    return React.Children.count(children) > 1 ? React.Children.only(null) : null;
   });
   SlotClone.displayName = `${ownerName}.SlotClone`;
   return SlotClone;
 }
 var SLOTTABLE_IDENTIFIER = Symbol("radix.slottable");
 function isSlottable(child) {
-  return React__namespace.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
+  return React.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
 }
 function mergeProps(slotProps, childProps) {
   const overrideProps = { ...childProps };
@@ -18418,14 +18398,14 @@ function createCollection(name) {
   );
   const CollectionProvider = (props) => {
     const { scope, children } = props;
-    const ref = React.useRef(null);
-    const itemMap = React.useRef(/* @__PURE__ */ new Map()).current;
+    const ref = React__default.useRef(null);
+    const itemMap = React__default.useRef(/* @__PURE__ */ new Map()).current;
     return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
   };
   CollectionProvider.displayName = PROVIDER_NAME;
   const COLLECTION_SLOT_NAME = name + "CollectionSlot";
   const CollectionSlotImpl = createSlot(COLLECTION_SLOT_NAME);
-  const CollectionSlot = React.forwardRef(
+  const CollectionSlot = React__default.forwardRef(
     (props, forwardedRef) => {
       const { scope, children } = props;
       const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
@@ -18437,13 +18417,13 @@ function createCollection(name) {
   const ITEM_SLOT_NAME = name + "CollectionItemSlot";
   const ITEM_DATA_ATTR = "data-radix-collection-item";
   const CollectionItemSlotImpl = createSlot(ITEM_SLOT_NAME);
-  const CollectionItemSlot = React.forwardRef(
+  const CollectionItemSlot = React__default.forwardRef(
     (props, forwardedRef) => {
       const { scope, children, ...itemData } = props;
-      const ref = React.useRef(null);
+      const ref = React__default.useRef(null);
       const composedRefs = useComposedRefs(forwardedRef, ref);
       const context = useCollectionContext(ITEM_SLOT_NAME, scope);
-      React.useEffect(() => {
+      React__default.useEffect(() => {
         context.itemMap.set(ref, { ref, ...itemData });
         return () => void context.itemMap.delete(ref);
       });
@@ -18453,7 +18433,7 @@ function createCollection(name) {
   CollectionItemSlot.displayName = ITEM_SLOT_NAME;
   function useCollection(scope) {
     const context = useCollectionContext(name + "CollectionConsumer", scope);
-    const getItems = React.useCallback(() => {
+    const getItems = React__default.useCallback(() => {
       const collectionNode = context.collectionRef.current;
       if (!collectionNode) return [];
       const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`));
@@ -18473,9 +18453,9 @@ function createCollection(name) {
 }
 
 // packages/react/direction/src/direction.tsx
-var DirectionContext = React__namespace.createContext(void 0);
+var DirectionContext = React.createContext(void 0);
 function useDirection(localDir) {
-  const globalDir = React__namespace.useContext(DirectionContext);
+  const globalDir = React.useContext(DirectionContext);
   return localDir || globalDir || "ltr";
 }
 
@@ -18501,7 +18481,7 @@ var NODES$1 = [
 ];
 var Primitive$1 = NODES$1.reduce((primitive, node) => {
   const Slot = createSlot(`Primitive.${node}`);
-  const Node = React__namespace.forwardRef((props, forwardedRef) => {
+  const Node = React.forwardRef((props, forwardedRef) => {
     const { asChild, ...primitiveProps } = props;
     const Comp = asChild ? Slot : node;
     if (typeof window !== "undefined") {
@@ -18513,22 +18493,22 @@ var Primitive$1 = NODES$1.reduce((primitive, node) => {
   return { ...primitive, [node]: Node };
 }, {});
 function dispatchDiscreteCustomEvent(target, event) {
-  if (target) ReactDOM__namespace.flushSync(() => target.dispatchEvent(event));
+  if (target) ReactDOM.flushSync(() => target.dispatchEvent(event));
 }
 
 // packages/react/use-callback-ref/src/use-callback-ref.tsx
 function useCallbackRef$1(callback) {
-  const callbackRef = React__namespace.useRef(callback);
-  React__namespace.useEffect(() => {
+  const callbackRef = React.useRef(callback);
+  React.useEffect(() => {
     callbackRef.current = callback;
   });
-  return React__namespace.useMemo(() => (...args) => callbackRef.current?.(...args), []);
+  return React.useMemo(() => (...args) => callbackRef.current?.(...args), []);
 }
 
 // packages/react/use-escape-keydown/src/use-escape-keydown.tsx
 function useEscapeKeydown(onEscapeKeyDownProp, ownerDocument = globalThis?.document) {
   const onEscapeKeyDown = useCallbackRef$1(onEscapeKeyDownProp);
-  React__namespace.useEffect(() => {
+  React.useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         onEscapeKeyDown(event);
@@ -18544,12 +18524,12 @@ var CONTEXT_UPDATE = "dismissableLayer.update";
 var POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside";
 var FOCUS_OUTSIDE = "dismissableLayer.focusOutside";
 var originalBodyPointerEvents;
-var DismissableLayerContext = React__namespace.createContext({
+var DismissableLayerContext = React.createContext({
   layers: /* @__PURE__ */ new Set(),
   layersWithOutsidePointerEventsDisabled: /* @__PURE__ */ new Set(),
   branches: /* @__PURE__ */ new Set()
 });
-var DismissableLayer = React__namespace.forwardRef(
+var DismissableLayer = React.forwardRef(
   (props, forwardedRef) => {
     const {
       disableOutsidePointerEvents = false,
@@ -18560,10 +18540,10 @@ var DismissableLayer = React__namespace.forwardRef(
       onDismiss,
       ...layerProps
     } = props;
-    const context = React__namespace.useContext(DismissableLayerContext);
-    const [node, setNode] = React__namespace.useState(null);
+    const context = React.useContext(DismissableLayerContext);
+    const [node, setNode] = React.useState(null);
     const ownerDocument = node?.ownerDocument ?? globalThis?.document;
-    const [, force] = React__namespace.useState({});
+    const [, force] = React.useState({});
     const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
     const layers = Array.from(context.layers);
     const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
@@ -18596,7 +18576,7 @@ var DismissableLayer = React__namespace.forwardRef(
         onDismiss();
       }
     }, ownerDocument);
-    React__namespace.useEffect(() => {
+    React.useEffect(() => {
       if (!node) return;
       if (disableOutsidePointerEvents) {
         if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
@@ -18613,7 +18593,7 @@ var DismissableLayer = React__namespace.forwardRef(
         }
       };
     }, [node, ownerDocument, disableOutsidePointerEvents, context]);
-    React__namespace.useEffect(() => {
+    React.useEffect(() => {
       return () => {
         if (!node) return;
         context.layers.delete(node);
@@ -18621,7 +18601,7 @@ var DismissableLayer = React__namespace.forwardRef(
         dispatchUpdate();
       };
     }, [node, context]);
-    React__namespace.useEffect(() => {
+    React.useEffect(() => {
       const handleUpdate = () => force({});
       document.addEventListener(CONTEXT_UPDATE, handleUpdate);
       return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
@@ -18647,11 +18627,11 @@ var DismissableLayer = React__namespace.forwardRef(
 );
 DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
 var BRANCH_NAME = "DismissableLayerBranch";
-var DismissableLayerBranch = React__namespace.forwardRef((props, forwardedRef) => {
-  const context = React__namespace.useContext(DismissableLayerContext);
-  const ref = React__namespace.useRef(null);
+var DismissableLayerBranch = React.forwardRef((props, forwardedRef) => {
+  const context = React.useContext(DismissableLayerContext);
+  const ref = React.useRef(null);
   const composedRefs = useComposedRefs(forwardedRef, ref);
-  React__namespace.useEffect(() => {
+  React.useEffect(() => {
     const node = ref.current;
     if (node) {
       context.branches.add(node);
@@ -18665,10 +18645,10 @@ var DismissableLayerBranch = React__namespace.forwardRef((props, forwardedRef) =
 DismissableLayerBranch.displayName = BRANCH_NAME;
 function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis?.document) {
   const handlePointerDownOutside = useCallbackRef$1(onPointerDownOutside);
-  const isPointerInsideReactTreeRef = React__namespace.useRef(false);
-  const handleClickRef = React__namespace.useRef(() => {
+  const isPointerInsideReactTreeRef = React.useRef(false);
+  const handleClickRef = React.useRef(() => {
   });
-  React__namespace.useEffect(() => {
+  React.useEffect(() => {
     const handlePointerDown = (event) => {
       if (event.target && !isPointerInsideReactTreeRef.current) {
         let handleAndDispatchPointerDownOutsideEvent2 = function() {
@@ -18708,8 +18688,8 @@ function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis?
 }
 function useFocusOutside(onFocusOutside, ownerDocument = globalThis?.document) {
   const handleFocusOutside = useCallbackRef$1(onFocusOutside);
-  const isFocusInsideReactTreeRef = React__namespace.useRef(false);
-  React__namespace.useEffect(() => {
+  const isFocusInsideReactTreeRef = React.useRef(false);
+  React.useEffect(() => {
     const handleFocus = (event) => {
       if (event.target && !isFocusInsideReactTreeRef.current) {
         const eventDetail = { originalEvent: event };
@@ -18743,7 +18723,7 @@ function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
 
 var count$1 = 0;
 function useFocusGuards() {
-  React__namespace.useEffect(() => {
+  React.useEffect(() => {
     const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
     document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
     document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
@@ -18771,7 +18751,7 @@ var AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount";
 var AUTOFOCUS_ON_UNMOUNT = "focusScope.autoFocusOnUnmount";
 var EVENT_OPTIONS = { bubbles: false, cancelable: true };
 var FOCUS_SCOPE_NAME = "FocusScope";
-var FocusScope = React__namespace.forwardRef((props, forwardedRef) => {
+var FocusScope = React.forwardRef((props, forwardedRef) => {
   const {
     loop = false,
     trapped = false,
@@ -18779,12 +18759,12 @@ var FocusScope = React__namespace.forwardRef((props, forwardedRef) => {
     onUnmountAutoFocus: onUnmountAutoFocusProp,
     ...scopeProps
   } = props;
-  const [container, setContainer] = React__namespace.useState(null);
+  const [container, setContainer] = React.useState(null);
   const onMountAutoFocus = useCallbackRef$1(onMountAutoFocusProp);
   const onUnmountAutoFocus = useCallbackRef$1(onUnmountAutoFocusProp);
-  const lastFocusedElementRef = React__namespace.useRef(null);
+  const lastFocusedElementRef = React.useRef(null);
   const composedRefs = useComposedRefs(forwardedRef, (node) => setContainer(node));
-  const focusScope = React__namespace.useRef({
+  const focusScope = React.useRef({
     paused: false,
     pause() {
       this.paused = true;
@@ -18793,7 +18773,7 @@ var FocusScope = React__namespace.forwardRef((props, forwardedRef) => {
       this.paused = false;
     }
   }).current;
-  React__namespace.useEffect(() => {
+  React.useEffect(() => {
     if (trapped) {
       let handleFocusIn2 = function(event) {
         if (focusScope.paused || !container) return;
@@ -18828,7 +18808,7 @@ var FocusScope = React__namespace.forwardRef((props, forwardedRef) => {
       };
     }
   }, [trapped, container, focusScope.paused]);
-  React__namespace.useEffect(() => {
+  React.useEffect(() => {
     if (container) {
       focusScopesStack.add(focusScope);
       const previouslyFocusedElement = document.activeElement;
@@ -18859,7 +18839,7 @@ var FocusScope = React__namespace.forwardRef((props, forwardedRef) => {
       };
     }
   }, [container, onMountAutoFocus, onUnmountAutoFocus, focusScope]);
-  const handleKeyDown = React__namespace.useCallback(
+  const handleKeyDown = React.useCallback(
     (event) => {
       if (!loop && !trapped) return;
       if (focusScope.paused) return;
@@ -18968,14 +18948,14 @@ function removeLinks(items) {
 }
 
 // packages/react/use-layout-effect/src/use-layout-effect.tsx
-var useLayoutEffect2 = globalThis?.document ? React__namespace.useLayoutEffect : () => {
+var useLayoutEffect2 = globalThis?.document ? React.useLayoutEffect : () => {
 };
 
 // packages/react/id/src/id.tsx
-var useReactId = React__namespace[" useId ".trim().toString()] || (() => void 0);
+var useReactId = React[" useId ".trim().toString()] || (() => void 0);
 var count = 0;
 function useId(deterministicId) {
-  const [id, setId] = React__namespace.useState(useReactId());
+  const [id, setId] = React.useState(useReactId());
   useLayoutEffect2(() => {
     setId((reactId) => reactId ?? String(count++));
   }, [deterministicId]);
@@ -20838,7 +20818,7 @@ const computePosition = (reference, floating, options) => {
 var isClient = typeof document !== 'undefined';
 
 var noop = function noop() {};
-var index = isClient ? React.useLayoutEffect : noop;
+var index = isClient ? useLayoutEffect : noop;
 
 // Fork of `fast-deep-equal` that only does the comparisons we need and compares
 // functions
@@ -20904,7 +20884,7 @@ function roundByDPR(element, value) {
 }
 
 function useLatestRef(value) {
-  const ref = React__namespace.useRef(value);
+  const ref = React.useRef(value);
   index(() => {
     ref.current = value;
   });
@@ -20932,7 +20912,7 @@ function useFloating(options) {
     whileElementsMounted,
     open
   } = options;
-  const [data, setData] = React__namespace.useState({
+  const [data, setData] = React.useState({
     x: 0,
     y: 0,
     strategy,
@@ -20940,19 +20920,19 @@ function useFloating(options) {
     middlewareData: {},
     isPositioned: false
   });
-  const [latestMiddleware, setLatestMiddleware] = React__namespace.useState(middleware);
+  const [latestMiddleware, setLatestMiddleware] = React.useState(middleware);
   if (!deepEqual(latestMiddleware, middleware)) {
     setLatestMiddleware(middleware);
   }
-  const [_reference, _setReference] = React__namespace.useState(null);
-  const [_floating, _setFloating] = React__namespace.useState(null);
-  const setReference = React__namespace.useCallback(node => {
+  const [_reference, _setReference] = React.useState(null);
+  const [_floating, _setFloating] = React.useState(null);
+  const setReference = React.useCallback(node => {
     if (node !== referenceRef.current) {
       referenceRef.current = node;
       _setReference(node);
     }
   }, []);
-  const setFloating = React__namespace.useCallback(node => {
+  const setFloating = React.useCallback(node => {
     if (node !== floatingRef.current) {
       floatingRef.current = node;
       _setFloating(node);
@@ -20960,14 +20940,14 @@ function useFloating(options) {
   }, []);
   const referenceEl = externalReference || _reference;
   const floatingEl = externalFloating || _floating;
-  const referenceRef = React__namespace.useRef(null);
-  const floatingRef = React__namespace.useRef(null);
-  const dataRef = React__namespace.useRef(data);
+  const referenceRef = React.useRef(null);
+  const floatingRef = React.useRef(null);
+  const dataRef = React.useRef(data);
   const hasWhileElementsMounted = whileElementsMounted != null;
   const whileElementsMountedRef = useLatestRef(whileElementsMounted);
   const platformRef = useLatestRef(platform);
   const openRef = useLatestRef(open);
-  const update = React__namespace.useCallback(() => {
+  const update = React.useCallback(() => {
     if (!referenceRef.current || !floatingRef.current) {
       return;
     }
@@ -20990,7 +20970,7 @@ function useFloating(options) {
       };
       if (isMountedRef.current && !deepEqual(dataRef.current, fullData)) {
         dataRef.current = fullData;
-        ReactDOM__namespace.flushSync(() => {
+        ReactDOM.flushSync(() => {
           setData(fullData);
         });
       }
@@ -21005,7 +20985,7 @@ function useFloating(options) {
       }));
     }
   }, [open]);
-  const isMountedRef = React__namespace.useRef(false);
+  const isMountedRef = React.useRef(false);
   index(() => {
     isMountedRef.current = true;
     return () => {
@@ -21022,17 +21002,17 @@ function useFloating(options) {
       update();
     }
   }, [referenceEl, floatingEl, update, whileElementsMountedRef, hasWhileElementsMounted]);
-  const refs = React__namespace.useMemo(() => ({
+  const refs = React.useMemo(() => ({
     reference: referenceRef,
     floating: floatingRef,
     setReference,
     setFloating
   }), [setReference, setFloating]);
-  const elements = React__namespace.useMemo(() => ({
+  const elements = React.useMemo(() => ({
     reference: referenceEl,
     floating: floatingEl
   }), [referenceEl, floatingEl]);
-  const floatingStyles = React__namespace.useMemo(() => {
+  const floatingStyles = React.useMemo(() => {
     const initialStyles = {
       position: strategy,
       left: 0,
@@ -21058,7 +21038,7 @@ function useFloating(options) {
       top: y
     };
   }, [strategy, transform, elements.floating, data.x, data.y]);
-  return React__namespace.useMemo(() => ({
+  return React.useMemo(() => ({
     ...data,
     update,
     refs,
@@ -21180,7 +21160,7 @@ const arrow = (options, deps) => ({
 
 // src/arrow.tsx
 var NAME$2 = "Arrow";
-var Arrow$1 = React__namespace.forwardRef((props, forwardedRef) => {
+var Arrow$1 = React.forwardRef((props, forwardedRef) => {
   const { children, width = 10, height = 5, ...arrowProps } = props;
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     Primitive$1.svg,
@@ -21200,7 +21180,7 @@ var Root$2 = Arrow$1;
 
 // packages/react/use-size/src/use-size.tsx
 function useSize(element) {
-  const [size, setSize] = React__namespace.useState(void 0);
+  const [size, setSize] = React.useState(void 0);
   useLayoutEffect2(() => {
     if (element) {
       setSize({ width: element.offsetWidth, height: element.offsetHeight });
@@ -21239,19 +21219,19 @@ var [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
 var [PopperProvider, usePopperContext] = createPopperContext(POPPER_NAME);
 var Popper = (props) => {
   const { __scopePopper, children } = props;
-  const [anchor, setAnchor] = React__namespace.useState(null);
+  const [anchor, setAnchor] = React.useState(null);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
 };
 Popper.displayName = POPPER_NAME;
 var ANCHOR_NAME = "PopperAnchor";
-var PopperAnchor = React__namespace.forwardRef(
+var PopperAnchor = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopePopper, virtualRef, ...anchorProps } = props;
     const context = usePopperContext(ANCHOR_NAME, __scopePopper);
-    const ref = React__namespace.useRef(null);
+    const ref = React.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
-    const anchorRef = React__namespace.useRef(null);
-    React__namespace.useEffect(() => {
+    const anchorRef = React.useRef(null);
+    React.useEffect(() => {
       const previousAnchor = anchorRef.current;
       anchorRef.current = virtualRef?.current || ref.current;
       if (previousAnchor !== anchorRef.current) {
@@ -21264,7 +21244,7 @@ var PopperAnchor = React__namespace.forwardRef(
 PopperAnchor.displayName = ANCHOR_NAME;
 var CONTENT_NAME$1 = "PopperContent";
 var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$1);
-var PopperContent = React__namespace.forwardRef(
+var PopperContent = React.forwardRef(
   (props, forwardedRef) => {
     const {
       __scopePopper,
@@ -21283,9 +21263,9 @@ var PopperContent = React__namespace.forwardRef(
       ...contentProps
     } = props;
     const context = usePopperContext(CONTENT_NAME$1, __scopePopper);
-    const [content, setContent] = React__namespace.useState(null);
+    const [content, setContent] = React.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [arrow$1, setArrow] = React__namespace.useState(null);
+    const [arrow$1, setArrow] = React.useState(null);
     const arrowSize = useSize(arrow$1);
     const arrowWidth = arrowSize?.width ?? 0;
     const arrowHeight = arrowSize?.height ?? 0;
@@ -21347,7 +21327,7 @@ var PopperContent = React__namespace.forwardRef(
     const arrowX = middlewareData.arrow?.x;
     const arrowY = middlewareData.arrow?.y;
     const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
-    const [contentZIndex, setContentZIndex] = React__namespace.useState();
+    const [contentZIndex, setContentZIndex] = React.useState();
     useLayoutEffect2(() => {
       if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
     }, [content]);
@@ -21413,7 +21393,7 @@ var OPPOSITE_SIDE = {
   bottom: "top",
   left: "right"
 };
-var PopperArrow = React__namespace.forwardRef(function PopperArrow2(props, forwardedRef) {
+var PopperArrow = React.forwardRef(function PopperArrow2(props, forwardedRef) {
   const { __scopePopper, ...arrowProps } = props;
   const contentContext = useContentContext(ARROW_NAME$1, __scopePopper);
   const baseSide = OPPOSITE_SIDE[contentContext.placedSide];
@@ -21505,17 +21485,17 @@ var Content = PopperContent;
 var Arrow = PopperArrow;
 
 var PORTAL_NAME$1 = "Portal";
-var Portal$1 = React__namespace.forwardRef((props, forwardedRef) => {
+var Portal$1 = React.forwardRef((props, forwardedRef) => {
   const { container: containerProp, ...portalProps } = props;
-  const [mounted, setMounted] = React__namespace.useState(false);
+  const [mounted, setMounted] = React.useState(false);
   useLayoutEffect2(() => setMounted(true), []);
   const container = containerProp || mounted && globalThis?.document?.body;
-  return container ? ReactDOM.createPortal(/* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { ...portalProps, ref: forwardedRef }), container) : null;
+  return container ? ReactDOM__default.createPortal(/* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { ...portalProps, ref: forwardedRef }), container) : null;
 });
 Portal$1.displayName = PORTAL_NAME$1;
 
 // src/use-controllable-state.tsx
-var useInsertionEffect = React__namespace[" useInsertionEffect ".trim().toString()] || useLayoutEffect2;
+var useInsertionEffect = React[" useInsertionEffect ".trim().toString()] || useLayoutEffect2;
 function useControllableState({
   prop,
   defaultProp,
@@ -21530,8 +21510,8 @@ function useControllableState({
   const isControlled = prop !== void 0;
   const value = isControlled ? prop : uncontrolledProp;
   {
-    const isControlledRef = React__namespace.useRef(prop !== void 0);
-    React__namespace.useEffect(() => {
+    const isControlledRef = React.useRef(prop !== void 0);
+    React.useEffect(() => {
       const wasControlled = isControlledRef.current;
       if (wasControlled !== isControlled) {
         const from = wasControlled ? "controlled" : "uncontrolled";
@@ -21543,7 +21523,7 @@ function useControllableState({
       isControlledRef.current = isControlled;
     }, [isControlled, caller]);
   }
-  const setValue = React__namespace.useCallback(
+  const setValue = React.useCallback(
     (nextValue) => {
       if (isControlled) {
         const value2 = isFunction(nextValue) ? nextValue(prop) : nextValue;
@@ -21562,13 +21542,13 @@ function useUncontrolledState({
   defaultProp,
   onChange
 }) {
-  const [value, setValue] = React__namespace.useState(defaultProp);
-  const prevValueRef = React__namespace.useRef(value);
-  const onChangeRef = React__namespace.useRef(onChange);
+  const [value, setValue] = React.useState(defaultProp);
+  const prevValueRef = React.useRef(value);
+  const onChangeRef = React.useRef(onChange);
   useInsertionEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
-  React__namespace.useEffect(() => {
+  React.useEffect(() => {
     if (prevValueRef.current !== value) {
       onChangeRef.current?.(value);
       prevValueRef.current = value;
@@ -21582,8 +21562,8 @@ function isFunction(value) {
 
 // packages/react/use-previous/src/use-previous.tsx
 function usePrevious(value) {
-  const ref = React__namespace.useRef({ value, previous: value });
-  return React__namespace.useMemo(() => {
+  const ref = React.useRef({ value, previous: value });
+  return React.useMemo(() => {
     if (ref.current.value !== value) {
       ref.current.previous = ref.current.value;
       ref.current.value = value;
@@ -21607,7 +21587,7 @@ var VISUALLY_HIDDEN_STYLES = Object.freeze({
   wordWrap: "normal"
 });
 var NAME$1 = "VisuallyHidden";
-var VisuallyHidden = React__namespace.forwardRef(
+var VisuallyHidden = React.forwardRef(
   (props, forwardedRef) => {
     return /* @__PURE__ */ jsxRuntimeExports.jsx(
       Primitive$1.span,
@@ -21804,7 +21784,7 @@ function assignRef(ref, value) {
  * @returns {MutableRefObject}
  */
 function useCallbackRef(initialValue, callback) {
-    var ref = React.useState(function () { return ({
+    var ref = useState(function () { return ({
         // value
         value: initialValue,
         // last callback
@@ -21828,7 +21808,7 @@ function useCallbackRef(initialValue, callback) {
     return ref.facade;
 }
 
-var useIsomorphicLayoutEffect = typeof window !== 'undefined' ? React__namespace.useLayoutEffect : React__namespace.useEffect;
+var useIsomorphicLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 var currentValues = new WeakMap();
 /**
  * Merges two or more refs together providing a single interface to set their value
@@ -21941,12 +21921,12 @@ function innerCreateMedium(defaults, middleware) {
 function createSidecarMedium(options) {
     if (options === void 0) { options = {}; }
     var medium = innerCreateMedium(null);
-    medium.options = tslib.__assign({ async: true, ssr: false }, options);
+    medium.options = __assign({ async: true, ssr: false }, options);
     return medium;
 }
 
 var SideCar$1 = function (_a) {
-    var sideCar = _a.sideCar, rest = tslib.__rest(_a, ["sideCar"]);
+    var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
     if (!sideCar) {
         throw new Error('Sidecar: please provide `sideCar` property to import the right car');
     }
@@ -21954,7 +21934,7 @@ var SideCar$1 = function (_a) {
     if (!Target) {
         throw new Error('Sidecar medium not found');
     }
-    return React__namespace.createElement(Target, tslib.__assign({}, rest));
+    return React.createElement(Target, __assign({}, rest));
 };
 SideCar$1.isSideCarExport = true;
 function exportSidecar(medium, exported) {
@@ -21970,20 +21950,20 @@ var nothing = function () {
 /**
  * Removes scrollbar from the page and contain the scroll within the Lock
  */
-var RemoveScroll = React__namespace.forwardRef(function (props, parentRef) {
-    var ref = React__namespace.useRef(null);
-    var _a = React__namespace.useState({
+var RemoveScroll = React.forwardRef(function (props, parentRef) {
+    var ref = React.useRef(null);
+    var _a = React.useState({
         onScrollCapture: nothing,
         onWheelCapture: nothing,
         onTouchMoveCapture: nothing,
     }), callbacks = _a[0], setCallbacks = _a[1];
-    var forwardProps = props.forwardProps, children = props.children, className = props.className, removeScrollBar = props.removeScrollBar, enabled = props.enabled, shards = props.shards, sideCar = props.sideCar, noRelative = props.noRelative, noIsolation = props.noIsolation, inert = props.inert, allowPinchZoom = props.allowPinchZoom, _b = props.as, Container = _b === void 0 ? 'div' : _b, gapMode = props.gapMode, rest = tslib.__rest(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
+    var forwardProps = props.forwardProps, children = props.children, className = props.className, removeScrollBar = props.removeScrollBar, enabled = props.enabled, shards = props.shards, sideCar = props.sideCar, noRelative = props.noRelative, noIsolation = props.noIsolation, inert = props.inert, allowPinchZoom = props.allowPinchZoom, _b = props.as, Container = _b === void 0 ? 'div' : _b, gapMode = props.gapMode, rest = __rest(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
     var SideCar = sideCar;
     var containerRef = useMergeRefs([ref, parentRef]);
-    var containerProps = tslib.__assign(tslib.__assign({}, rest), callbacks);
-    return (React__namespace.createElement(React__namespace.Fragment, null,
-        enabled && (React__namespace.createElement(SideCar, { sideCar: effectCar, removeScrollBar: removeScrollBar, shards: shards, noRelative: noRelative, noIsolation: noIsolation, inert: inert, setCallbacks: setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode: gapMode })),
-        forwardProps ? (React__namespace.cloneElement(React__namespace.Children.only(children), tslib.__assign(tslib.__assign({}, containerProps), { ref: containerRef }))) : (React__namespace.createElement(Container, tslib.__assign({}, containerProps, { className: className, ref: containerRef }), children))));
+    var containerProps = __assign(__assign({}, rest), callbacks);
+    return (React.createElement(React.Fragment, null,
+        enabled && (React.createElement(SideCar, { sideCar: effectCar, removeScrollBar: removeScrollBar, shards: shards, noRelative: noRelative, noIsolation: noIsolation, inert: inert, setCallbacks: setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode: gapMode })),
+        forwardProps ? (React.cloneElement(React.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef }))) : (React.createElement(Container, __assign({}, containerProps, { className: className, ref: containerRef }), children))));
 });
 RemoveScroll.defaultProps = {
     enabled: true,
@@ -22062,7 +22042,7 @@ var stylesheetSingleton = function () {
 var styleHookSingleton = function () {
     var sheet = stylesheetSingleton();
     return function (styles, isDynamic) {
-        React__namespace.useEffect(function () {
+        React.useEffect(function () {
             sheet.add(styles);
             return function () {
                 sheet.remove();
@@ -22139,7 +22119,7 @@ var getCurrentUseCounter = function () {
     return isFinite(counter) ? counter : 0;
 };
 var useLockAttribute = function () {
-    React__namespace.useEffect(function () {
+    React.useEffect(function () {
         document.body.setAttribute(lockAttribute, (getCurrentUseCounter() + 1).toString());
         return function () {
             var newCounter = getCurrentUseCounter() - 1;
@@ -22163,8 +22143,8 @@ var RemoveScrollBar = function (_a) {
      however it will be used only by the "first" invocation
      due to singleton nature of <Style
      */
-    var gap = React__namespace.useMemo(function () { return getGapWidth(gapMode); }, [gapMode]);
-    return React__namespace.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? '!important' : '') });
+    var gap = React.useMemo(function () { return getGapWidth(gapMode); }, [gapMode]);
+    return React.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? '!important' : '') });
 };
 
 var passiveSupported = false;
@@ -22308,19 +22288,19 @@ var generateStyle = function (id) { return "\n  .block-interactivity-".concat(id
 var idCounter = 0;
 var lockStack = [];
 function RemoveScrollSideCar(props) {
-    var shouldPreventQueue = React__namespace.useRef([]);
-    var touchStartRef = React__namespace.useRef([0, 0]);
-    var activeAxis = React__namespace.useRef();
-    var id = React__namespace.useState(idCounter++)[0];
-    var Style = React__namespace.useState(styleSingleton)[0];
-    var lastProps = React__namespace.useRef(props);
-    React__namespace.useEffect(function () {
+    var shouldPreventQueue = React.useRef([]);
+    var touchStartRef = React.useRef([0, 0]);
+    var activeAxis = React.useRef();
+    var id = React.useState(idCounter++)[0];
+    var Style = React.useState(styleSingleton)[0];
+    var lastProps = React.useRef(props);
+    React.useEffect(function () {
         lastProps.current = props;
     }, [props]);
-    React__namespace.useEffect(function () {
+    React.useEffect(function () {
         if (props.inert) {
             document.body.classList.add("block-interactivity-".concat(id));
-            var allow_1 = tslib.__spreadArray([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
+            var allow_1 = __spreadArray([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
             allow_1.forEach(function (el) { return el.classList.add("allow-interactivity-".concat(id)); });
             return function () {
                 document.body.classList.remove("block-interactivity-".concat(id));
@@ -22329,7 +22309,7 @@ function RemoveScrollSideCar(props) {
         }
         return;
     }, [props.inert, props.lockRef.current, props.shards]);
-    var shouldCancelEvent = React__namespace.useCallback(function (event, parent) {
+    var shouldCancelEvent = React.useCallback(function (event, parent) {
         if (('touches' in event && event.touches.length === 2) || (event.type === 'wheel' && event.ctrlKey)) {
             return !lastProps.current.allowPinchZoom;
         }
@@ -22375,7 +22355,7 @@ function RemoveScrollSideCar(props) {
         var cancelingAxis = activeAxis.current || currentAxis;
         return handleScroll(cancelingAxis, parent, event, cancelingAxis === 'h' ? deltaX : deltaY);
     }, []);
-    var shouldPrevent = React__namespace.useCallback(function (_event) {
+    var shouldPrevent = React.useCallback(function (_event) {
         var event = _event;
         if (!lockStack.length || lockStack[lockStack.length - 1] !== Style) {
             // not the last active
@@ -22404,24 +22384,24 @@ function RemoveScrollSideCar(props) {
             }
         }
     }, []);
-    var shouldCancel = React__namespace.useCallback(function (name, delta, target, should) {
+    var shouldCancel = React.useCallback(function (name, delta, target, should) {
         var event = { name: name, delta: delta, target: target, should: should, shadowParent: getOutermostShadowParent(target) };
         shouldPreventQueue.current.push(event);
         setTimeout(function () {
             shouldPreventQueue.current = shouldPreventQueue.current.filter(function (e) { return e !== event; });
         }, 1);
     }, []);
-    var scrollTouchStart = React__namespace.useCallback(function (event) {
+    var scrollTouchStart = React.useCallback(function (event) {
         touchStartRef.current = getTouchXY(event);
         activeAxis.current = undefined;
     }, []);
-    var scrollWheel = React__namespace.useCallback(function (event) {
+    var scrollWheel = React.useCallback(function (event) {
         shouldCancel(event.type, getDeltaXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
     }, []);
-    var scrollTouchMove = React__namespace.useCallback(function (event) {
+    var scrollTouchMove = React.useCallback(function (event) {
         shouldCancel(event.type, getTouchXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
     }, []);
-    React__namespace.useEffect(function () {
+    React.useEffect(function () {
         lockStack.push(Style);
         props.setCallbacks({
             onScrollCapture: scrollWheel,
@@ -22439,9 +22419,9 @@ function RemoveScrollSideCar(props) {
         };
     }, []);
     var removeScrollBar = props.removeScrollBar, inert = props.inert;
-    return (React__namespace.createElement(React__namespace.Fragment, null,
-        inert ? React__namespace.createElement(Style, { styles: generateStyle(id) }) : null,
-        removeScrollBar ? React__namespace.createElement(RemoveScrollBar, { noRelative: props.noRelative, gapMode: props.gapMode }) : null));
+    return (React.createElement(React.Fragment, null,
+        inert ? React.createElement(Style, { styles: generateStyle(id) }) : null,
+        removeScrollBar ? React.createElement(RemoveScrollBar, { noRelative: props.noRelative, gapMode: props.gapMode }) : null));
 }
 function getOutermostShadowParent(node) {
     var shadowParent = null;
@@ -22457,7 +22437,7 @@ function getOutermostShadowParent(node) {
 
 var SideCar = exportSidecar(effectCar, RemoveScrollSideCar);
 
-var ReactRemoveScroll = React__namespace.forwardRef(function (props, ref) { return (React__namespace.createElement(RemoveScroll, tslib.__assign({}, props, { ref: ref, sideCar: SideCar }))); });
+var ReactRemoveScroll = React.forwardRef(function (props, ref) { return (React.createElement(RemoveScroll, __assign({}, props, { ref: ref, sideCar: SideCar }))); });
 ReactRemoveScroll.classNames = RemoveScroll.classNames;
 
 var OPEN_KEYS = [" ", "Enter", "ArrowUp", "ArrowDown"];
@@ -22489,9 +22469,9 @@ var Select = (props) => {
     form
   } = props;
   const popperScope = usePopperScope(__scopeSelect);
-  const [trigger, setTrigger] = React__namespace.useState(null);
-  const [valueNode, setValueNode] = React__namespace.useState(null);
-  const [valueNodeHasChildren, setValueNodeHasChildren] = React__namespace.useState(false);
+  const [trigger, setTrigger] = React.useState(null);
+  const [valueNode, setValueNode] = React.useState(null);
+  const [valueNodeHasChildren, setValueNodeHasChildren] = React.useState(false);
   const direction = useDirection(dir);
   const [open, setOpen] = useControllableState({
     prop: openProp,
@@ -22505,9 +22485,9 @@ var Select = (props) => {
     onChange: onValueChange,
     caller: SELECT_NAME
   });
-  const triggerPointerDownPosRef = React__namespace.useRef(null);
+  const triggerPointerDownPosRef = React.useRef(null);
   const isFormControl = trigger ? form || !!trigger.closest("form") : true;
-  const [nativeOptionsSet, setNativeOptionsSet] = React__namespace.useState(/* @__PURE__ */ new Set());
+  const [nativeOptionsSet, setNativeOptionsSet] = React.useState(/* @__PURE__ */ new Set());
   const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Root2$1, { ...popperScope, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
     SelectProvider,
@@ -22533,10 +22513,10 @@ var Select = (props) => {
           SelectNativeOptionsProvider,
           {
             scope: props.__scopeSelect,
-            onNativeOptionAdd: React__namespace.useCallback((option) => {
+            onNativeOptionAdd: React.useCallback((option) => {
               setNativeOptionsSet((prev) => new Set(prev).add(option));
             }, []),
-            onNativeOptionRemove: React__namespace.useCallback((option) => {
+            onNativeOptionRemove: React.useCallback((option) => {
               setNativeOptionsSet((prev) => {
                 const optionsSet = new Set(prev);
                 optionsSet.delete(option);
@@ -22571,7 +22551,7 @@ var Select = (props) => {
 };
 Select.displayName = SELECT_NAME;
 var TRIGGER_NAME = "SelectTrigger";
-var SelectTrigger = React__namespace.forwardRef(
+var SelectTrigger = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, disabled = false, ...triggerProps } = props;
     const popperScope = usePopperScope(__scopeSelect);
@@ -22579,7 +22559,7 @@ var SelectTrigger = React__namespace.forwardRef(
     const isDisabled = context.disabled || disabled;
     const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
     const getItems = useCollection(__scopeSelect);
-    const pointerTypeRef = React__namespace.useRef("touch");
+    const pointerTypeRef = React.useRef("touch");
     const [searchRef, handleTypeaheadSearch, resetTypeahead] = useTypeaheadSearch((search) => {
       const enabledItems = getItems().filter((item) => !item.disabled);
       const currentItem = enabledItems.find((item) => item.value === context.value);
@@ -22649,7 +22629,7 @@ var SelectTrigger = React__namespace.forwardRef(
 );
 SelectTrigger.displayName = TRIGGER_NAME;
 var VALUE_NAME = "SelectValue";
-var SelectValue = React__namespace.forwardRef(
+var SelectValue = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, className, style, children, placeholder = "", ...valueProps } = props;
     const context = useSelectContext(VALUE_NAME, __scopeSelect);
@@ -22672,7 +22652,7 @@ var SelectValue = React__namespace.forwardRef(
 );
 SelectValue.displayName = VALUE_NAME;
 var ICON_NAME = "SelectIcon";
-var SelectIcon = React__namespace.forwardRef(
+var SelectIcon = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, children, ...iconProps } = props;
     return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.span, { "aria-hidden": true, ...iconProps, ref: forwardedRef, children: children || "\u25BC" });
@@ -22685,16 +22665,16 @@ var SelectPortal = (props) => {
 };
 SelectPortal.displayName = PORTAL_NAME;
 var CONTENT_NAME = "SelectContent";
-var SelectContent = React__namespace.forwardRef(
+var SelectContent = React.forwardRef(
   (props, forwardedRef) => {
     const context = useSelectContext(CONTENT_NAME, props.__scopeSelect);
-    const [fragment, setFragment] = React__namespace.useState();
+    const [fragment, setFragment] = React.useState();
     useLayoutEffect2(() => {
       setFragment(new DocumentFragment());
     }, []);
     if (!context.open) {
       const frag = fragment;
-      return frag ? ReactDOM__namespace.createPortal(
+      return frag ? ReactDOM.createPortal(
         /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContentProvider, { scope: props.__scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Slot, { scope: props.__scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: props.children }) }) }),
         frag
       ) : null;
@@ -22707,7 +22687,7 @@ var CONTENT_MARGIN = 10;
 var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME);
 var CONTENT_IMPL_NAME = "SelectContentImpl";
 var Slot = createSlot("SelectContent.RemoveScroll");
-var SelectContentImpl = React__namespace.forwardRef(
+var SelectContentImpl = React.forwardRef(
   (props, forwardedRef) => {
     const {
       __scopeSelect,
@@ -22731,21 +22711,21 @@ var SelectContentImpl = React__namespace.forwardRef(
       ...contentProps
     } = props;
     const context = useSelectContext(CONTENT_NAME, __scopeSelect);
-    const [content, setContent] = React__namespace.useState(null);
-    const [viewport, setViewport] = React__namespace.useState(null);
+    const [content, setContent] = React.useState(null);
+    const [viewport, setViewport] = React.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [selectedItem, setSelectedItem] = React__namespace.useState(null);
-    const [selectedItemText, setSelectedItemText] = React__namespace.useState(
+    const [selectedItem, setSelectedItem] = React.useState(null);
+    const [selectedItemText, setSelectedItemText] = React.useState(
       null
     );
     const getItems = useCollection(__scopeSelect);
-    const [isPositioned, setIsPositioned] = React__namespace.useState(false);
-    const firstValidItemFoundRef = React__namespace.useRef(false);
-    React__namespace.useEffect(() => {
+    const [isPositioned, setIsPositioned] = React.useState(false);
+    const firstValidItemFoundRef = React.useRef(false);
+    React.useEffect(() => {
       if (content) return hideOthers(content);
     }, [content]);
     useFocusGuards();
-    const focusFirst = React__namespace.useCallback(
+    const focusFirst = React.useCallback(
       (candidates) => {
         const [firstItem, ...restItems] = getItems().map((item) => item.ref.current);
         const [lastItem] = restItems.slice(-1);
@@ -22761,17 +22741,17 @@ var SelectContentImpl = React__namespace.forwardRef(
       },
       [getItems, viewport]
     );
-    const focusSelectedItem = React__namespace.useCallback(
+    const focusSelectedItem = React.useCallback(
       () => focusFirst([selectedItem, content]),
       [focusFirst, selectedItem, content]
     );
-    React__namespace.useEffect(() => {
+    React.useEffect(() => {
       if (isPositioned) {
         focusSelectedItem();
       }
     }, [isPositioned, focusSelectedItem]);
     const { onOpenChange, triggerPointerDownPosRef } = context;
-    React__namespace.useEffect(() => {
+    React.useEffect(() => {
       if (content) {
         let pointerMoveDelta = { x: 0, y: 0 };
         const handlePointerMove = (event) => {
@@ -22801,7 +22781,7 @@ var SelectContentImpl = React__namespace.forwardRef(
         };
       }
     }, [content, onOpenChange, triggerPointerDownPosRef]);
-    React__namespace.useEffect(() => {
+    React.useEffect(() => {
       const close = () => onOpenChange(false);
       window.addEventListener("blur", close);
       window.addEventListener("resize", close);
@@ -22818,7 +22798,7 @@ var SelectContentImpl = React__namespace.forwardRef(
         setTimeout(() => nextItem.ref.current.focus());
       }
     });
-    const itemRefCallback = React__namespace.useCallback(
+    const itemRefCallback = React.useCallback(
       (node, value, disabled) => {
         const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
         const isSelectedItem = context.value !== void 0 && context.value === value;
@@ -22829,8 +22809,8 @@ var SelectContentImpl = React__namespace.forwardRef(
       },
       [context.value]
     );
-    const handleItemLeave = React__namespace.useCallback(() => content?.focus(), [content]);
-    const itemTextRefCallback = React__namespace.useCallback(
+    const handleItemLeave = React.useCallback(() => content?.focus(), [content]);
+    const itemTextRefCallback = React.useCallback(
       (node, value, disabled) => {
         const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
         const isSelectedItem = context.value !== void 0 && context.value === value;
@@ -22941,18 +22921,18 @@ var SelectContentImpl = React__namespace.forwardRef(
 );
 SelectContentImpl.displayName = CONTENT_IMPL_NAME;
 var ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition";
-var SelectItemAlignedPosition = React__namespace.forwardRef((props, forwardedRef) => {
+var SelectItemAlignedPosition = React.forwardRef((props, forwardedRef) => {
   const { __scopeSelect, onPlaced, ...popperProps } = props;
   const context = useSelectContext(CONTENT_NAME, __scopeSelect);
   const contentContext = useSelectContentContext(CONTENT_NAME, __scopeSelect);
-  const [contentWrapper, setContentWrapper] = React__namespace.useState(null);
-  const [content, setContent] = React__namespace.useState(null);
+  const [contentWrapper, setContentWrapper] = React.useState(null);
+  const [content, setContent] = React.useState(null);
   const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
   const getItems = useCollection(__scopeSelect);
-  const shouldExpandOnScrollRef = React__namespace.useRef(false);
-  const shouldRepositionRef = React__namespace.useRef(true);
+  const shouldExpandOnScrollRef = React.useRef(false);
+  const shouldRepositionRef = React.useRef(true);
   const { viewport, selectedItem, selectedItemText, focusSelectedItem } = contentContext;
-  const position = React__namespace.useCallback(() => {
+  const position = React.useCallback(() => {
     if (context.trigger && context.valueNode && contentWrapper && content && viewport && selectedItem && selectedItemText) {
       const triggerRect = context.trigger.getBoundingClientRect();
       const contentRect = content.getBoundingClientRect();
@@ -23052,11 +23032,11 @@ var SelectItemAlignedPosition = React__namespace.forwardRef((props, forwardedRef
     onPlaced
   ]);
   useLayoutEffect2(() => position(), [position]);
-  const [contentZIndex, setContentZIndex] = React__namespace.useState();
+  const [contentZIndex, setContentZIndex] = React.useState();
   useLayoutEffect2(() => {
     if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
   }, [content]);
-  const handleScrollButtonChange = React__namespace.useCallback(
+  const handleScrollButtonChange = React.useCallback(
     (node) => {
       if (node && shouldRepositionRef.current === true) {
         position();
@@ -23105,7 +23085,7 @@ var SelectItemAlignedPosition = React__namespace.forwardRef((props, forwardedRef
 });
 SelectItemAlignedPosition.displayName = ITEM_ALIGNED_POSITION_NAME;
 var POPPER_POSITION_NAME = "SelectPopperPosition";
-var SelectPopperPosition = React__namespace.forwardRef((props, forwardedRef) => {
+var SelectPopperPosition = React.forwardRef((props, forwardedRef) => {
   const {
     __scopeSelect,
     align = "start",
@@ -23140,13 +23120,13 @@ var SelectPopperPosition = React__namespace.forwardRef((props, forwardedRef) => 
 SelectPopperPosition.displayName = POPPER_POSITION_NAME;
 var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME, {});
 var VIEWPORT_NAME = "SelectViewport";
-var SelectViewport = React__namespace.forwardRef(
+var SelectViewport = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, nonce, ...viewportProps } = props;
     const contentContext = useSelectContentContext(VIEWPORT_NAME, __scopeSelect);
     const viewportContext = useSelectViewportContext(VIEWPORT_NAME, __scopeSelect);
     const composedRefs = useComposedRefs(forwardedRef, contentContext.onViewportChange);
-    const prevScrollTopRef = React__namespace.useRef(0);
+    const prevScrollTopRef = React.useRef(0);
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "style",
@@ -23209,7 +23189,7 @@ var SelectViewport = React__namespace.forwardRef(
 SelectViewport.displayName = VIEWPORT_NAME;
 var GROUP_NAME = "SelectGroup";
 var [SelectGroupContextProvider, useSelectGroupContext] = createSelectContext(GROUP_NAME);
-var SelectGroup = React__namespace.forwardRef(
+var SelectGroup = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, ...groupProps } = props;
     const groupId = useId();
@@ -23218,7 +23198,7 @@ var SelectGroup = React__namespace.forwardRef(
 );
 SelectGroup.displayName = GROUP_NAME;
 var LABEL_NAME = "SelectLabel";
-var SelectLabel = React__namespace.forwardRef(
+var SelectLabel = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, ...labelProps } = props;
     const groupContext = useSelectGroupContext(LABEL_NAME, __scopeSelect);
@@ -23228,7 +23208,7 @@ var SelectLabel = React__namespace.forwardRef(
 SelectLabel.displayName = LABEL_NAME;
 var ITEM_NAME = "SelectItem";
 var [SelectItemContextProvider, useSelectItemContext] = createSelectContext(ITEM_NAME);
-var SelectItem = React__namespace.forwardRef(
+var SelectItem = React.forwardRef(
   (props, forwardedRef) => {
     const {
       __scopeSelect,
@@ -23240,14 +23220,14 @@ var SelectItem = React__namespace.forwardRef(
     const context = useSelectContext(ITEM_NAME, __scopeSelect);
     const contentContext = useSelectContentContext(ITEM_NAME, __scopeSelect);
     const isSelected = context.value === value;
-    const [textValue, setTextValue] = React__namespace.useState(textValueProp ?? "");
-    const [isFocused, setIsFocused] = React__namespace.useState(false);
+    const [textValue, setTextValue] = React.useState(textValueProp ?? "");
+    const [isFocused, setIsFocused] = React.useState(false);
     const composedRefs = useComposedRefs(
       forwardedRef,
       (node) => contentContext.itemRefCallback?.(node, value, disabled)
     );
     const textId = useId();
-    const pointerTypeRef = React__namespace.useRef("touch");
+    const pointerTypeRef = React.useRef("touch");
     const handleSelect = () => {
       if (!disabled) {
         context.onValueChange(value);
@@ -23267,7 +23247,7 @@ var SelectItem = React__namespace.forwardRef(
         disabled,
         textId,
         isSelected,
-        onItemTextChange: React__namespace.useCallback((node) => {
+        onItemTextChange: React.useCallback((node) => {
           setTextValue((prevTextValue) => prevTextValue || (node?.textContent ?? "").trim());
         }, []),
         children: /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -23330,14 +23310,14 @@ var SelectItem = React__namespace.forwardRef(
 );
 SelectItem.displayName = ITEM_NAME;
 var ITEM_TEXT_NAME = "SelectItemText";
-var SelectItemText = React__namespace.forwardRef(
+var SelectItemText = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, className, style, ...itemTextProps } = props;
     const context = useSelectContext(ITEM_TEXT_NAME, __scopeSelect);
     const contentContext = useSelectContentContext(ITEM_TEXT_NAME, __scopeSelect);
     const itemContext = useSelectItemContext(ITEM_TEXT_NAME, __scopeSelect);
     const nativeOptionsContext = useSelectNativeOptionsContext(ITEM_TEXT_NAME, __scopeSelect);
-    const [itemTextNode, setItemTextNode] = React__namespace.useState(null);
+    const [itemTextNode, setItemTextNode] = React.useState(null);
     const composedRefs = useComposedRefs(
       forwardedRef,
       (node) => setItemTextNode(node),
@@ -23345,7 +23325,7 @@ var SelectItemText = React__namespace.forwardRef(
       (node) => contentContext.itemTextRefCallback?.(node, itemContext.value, itemContext.disabled)
     );
     const textContent = itemTextNode?.textContent;
-    const nativeOption = React__namespace.useMemo(
+    const nativeOption = React.useMemo(
       () => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: itemContext.value, disabled: itemContext.disabled, children: textContent }, itemContext.value),
       [itemContext.disabled, itemContext.value, textContent]
     );
@@ -23356,13 +23336,13 @@ var SelectItemText = React__namespace.forwardRef(
     }, [onNativeOptionAdd, onNativeOptionRemove, nativeOption]);
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.span, { id: itemContext.textId, ...itemTextProps, ref: composedRefs }),
-      itemContext.isSelected && context.valueNode && !context.valueNodeHasChildren ? ReactDOM__namespace.createPortal(itemTextProps.children, context.valueNode) : null
+      itemContext.isSelected && context.valueNode && !context.valueNodeHasChildren ? ReactDOM.createPortal(itemTextProps.children, context.valueNode) : null
     ] });
   }
 );
 SelectItemText.displayName = ITEM_TEXT_NAME;
 var ITEM_INDICATOR_NAME = "SelectItemIndicator";
-var SelectItemIndicator = React__namespace.forwardRef(
+var SelectItemIndicator = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, ...itemIndicatorProps } = props;
     const itemContext = useSelectItemContext(ITEM_INDICATOR_NAME, __scopeSelect);
@@ -23371,10 +23351,10 @@ var SelectItemIndicator = React__namespace.forwardRef(
 );
 SelectItemIndicator.displayName = ITEM_INDICATOR_NAME;
 var SCROLL_UP_BUTTON_NAME = "SelectScrollUpButton";
-var SelectScrollUpButton = React__namespace.forwardRef((props, forwardedRef) => {
+var SelectScrollUpButton = React.forwardRef((props, forwardedRef) => {
   const contentContext = useSelectContentContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
   const viewportContext = useSelectViewportContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
-  const [canScrollUp, setCanScrollUp] = React__namespace.useState(false);
+  const [canScrollUp, setCanScrollUp] = React.useState(false);
   const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
   useLayoutEffect2(() => {
     if (contentContext.viewport && contentContext.isPositioned) {
@@ -23404,10 +23384,10 @@ var SelectScrollUpButton = React__namespace.forwardRef((props, forwardedRef) => 
 });
 SelectScrollUpButton.displayName = SCROLL_UP_BUTTON_NAME;
 var SCROLL_DOWN_BUTTON_NAME = "SelectScrollDownButton";
-var SelectScrollDownButton = React__namespace.forwardRef((props, forwardedRef) => {
+var SelectScrollDownButton = React.forwardRef((props, forwardedRef) => {
   const contentContext = useSelectContentContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
   const viewportContext = useSelectViewportContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
-  const [canScrollDown, setCanScrollDown] = React__namespace.useState(false);
+  const [canScrollDown, setCanScrollDown] = React.useState(false);
   const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
   useLayoutEffect2(() => {
     if (contentContext.viewport && contentContext.isPositioned) {
@@ -23437,18 +23417,18 @@ var SelectScrollDownButton = React__namespace.forwardRef((props, forwardedRef) =
   ) : null;
 });
 SelectScrollDownButton.displayName = SCROLL_DOWN_BUTTON_NAME;
-var SelectScrollButtonImpl = React__namespace.forwardRef((props, forwardedRef) => {
+var SelectScrollButtonImpl = React.forwardRef((props, forwardedRef) => {
   const { __scopeSelect, onAutoScroll, ...scrollIndicatorProps } = props;
   const contentContext = useSelectContentContext("SelectScrollButton", __scopeSelect);
-  const autoScrollTimerRef = React__namespace.useRef(null);
+  const autoScrollTimerRef = React.useRef(null);
   const getItems = useCollection(__scopeSelect);
-  const clearAutoScrollTimer = React__namespace.useCallback(() => {
+  const clearAutoScrollTimer = React.useCallback(() => {
     if (autoScrollTimerRef.current !== null) {
       window.clearInterval(autoScrollTimerRef.current);
       autoScrollTimerRef.current = null;
     }
   }, []);
-  React__namespace.useEffect(() => {
+  React.useEffect(() => {
     return () => clearAutoScrollTimer();
   }, [clearAutoScrollTimer]);
   useLayoutEffect2(() => {
@@ -23480,7 +23460,7 @@ var SelectScrollButtonImpl = React__namespace.forwardRef((props, forwardedRef) =
   );
 });
 var SEPARATOR_NAME = "SelectSeparator";
-var SelectSeparator = React__namespace.forwardRef(
+var SelectSeparator = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, ...separatorProps } = props;
     return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { "aria-hidden": true, ...separatorProps, ref: forwardedRef });
@@ -23488,7 +23468,7 @@ var SelectSeparator = React__namespace.forwardRef(
 );
 SelectSeparator.displayName = SEPARATOR_NAME;
 var ARROW_NAME = "SelectArrow";
-var SelectArrow = React__namespace.forwardRef(
+var SelectArrow = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSelect, ...arrowProps } = props;
     const popperScope = usePopperScope(__scopeSelect);
@@ -23499,12 +23479,12 @@ var SelectArrow = React__namespace.forwardRef(
 );
 SelectArrow.displayName = ARROW_NAME;
 var BUBBLE_INPUT_NAME$1 = "SelectBubbleInput";
-var SelectBubbleInput = React__namespace.forwardRef(
+var SelectBubbleInput = React.forwardRef(
   ({ __scopeSelect, value, ...props }, forwardedRef) => {
-    const ref = React__namespace.useRef(null);
+    const ref = React.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
     const prevValue = usePrevious(value);
-    React__namespace.useEffect(() => {
+    React.useEffect(() => {
       const select = ref.current;
       if (!select) return;
       const selectProto = window.HTMLSelectElement.prototype;
@@ -23536,9 +23516,9 @@ function shouldShowPlaceholder(value) {
 }
 function useTypeaheadSearch(onSearchChange) {
   const handleSearchChange = useCallbackRef$1(onSearchChange);
-  const searchRef = React__namespace.useRef("");
-  const timerRef = React__namespace.useRef(0);
-  const handleTypeaheadSearch = React__namespace.useCallback(
+  const searchRef = React.useRef("");
+  const timerRef = React.useRef(0);
+  const handleTypeaheadSearch = React.useCallback(
     (key) => {
       const search = searchRef.current + key;
       handleSearchChange(search);
@@ -23550,11 +23530,11 @@ function useTypeaheadSearch(onSearchChange) {
     },
     [handleSearchChange]
   );
-  const resetTypeahead = React__namespace.useCallback(() => {
+  const resetTypeahead = React.useCallback(() => {
     searchRef.current = "";
     window.clearTimeout(timerRef.current);
   }, []);
-  React__namespace.useEffect(() => {
+  React.useEffect(() => {
     return () => window.clearTimeout(timerRef.current);
   }, []);
   return [searchRef, handleTypeaheadSearch, resetTypeahead];
@@ -23591,100 +23571,142 @@ var ScrollDownButton = SelectScrollDownButton;
 var Separator = SelectSeparator;
 
 function PromSelect(_a) {
-    var props = tslib.__rest(_a, []);
-    return jsxRuntimeExports.jsx(Root2, tslib.__assign({ "data-slot": "select" }, props));
+    var props = __rest(_a, []);
+    return jsxRuntimeExports.jsx(Root2, __assign({ "data-slot": "select" }, props));
 }
 function PromSelectGroup(_a) {
-    var props = tslib.__rest(_a, []);
-    return jsxRuntimeExports.jsx(Group, tslib.__assign({ "data-slot": "select-group" }, props));
+    var props = __rest(_a, []);
+    return jsxRuntimeExports.jsx(Group, __assign({ "data-slot": "select-group" }, props));
 }
 function PromSelectValue(_a) {
-    var props = tslib.__rest(_a, []);
-    return jsxRuntimeExports.jsx(Value, tslib.__assign({ "data-slot": "select-value" }, props));
+    var props = __rest(_a, []);
+    return jsxRuntimeExports.jsx(Value, __assign({ "data-slot": "select-value" }, props));
 }
 function PromSelectTrigger(_a) {
-    var className = _a.className, _b = _a.size, size = _b === void 0 ? "default" : _b, children = _a.children, props = tslib.__rest(_a, ["className", "size", "children"]);
-    return (jsxRuntimeExports.jsxs(Trigger, tslib.__assign({ "data-slot": "select-trigger", "data-size": size, className: cn("border-input data-placeholder:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-wrapper flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4", className) }, props, { children: [children, jsxRuntimeExports.jsx(Icon, { asChild: true, children: jsxRuntimeExports.jsx(ChevronDown, { className: "size-4 opacity-50" }) })] })));
+    var className = _a.className, _b = _a.size, size = _b === void 0 ? "default" : _b, children = _a.children, props = __rest(_a, ["className", "size", "children"]);
+    return (jsxRuntimeExports.jsxs(Trigger, __assign({ "data-slot": "select-trigger", "data-size": size, className: cn("border-input data-placeholder:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-wrapper flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4", className) }, props, { children: [children, jsxRuntimeExports.jsx(Icon, { asChild: true, children: jsxRuntimeExports.jsx(ChevronDown, { className: "size-4 opacity-50" }) })] })));
 }
 function PromSelectContent(_a) {
-    var className = _a.className, children = _a.children, _b = _a.position, position = _b === void 0 ? "popper" : _b, _c = _a.align, align = _c === void 0 ? "center" : _c, props = tslib.__rest(_a, ["className", "children", "position", "align"]);
-    return (jsxRuntimeExports.jsx(Portal, { children: jsxRuntimeExports.jsxs(Content2, tslib.__assign({ "data-slot": "select-content", className: cn("bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md", position === "popper" &&
+    var className = _a.className, children = _a.children, _b = _a.position, position = _b === void 0 ? "popper" : _b, _c = _a.align, align = _c === void 0 ? "center" : _c, props = __rest(_a, ["className", "children", "position", "align"]);
+    return (jsxRuntimeExports.jsx(Portal, { children: jsxRuntimeExports.jsxs(Content2, __assign({ "data-slot": "select-content", className: cn("bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md", position === "popper" &&
                 "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1", className), position: position, align: align }, props, { children: [jsxRuntimeExports.jsx(PromSelectScrollUpButton, {}), jsxRuntimeExports.jsx(Viewport, { className: cn("p-1", position === "popper" &&
                         "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"), children: children }), jsxRuntimeExports.jsx(PromSelectScrollDownButton, {})] })) }));
 }
 function PromSelectLabel(_a) {
-    var className = _a.className, props = tslib.__rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(Label$1, tslib.__assign({ "data-slot": "select-label", className: cn("text-muted-foreground px-2 py-1.5 text-xs", className) }, props)));
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx(Label$1, __assign({ "data-slot": "select-label", className: cn("text-muted-foreground px-2 py-1.5 text-xs", className) }, props)));
 }
 function PromSelectItem(_a) {
-    var className = _a.className, children = _a.children, props = tslib.__rest(_a, ["className", "children"]);
-    return (jsxRuntimeExports.jsxs(Item, tslib.__assign({ "data-slot": "select-item", className: cn("focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2", className) }, props, { children: [jsxRuntimeExports.jsx("span", { className: "absolute right-2 flex size-3.5 items-center justify-center", children: jsxRuntimeExports.jsx(ItemIndicator, { children: jsxRuntimeExports.jsx(Check, { className: "size-4" }) }) }), jsxRuntimeExports.jsx(ItemText, { children: children })] })));
+    var className = _a.className, children = _a.children, props = __rest(_a, ["className", "children"]);
+    return (jsxRuntimeExports.jsxs(Item, __assign({ "data-slot": "select-item", className: cn("focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2", className) }, props, { children: [jsxRuntimeExports.jsx("span", { className: "absolute right-2 flex size-3.5 items-center justify-center", children: jsxRuntimeExports.jsx(ItemIndicator, { children: jsxRuntimeExports.jsx(Check, { className: "size-4" }) }) }), jsxRuntimeExports.jsx(ItemText, { children: children })] })));
 }
 function PromSelectSeparator(_a) {
-    var className = _a.className, props = tslib.__rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(Separator, tslib.__assign({ "data-slot": "select-separator", className: cn("bg-border pointer-events-none -mx-1 my-1 h-px", className) }, props)));
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx(Separator, __assign({ "data-slot": "select-separator", className: cn("bg-border pointer-events-none -mx-1 my-1 h-px", className) }, props)));
 }
 function PromSelectScrollUpButton(_a) {
-    var className = _a.className, props = tslib.__rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(ScrollUpButton, tslib.__assign({ "data-slot": "select-scroll-up-button", className: cn("flex cursor-default items-center justify-center py-1", className) }, props, { children: jsxRuntimeExports.jsx(ChevronUp, { className: "size-4" }) })));
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx(ScrollUpButton, __assign({ "data-slot": "select-scroll-up-button", className: cn("flex cursor-default items-center justify-center py-1", className) }, props, { children: jsxRuntimeExports.jsx(ChevronUp, { className: "size-4" }) })));
 }
 function PromSelectScrollDownButton(_a) {
-    var className = _a.className, props = tslib.__rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(ScrollDownButton, tslib.__assign({ "data-slot": "select-scroll-down-button", className: cn("flex cursor-default items-center justify-center py-1", className) }, props, { children: jsxRuntimeExports.jsx(ChevronDown, { className: "size-4" }) })));
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx(ScrollDownButton, __assign({ "data-slot": "select-scroll-down-button", className: cn("flex cursor-default items-center justify-center py-1", className) }, props, { children: jsxRuntimeExports.jsx(ChevronDown, { className: "size-4" }) })));
 }
 
-const r=(t,r,o)=>{if(t&&"reportValidity"in t){const s=reactHookForm.get(o,r);t.setCustomValidity(s&&s.message||""),t.reportValidity();}},o=(e,t)=>{for(const o in t.fields){const s=t.fields[o];s&&s.ref&&"reportValidity"in s.ref?r(s.ref,o,e):s&&s.refs&&s.refs.forEach(t=>r(t,o,e));}},s$1=(r,s)=>{s.shouldUseNativeValidation&&o(r,s);const n={};for(const o in r){const f=reactHookForm.get(s.fields,o),c=Object.assign(r[o]||{},{ref:f&&f.ref});if(i$1(s.names||Object.keys(r),o)){const r=Object.assign({},reactHookForm.get(n,o));reactHookForm.set(r,"root",c),reactHookForm.set(n,o,r);}else reactHookForm.set(n,o,c);}return n},i$1=(e,t)=>{const r=n(t);return e.some(e=>n(e).match(`^${r}\\.\\d+`))};function n(e){return e.replace(/\]|\[/g,"")}
+const r=(t,r,o)=>{if(t&&"reportValidity"in t){const s=get(o,r);t.setCustomValidity(s&&s.message||""),t.reportValidity();}},o=(e,t)=>{for(const o in t.fields){const s=t.fields[o];s&&s.ref&&"reportValidity"in s.ref?r(s.ref,o,e):s&&s.refs&&s.refs.forEach(t=>r(t,o,e));}},s$1=(r,s)=>{s.shouldUseNativeValidation&&o(r,s);const n={};for(const o in r){const f=get(s.fields,o),c=Object.assign(r[o]||{},{ref:f&&f.ref});if(i$1(s.names||Object.keys(r),o)){const r=Object.assign({},get(n,o));set$1(r,"root",c),set$1(n,o,r);}else set$1(n,o,c);}return n},i$1=(e,t)=>{const r=n(t);return e.some(e=>n(e).match(`^${r}\\.\\d+`))};function n(e){return e.replace(/\]|\[/g,"")}
 
-function t(r,e){try{var o=r();}catch(r){return e(r)}return o&&o.then?o.then(void 0,e):o}function s(r,e){for(var n={};r.length;){var t=r[0],s=t.code,i=t.message,a=t.path.join(".");if(!n[a])if("unionErrors"in t){var u=t.unionErrors[0].errors[0];n[a]={message:u.message,type:u.code};}else n[a]={message:i,type:s};if("unionErrors"in t&&t.unionErrors.forEach(function(e){return e.errors.forEach(function(e){return r.push(e)})}),e){var c=n[a].types,f=c&&c[t.code];n[a]=reactHookForm.appendErrors(a,e,n,s,f?[].concat(f,t.message):t.message);}r.shift();}return n}function i(r,e){for(var n={};r.length;){var t=r[0],s=t.code,i=t.message,a=t.path.join(".");if(!n[a])if("invalid_union"===t.code&&t.errors.length>0){var u=t.errors[0][0];n[a]={message:u.message,type:u.code};}else n[a]={message:i,type:s};if("invalid_union"===t.code&&t.errors.forEach(function(e){return e.forEach(function(e){return r.push(e)})}),e){var c=n[a].types,f=c&&c[t.code];n[a]=reactHookForm.appendErrors(a,e,n,s,f?[].concat(f,t.message):t.message);}r.shift();}return n}function a(o$1,a,u){if(void 0===u&&(u={}),function(r){return "_def"in r&&"object"==typeof r._def&&"typeName"in r._def}(o$1))return function(n,i,c){try{return Promise.resolve(t(function(){return Promise.resolve(o$1["sync"===u.mode?"parse":"parseAsync"](n,a)).then(function(e){return c.shouldUseNativeValidation&&o({},c),{errors:{},values:u.raw?Object.assign({},n):e}})},function(r){if(function(r){return Array.isArray(null==r?void 0:r.issues)}(r))return {values:{},errors:s$1(s(r.errors,!c.shouldUseNativeValidation&&"all"===c.criteriaMode),c)};throw r}))}catch(r){return Promise.reject(r)}};if(function(r){return "_zod"in r&&"object"==typeof r._zod}(o$1))return function(s,c,f){try{return Promise.resolve(t(function(){return Promise.resolve(("sync"===u.mode?parse$2:parseAsync$1)(o$1,s,a)).then(function(e){return f.shouldUseNativeValidation&&o({},f),{errors:{},values:u.raw?Object.assign({},s):e}})},function(r){if(function(r){return r instanceof $ZodError}(r))return {values:{},errors:s$1(i(r.issues,!f.shouldUseNativeValidation&&"all"===f.criteriaMode),f)};throw r}))}catch(r){return Promise.reject(r)}};throw new Error("Invalid input: not a Zod schema")}
+function t(r,e){try{var o=r();}catch(r){return e(r)}return o&&o.then?o.then(void 0,e):o}function s(r,e){for(var n={};r.length;){var t=r[0],s=t.code,i=t.message,a=t.path.join(".");if(!n[a])if("unionErrors"in t){var u=t.unionErrors[0].errors[0];n[a]={message:u.message,type:u.code};}else n[a]={message:i,type:s};if("unionErrors"in t&&t.unionErrors.forEach(function(e){return e.errors.forEach(function(e){return r.push(e)})}),e){var c=n[a].types,f=c&&c[t.code];n[a]=appendErrors(a,e,n,s,f?[].concat(f,t.message):t.message);}r.shift();}return n}function i(r,e){for(var n={};r.length;){var t=r[0],s=t.code,i=t.message,a=t.path.join(".");if(!n[a])if("invalid_union"===t.code&&t.errors.length>0){var u=t.errors[0][0];n[a]={message:u.message,type:u.code};}else n[a]={message:i,type:s};if("invalid_union"===t.code&&t.errors.forEach(function(e){return e.forEach(function(e){return r.push(e)})}),e){var c=n[a].types,f=c&&c[t.code];n[a]=appendErrors(a,e,n,s,f?[].concat(f,t.message):t.message);}r.shift();}return n}function a(o$1,a,u){if(void 0===u&&(u={}),function(r){return "_def"in r&&"object"==typeof r._def&&"typeName"in r._def}(o$1))return function(n,i,c){try{return Promise.resolve(t(function(){return Promise.resolve(o$1["sync"===u.mode?"parse":"parseAsync"](n,a)).then(function(e){return c.shouldUseNativeValidation&&o({},c),{errors:{},values:u.raw?Object.assign({},n):e}})},function(r){if(function(r){return Array.isArray(null==r?void 0:r.issues)}(r))return {values:{},errors:s$1(s(r.errors,!c.shouldUseNativeValidation&&"all"===c.criteriaMode),c)};throw r}))}catch(r){return Promise.reject(r)}};if(function(r){return "_zod"in r&&"object"==typeof r._zod}(o$1))return function(s,c,f){try{return Promise.resolve(t(function(){return Promise.resolve(("sync"===u.mode?parse$2:parseAsync$1)(o$1,s,a)).then(function(e){return f.shouldUseNativeValidation&&o({},f),{errors:{},values:u.raw?Object.assign({},s):e}})},function(r){if(function(r){return r instanceof $ZodError}(r))return {values:{},errors:s$1(i(r.issues,!f.shouldUseNativeValidation&&"all"===f.criteriaMode),f)};throw r}))}catch(r){return Promise.reject(r)}};throw new Error("Invalid input: not a Zod schema")}
 
 var PromFrom = function (_a) {
     var schema = _a.schema, render = _a.render, children = _a.children, onSubmit = _a.onSubmit, _b = _a.defaultValues, defaultValues = _b === void 0 ? {} : _b, externalForm = _a.form;
-    var internalForm = reactHookForm.useForm({
+    var internalForm = useForm({
         resolver: schema ? a(schema) : undefined,
         defaultValues: defaultValues,
     });
-    var form = externalForm || internalForm;
-    var _c = form.formState, errors = _c.errors, isSubmitting = _c.isSubmitting, isValid = _c.isValid;
-    var handleSubmit = onSubmit ? form.handleSubmit(onSubmit) : undefined;
-    return (jsxRuntimeExports.jsx(reactHookForm.FormProvider, tslib.__assign({}, form, { children: jsxRuntimeExports.jsx("form", { onSubmit: handleSubmit, className: "space-y-4", onKeyDown: function (e) {
+    var _c = useState(""), serverError = _c[0], setServerError = _c[1];
+    var form = externalForm || __assign(__assign({}, internalForm), { setServerError: setServerError, getServerError: function () { return serverError; } });
+    var _d = form.formState, errors = _d.errors, isSubmitting = _d.isSubmitting, isValid = _d.isValid;
+    var handleOnSubmit = function (data) { return __awaiter(void 0, void 0, void 0, function () {
+        var error_1, errorMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    setServerError("");
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 4, , 5]);
+                    if (!onSubmit) return [3 /*break*/, 3];
+                    return [4 /*yield*/, onSubmit(data)];
+                case 2:
+                    _a.sent();
+                    _a.label = 3;
+                case 3: return [3 /*break*/, 5];
+                case 4:
+                    error_1 = _a.sent();
+                    errorMessage = "Произошла ошибка при отправке формы";
+                    if (error_1 instanceof Error) {
+                        errorMessage = error_1.message;
+                    }
+                    setServerError(errorMessage);
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
+            }
+        });
+    }); };
+    var handleSubmit = handleOnSubmit
+        ? form.handleSubmit(handleOnSubmit)
+        : undefined;
+    return (jsxRuntimeExports.jsx(FormProvider, __assign({}, form, { children: jsxRuntimeExports.jsx("form", { onSubmit: handleSubmit, className: "space-y-4", onKeyDown: function (e) {
                 if (e.key === "Enter" && !onSubmit) {
                     e.preventDefault();
                 }
-            }, children: render ? render({ form: form, errors: errors, isSubmitting: isSubmitting, isValid: isValid }) : children }) })));
+            }, children: render
+                ? render({
+                    form: form,
+                    errors: errors,
+                    isSubmitting: isSubmitting,
+                    isValid: isValid,
+                    serverError: serverError,
+                })
+                : children }) })));
 };
 var usePromForm = function () {
-    var form = reactHookForm.useFormContext();
-    var _a = form.formState, errors = _a.errors, isSubmitting = _a.isSubmitting, isValid = _a.isValid;
+    var _a;
+    var form = useFormContext();
+    var _b = form.formState, errors = _b.errors, isSubmitting = _b.isSubmitting, isValid = _b.isValid;
     return {
         form: form,
         errors: errors,
         isValid: isValid,
         isSubmitting: isSubmitting,
+        serverError: ((_a = form.getServerError) === null || _a === void 0 ? void 0 : _a.call(form)) || "",
         reset: form.reset,
         watch: form.watch,
         control: form.control,
-        setValue: form.setValue,
-        register: form.register,
-        handleSubmit: form.handleSubmit,
-        getValues: form.getValues,
         trigger: form.trigger,
+        register: form.register,
+        setValue: form.setValue,
+        getValues: form.getValues,
+        setServerError: form.setServerError,
+        handleSubmit: form.handleSubmit,
     };
 };
 var PromFormFiled = function (_a) {
-    var props = tslib.__rest(_a, []);
-    return jsxRuntimeExports.jsx(reactHookForm.Controller, tslib.__assign({}, props));
+    var props = __rest(_a, []);
+    return jsxRuntimeExports.jsx(Controller, __assign({}, props));
 };
 var PromMessage = function () {
-    var control = reactHookForm.useFormContext().control;
-    var errors = reactHookForm.useFormState({ control: control }).errors;
+    var control = useFormContext().control;
+    var errors = useFormState({ control: control }).errors;
     if (Object.keys(errors).length > 0) {
         console.log(errors);
         return jsxRuntimeExports.jsx("p", { children: "\u041E\u0448\u0438\u0431\u043A\u0430" });
     }
+    return null;
 };
 var useCreatePromForm = function (_a) {
     var schema = _a.schema, defaultValues = _a.defaultValues;
-    return reactHookForm.useForm({
+    return useForm({
         resolver: schema ? a(schema) : undefined,
         defaultValues: defaultValues,
     });
@@ -23712,7 +23734,7 @@ var NODES = [
 ];
 var Primitive = NODES.reduce((primitive, node) => {
   const Slot = createSlot$1(`Primitive.${node}`);
-  const Node = React__namespace.forwardRef((props, forwardedRef) => {
+  const Node = React.forwardRef((props, forwardedRef) => {
     const { asChild, ...primitiveProps } = props;
     const Comp = asChild ? Slot : node;
     if (typeof window !== "undefined") {
@@ -23725,7 +23747,7 @@ var Primitive = NODES.reduce((primitive, node) => {
 }, {});
 
 var NAME = "Label";
-var Label = React__namespace.forwardRef((props, forwardedRef) => {
+var Label = React.forwardRef((props, forwardedRef) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     Primitive.label,
     {
@@ -23744,37 +23766,32 @@ Label.displayName = NAME;
 var Root$1 = Label;
 
 function PromLabel(_a) {
-    var className = _a.className, props = tslib.__rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(Root$1, tslib.__assign({ "data-slot": "label", className: cn("flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50", className) }, props)));
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx(Root$1, __assign({ "data-slot": "label", className: cn("flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50", className) }, props)));
 }
 
 var PromInput = function (_a) {
-    var name = _a.name, label = _a.label, isLoad = _a.isLoad, styleTitle = _a.styleTitle, styleWrapper = _a.styleWrapper, _b = _a.type, type = _b === void 0 ? "text" : _b, props = tslib.__rest(_a, ["name", "label", "isLoad", "styleTitle", "styleWrapper", "type"]);
-    var control = reactHookForm.useFormContext().control;
+    var name = _a.name, label = _a.label, isLoad = _a.isLoad, styleTitle = _a.styleTitle, styleWrapper = _a.styleWrapper, _b = _a.type, type = _b === void 0 ? "text" : _b, props = __rest(_a, ["name", "label", "isLoad", "styleTitle", "styleWrapper", "type"]);
+    var control = useFormContext().control;
     return (jsxRuntimeExports.jsx(PromFormFiled, { control: control, name: name, render: function (_a) {
             var field = _a.field, fieldState = _a.fieldState;
-            return (jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [label && (jsxRuntimeExports.jsx(PromLabel, { className: "block text-sm font-medium", children: label })), jsxRuntimeExports.jsx("input", tslib.__assign({}, field, props, { type: type, disabled: isLoad || props.disabled, className: cn("file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]", "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive", styleWrapper, styleTitle) })), fieldState.error && (jsxRuntimeExports.jsx("p", { className: "text-red-500 text-sm mt-1", children: fieldState.error.message }))] }));
+            return (jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [label && (jsxRuntimeExports.jsx(PromLabel, { className: "block text-sm font-medium", children: label })), jsxRuntimeExports.jsx("input", __assign({}, field, props, { type: type, disabled: isLoad || props.disabled, className: cn("file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]", "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive", styleWrapper, styleTitle) })), fieldState.error && (jsxRuntimeExports.jsx("p", { className: "text-red-500 text-sm mt-1", children: fieldState.error.message }))] }));
         } }));
 };
 
 var PromTextarea = function (_a) {
-    var name = _a.name, label = _a.label; _a.isLoad; _a.styleTitle; var styleWrapper = _a.styleWrapper, props = tslib.__rest(_a, ["name", "label", "isLoad", "styleTitle", "styleWrapper"]);
-    var control = reactHookForm.useFormContext().control;
+    var name = _a.name, label = _a.label; _a.isLoad; _a.styleTitle; var styleWrapper = _a.styleWrapper, props = __rest(_a, ["name", "label", "isLoad", "styleTitle", "styleWrapper"]);
+    var control = useFormContext().control;
     return (jsxRuntimeExports.jsx(PromFormFiled, { control: control, name: name, render: function (_a) {
             var field = _a.field, fieldState = _a.fieldState;
-            return (jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [label && (jsxRuntimeExports.jsx(PromLabel, { className: "block text-sm font-medium", children: label })), jsxRuntimeExports.jsx("textarea", tslib.__assign({}, field, { "data-slot": "textarea", className: cn("border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", styleWrapper) }, props)), fieldState.error && (jsxRuntimeExports.jsx("p", { className: "text-red-500 text-sm mt-1", children: fieldState.error.message }))] }));
+            return (jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [label && (jsxRuntimeExports.jsx(PromLabel, { className: "block text-sm font-medium", children: label })), jsxRuntimeExports.jsx("textarea", __assign({}, field, { "data-slot": "textarea", className: cn("border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", styleWrapper) }, props)), fieldState.error && (jsxRuntimeExports.jsx("p", { className: "text-red-500 text-sm mt-1", children: fieldState.error.message }))] }));
         } }));
 };
-
-function PromSkeleton(_a) {
-    var className = _a.className, props = tslib.__rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx("div", tslib.__assign({ "data-slot": "skeleton", className: cn("bg-accent animate-pulse rounded-md", className) }, props)));
-}
 
 var SWITCH_NAME = "Switch";
 var [createSwitchContext] = createContextScope(SWITCH_NAME);
 var [SwitchProvider, useSwitchContext] = createSwitchContext(SWITCH_NAME);
-var Switch = React__namespace.forwardRef(
+var Switch = React.forwardRef(
   (props, forwardedRef) => {
     const {
       __scopeSwitch,
@@ -23788,9 +23805,9 @@ var Switch = React__namespace.forwardRef(
       form,
       ...switchProps
     } = props;
-    const [button, setButton] = React__namespace.useState(null);
+    const [button, setButton] = React.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setButton(node));
-    const hasConsumerStoppedPropagationRef = React__namespace.useRef(false);
+    const hasConsumerStoppedPropagationRef = React.useRef(false);
     const isFormControl = button ? form || !!button.closest("form") : true;
     const [checked, setChecked] = useControllableState({
       prop: checkedProp,
@@ -23840,7 +23857,7 @@ var Switch = React__namespace.forwardRef(
 );
 Switch.displayName = SWITCH_NAME;
 var THUMB_NAME = "SwitchThumb";
-var SwitchThumb = React__namespace.forwardRef(
+var SwitchThumb = React.forwardRef(
   (props, forwardedRef) => {
     const { __scopeSwitch, ...thumbProps } = props;
     const context = useSwitchContext(THUMB_NAME, __scopeSwitch);
@@ -23857,7 +23874,7 @@ var SwitchThumb = React__namespace.forwardRef(
 );
 SwitchThumb.displayName = THUMB_NAME;
 var BUBBLE_INPUT_NAME = "SwitchBubbleInput";
-var SwitchBubbleInput = React__namespace.forwardRef(
+var SwitchBubbleInput = React.forwardRef(
   ({
     __scopeSwitch,
     control,
@@ -23865,11 +23882,11 @@ var SwitchBubbleInput = React__namespace.forwardRef(
     bubbles = true,
     ...props
   }, forwardedRef) => {
-    const ref = React__namespace.useRef(null);
+    const ref = React.useRef(null);
     const composedRefs = useComposedRefs(ref, forwardedRef);
     const prevChecked = usePrevious(checked);
     const controlSize = useSize(control);
-    React__namespace.useEffect(() => {
+    React.useEffect(() => {
       const input = ref.current;
       if (!input) return;
       const inputProto = window.HTMLInputElement.prototype;
@@ -23912,24 +23929,29 @@ function getState(checked) {
 var Root = Switch;
 var Thumb = SwitchThumb;
 
-var PromSwitch = React__namespace.forwardRef(function (_a, ref) {
-    var className = _a.className, checked = _a.checked, props = tslib.__rest(_a, ["className", "checked"]);
-    return (jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [jsxRuntimeExports.jsx(Root, tslib.__assign({ className: cn("peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50", className), "data-switch-checked": checked ? "true" : "false", checked: checked }, props, { ref: ref, children: jsxRuntimeExports.jsx(Thumb, { className: cn("pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0") }) })), jsxRuntimeExports.jsx("style", { children: "\n      [data-switch-checked=\"true\"] {\n        background-color: var(--primary);\n      }\n      [data-switch-checked=\"false\"] {\n        background-color: var(--input);\n      }\n    " })] }));
+var PromSwitch = React.forwardRef(function (_a, ref) {
+    var className = _a.className, checked = _a.checked, props = __rest(_a, ["className", "checked"]);
+    return (jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [jsxRuntimeExports.jsx(Root, __assign({ className: cn("peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50", className), "data-switch-checked": checked ? "true" : "false", checked: checked }, props, { ref: ref, children: jsxRuntimeExports.jsx(Thumb, { className: cn("pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0") }) })), jsxRuntimeExports.jsx("style", { children: "\n      [data-switch-checked=\"true\"] {\n        background-color: var(--primary);\n      }\n      [data-switch-checked=\"false\"] {\n        background-color: var(--input);\n      }\n    " })] }));
 });
 PromSwitch.displayName = Root.displayName;
 
+function PromSkeleton(_a) {
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx("div", __assign({ "data-slot": "skeleton", className: cn("bg-accent animate-pulse rounded-md", className) }, props)));
+}
+
 var PromSwitchField = function (_a) {
-    var name = _a.name, label = _a.label; _a.className; var _b = _a.isLoad, isLoad = _b === void 0 ? false : _b, _c = _a.isDisable, isDisable = _c === void 0 ? false : _c, props = tslib.__rest(_a, ["name", "label", "className", "isLoad", "isDisable"]);
-    var control = reactHookForm.useFormContext().control;
+    var name = _a.name, label = _a.label; _a.className; var _b = _a.isLoad, isLoad = _b === void 0 ? false : _b, _c = _a.isDisable, isDisable = _c === void 0 ? false : _c, props = __rest(_a, ["name", "label", "className", "isLoad", "isDisable"]);
+    var control = useFormContext().control;
     return (jsxRuntimeExports.jsx(PromFormFiled, { name: name, control: control, render: function (_a) {
             var field = _a.field;
-            return (jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: !isLoad ? (jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [jsxRuntimeExports.jsx(PromSwitch, tslib.__assign({ id: name, disabled: isDisable, checked: field.value, onCheckedChange: field.onChange }, props)), label && jsxRuntimeExports.jsx(PromLabel, { htmlFor: name, children: label })] })) : (jsxRuntimeExports.jsx(PromSkeleton, { className: "w-10 h-2" })) }));
+            return (jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: !isLoad ? (jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [jsxRuntimeExports.jsx(PromSwitch, __assign({ id: name, disabled: isDisable, checked: field.value, onCheckedChange: field.onChange }, props)), label && jsxRuntimeExports.jsx(PromLabel, { htmlFor: name, children: label })] })) : (jsxRuntimeExports.jsx(PromSkeleton, { className: "w-10 h-2" })) }));
         } }));
 };
 
 var PromSelectField = function (_a) {
     var name = _a.name, label = _a.label, isLoad = _a.isLoad, options = _a.options, placeholder = _a.placeholder; _a.styleWrapper;
-    var control = reactHookForm.useFormContext().control;
+    var control = useFormContext().control;
     return (jsxRuntimeExports.jsx(PromFormFiled, { control: control, name: name, render: function (_a) {
             var field = _a.field, fieldState = _a.fieldState;
             return (jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [label && (jsxRuntimeExports.jsx(PromLabel, { className: "block text-sm font-medium", children: label })), !isLoad ? (jsxRuntimeExports.jsxs(PromSelect, { value: String(field.value), onValueChange: function (value) {
@@ -23980,106 +24002,11 @@ function styleInject(css, ref) {
   }
 }
 
-var css_248z = "/*! tailwindcss v4.1.18 | MIT License | https://tailwindcss.com */\n@layer properties;\n@layer theme, base, components, utilities;\n@layer theme {\n  :root, :host {\n    --font-sans: ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\",\n      \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\";\n    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\",\n      \"Courier New\", monospace;\n    --color-red-500: oklch(63.7% 0.237 25.331);\n    --color-gray-100: oklch(96.7% 0.003 264.542);\n    --color-white: #fff;\n    --spacing: 0.25rem;\n    --text-xs: 0.75rem;\n    --text-xs--line-height: calc(1 / 0.75);\n    --text-sm: 0.875rem;\n    --text-sm--line-height: calc(1.25 / 0.875);\n    --text-base: 1rem;\n    --text-base--line-height: calc(1.5 / 1);\n    --text-lg: 1.125rem;\n    --text-lg--line-height: calc(1.75 / 1.125);\n    --font-weight-medium: 500;\n    --radius-sm: 0.25rem;\n    --radius-md: 0.375rem;\n    --radius-lg: 0.5rem;\n    --animate-spin: spin 1s linear infinite;\n    --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;\n    --default-transition-duration: 150ms;\n    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);\n    --default-font-family: var(--font-sans);\n    --default-mono-font-family: var(--font-mono);\n  }\n}\n@layer base {\n  *, ::after, ::before, ::backdrop, ::file-selector-button {\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n    border: 0 solid;\n  }\n  html, :host {\n    line-height: 1.5;\n    -webkit-text-size-adjust: 100%;\n    tab-size: 4;\n    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\");\n    font-feature-settings: var(--default-font-feature-settings, normal);\n    font-variation-settings: var(--default-font-variation-settings, normal);\n    -webkit-tap-highlight-color: transparent;\n  }\n  hr {\n    height: 0;\n    color: inherit;\n    border-top-width: 1px;\n  }\n  abbr:where([title]) {\n    -webkit-text-decoration: underline dotted;\n    text-decoration: underline dotted;\n  }\n  h1, h2, h3, h4, h5, h6 {\n    font-size: inherit;\n    font-weight: inherit;\n  }\n  a {\n    color: inherit;\n    -webkit-text-decoration: inherit;\n    text-decoration: inherit;\n  }\n  b, strong {\n    font-weight: bolder;\n  }\n  code, kbd, samp, pre {\n    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace);\n    font-feature-settings: var(--default-mono-font-feature-settings, normal);\n    font-variation-settings: var(--default-mono-font-variation-settings, normal);\n    font-size: 1em;\n  }\n  small {\n    font-size: 80%;\n  }\n  sub, sup {\n    font-size: 75%;\n    line-height: 0;\n    position: relative;\n    vertical-align: baseline;\n  }\n  sub {\n    bottom: -0.25em;\n  }\n  sup {\n    top: -0.5em;\n  }\n  table {\n    text-indent: 0;\n    border-color: inherit;\n    border-collapse: collapse;\n  }\n  :-moz-focusring {\n    outline: auto;\n  }\n  progress {\n    vertical-align: baseline;\n  }\n  summary {\n    display: list-item;\n  }\n  ol, ul, menu {\n    list-style: none;\n  }\n  img, svg, video, canvas, audio, iframe, embed, object {\n    display: block;\n    vertical-align: middle;\n  }\n  img, video {\n    max-width: 100%;\n    height: auto;\n  }\n  button, input, select, optgroup, textarea, ::file-selector-button {\n    font: inherit;\n    font-feature-settings: inherit;\n    font-variation-settings: inherit;\n    letter-spacing: inherit;\n    color: inherit;\n    border-radius: 0;\n    background-color: transparent;\n    opacity: 1;\n  }\n  :where(select:is([multiple], [size])) optgroup {\n    font-weight: bolder;\n  }\n  :where(select:is([multiple], [size])) optgroup option {\n    padding-inline-start: 20px;\n  }\n  ::file-selector-button {\n    margin-inline-end: 4px;\n  }\n  ::placeholder {\n    opacity: 1;\n  }\n  @supports (not (-webkit-appearance: -apple-pay-button))  or (contain-intrinsic-size: 1px) {\n    ::placeholder {\n      color: currentcolor;\n      @supports (color: color-mix(in lab, red, red)) {\n        color: color-mix(in oklab, currentcolor 50%, transparent);\n      }\n    }\n  }\n  textarea {\n    resize: vertical;\n  }\n  ::-webkit-search-decoration {\n    -webkit-appearance: none;\n  }\n  ::-webkit-date-and-time-value {\n    min-height: 1lh;\n    text-align: inherit;\n  }\n  ::-webkit-datetime-edit {\n    display: inline-flex;\n  }\n  ::-webkit-datetime-edit-fields-wrapper {\n    padding: 0;\n  }\n  ::-webkit-datetime-edit, ::-webkit-datetime-edit-year-field, ::-webkit-datetime-edit-month-field, ::-webkit-datetime-edit-day-field, ::-webkit-datetime-edit-hour-field, ::-webkit-datetime-edit-minute-field, ::-webkit-datetime-edit-second-field, ::-webkit-datetime-edit-millisecond-field, ::-webkit-datetime-edit-meridiem-field {\n    padding-block: 0;\n  }\n  ::-webkit-calendar-picker-indicator {\n    line-height: 1;\n  }\n  :-moz-ui-invalid {\n    box-shadow: none;\n  }\n  button, input:where([type=\"button\"], [type=\"reset\"], [type=\"submit\"]), ::file-selector-button {\n    appearance: button;\n  }\n  ::-webkit-inner-spin-button, ::-webkit-outer-spin-button {\n    height: auto;\n  }\n  [hidden]:where(:not([hidden=\"until-found\"])) {\n    display: none !important;\n  }\n}\n@layer utilities {\n  .pointer-events-none {\n    pointer-events: none;\n  }\n  .collapse {\n    visibility: collapse;\n  }\n  .invisible {\n    visibility: hidden;\n  }\n  .visible {\n    visibility: visible;\n  }\n  .sr-only {\n    position: absolute;\n    width: 1px;\n    height: 1px;\n    padding: 0;\n    margin: -1px;\n    overflow: hidden;\n    clip-path: inset(50%);\n    white-space: nowrap;\n    border-width: 0;\n  }\n  .not-sr-only {\n    position: static;\n    width: auto;\n    height: auto;\n    padding: 0;\n    margin: 0;\n    overflow: visible;\n    clip-path: none;\n    white-space: normal;\n  }\n  .absolute {\n    position: absolute;\n  }\n  .fixed {\n    position: fixed;\n  }\n  .relative {\n    position: relative;\n  }\n  .static {\n    position: static;\n  }\n  .sticky {\n    position: sticky;\n  }\n  .-inset-1 {\n    inset: calc(var(--spacing) * -1);\n  }\n  .right-2 {\n    right: calc(var(--spacing) * 2);\n  }\n  .isolate {\n    isolation: isolate;\n  }\n  .isolation-auto {\n    isolation: auto;\n  }\n  .z-50 {\n    z-index: 50;\n  }\n  .container {\n    width: 100%;\n    @media (width >= 40rem) {\n      max-width: 40rem;\n    }\n    @media (width >= 48rem) {\n      max-width: 48rem;\n    }\n    @media (width >= 64rem) {\n      max-width: 64rem;\n    }\n    @media (width >= 80rem) {\n      max-width: 80rem;\n    }\n    @media (width >= 96rem) {\n      max-width: 96rem;\n    }\n  }\n  .-mx-1 {\n    margin-inline: calc(var(--spacing) * -1);\n  }\n  .my-1 {\n    margin-block: calc(var(--spacing) * 1);\n  }\n  .mt-1 {\n    margin-top: calc(var(--spacing) * 1);\n  }\n  .block {\n    display: block;\n  }\n  .contents {\n    display: contents;\n  }\n  .flex {\n    display: flex;\n  }\n  .flow-root {\n    display: flow-root;\n  }\n  .grid {\n    display: grid;\n  }\n  .hidden {\n    display: none;\n  }\n  .inline {\n    display: inline;\n  }\n  .inline-block {\n    display: inline-block;\n  }\n  .inline-flex {\n    display: inline-flex;\n  }\n  .inline-grid {\n    display: inline-grid;\n  }\n  .inline-table {\n    display: inline-table;\n  }\n  .list-item {\n    display: list-item;\n  }\n  .table {\n    display: table;\n  }\n  .table-caption {\n    display: table-caption;\n  }\n  .table-cell {\n    display: table-cell;\n  }\n  .table-column {\n    display: table-column;\n  }\n  .table-column-group {\n    display: table-column-group;\n  }\n  .table-footer-group {\n    display: table-footer-group;\n  }\n  .table-header-group {\n    display: table-header-group;\n  }\n  .table-row {\n    display: table-row;\n  }\n  .table-row-group {\n    display: table-row-group;\n  }\n  .field-sizing-content {\n    field-sizing: content;\n  }\n  .size-3\\.5 {\n    width: calc(var(--spacing) * 3.5);\n    height: calc(var(--spacing) * 3.5);\n  }\n  .size-4 {\n    width: calc(var(--spacing) * 4);\n    height: calc(var(--spacing) * 4);\n  }\n  .size-8 {\n    width: calc(var(--spacing) * 8);\n    height: calc(var(--spacing) * 8);\n  }\n  .size-9 {\n    width: calc(var(--spacing) * 9);\n    height: calc(var(--spacing) * 9);\n  }\n  .size-10 {\n    width: calc(var(--spacing) * 10);\n    height: calc(var(--spacing) * 10);\n  }\n  .h-2 {\n    height: calc(var(--spacing) * 2);\n  }\n  .h-4 {\n    height: calc(var(--spacing) * 4);\n  }\n  .h-5 {\n    height: calc(var(--spacing) * 5);\n  }\n  .h-8 {\n    height: calc(var(--spacing) * 8);\n  }\n  .h-9 {\n    height: calc(var(--spacing) * 9);\n  }\n  .h-10 {\n    height: calc(var(--spacing) * 10);\n  }\n  .h-\\[var\\(--radix-select-trigger-height\\)\\] {\n    height: var(--radix-select-trigger-height);\n  }\n  .h-px {\n    height: 1px;\n  }\n  .max-h-\\(--radix-select-content-available-height\\) {\n    max-height: var(--radix-select-content-available-height);\n  }\n  .max-h-50 {\n    max-height: calc(var(--spacing) * 50);\n  }\n  .min-h-16 {\n    min-height: calc(var(--spacing) * 16);\n  }\n  .w-4 {\n    width: calc(var(--spacing) * 4);\n  }\n  .w-9 {\n    width: calc(var(--spacing) * 9);\n  }\n  .w-10 {\n    width: calc(var(--spacing) * 10);\n  }\n  .w-fit {\n    width: fit-content;\n  }\n  .w-full {\n    width: 100%;\n  }\n  .min-w-0 {\n    min-width: calc(var(--spacing) * 0);\n  }\n  .min-w-\\[8rem\\] {\n    min-width: 8rem;\n  }\n  .min-w-\\[var\\(--radix-select-trigger-width\\)\\] {\n    min-width: var(--radix-select-trigger-width);\n  }\n  .shrink {\n    flex-shrink: 1;\n  }\n  .shrink-0 {\n    flex-shrink: 0;\n  }\n  .grow {\n    flex-grow: 1;\n  }\n  .border-collapse {\n    border-collapse: collapse;\n  }\n  .origin-\\(--radix-select-content-transform-origin\\) {\n    transform-origin: var(--radix-select-content-transform-origin);\n  }\n  .translate-none {\n    translate: none;\n  }\n  .scale-3d {\n    scale: var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z);\n  }\n  .transform {\n    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);\n  }\n  .animate-pulse {\n    animation: var(--animate-pulse);\n  }\n  .animate-spin {\n    animation: var(--animate-spin);\n  }\n  .cursor-default {\n    cursor: default;\n  }\n  .cursor-pointer {\n    cursor: pointer;\n  }\n  .touch-pinch-zoom {\n    --tw-pinch-zoom: pinch-zoom;\n    touch-action: var(--tw-pan-x,) var(--tw-pan-y,) var(--tw-pinch-zoom,);\n  }\n  .resize {\n    resize: both;\n  }\n  .scroll-my-1 {\n    scroll-margin-block: calc(var(--spacing) * 1);\n  }\n  .flex-wrap {\n    flex-wrap: wrap;\n  }\n  .items-center {\n    align-items: center;\n  }\n  .justify-between {\n    justify-content: space-between;\n  }\n  .justify-center {\n    justify-content: center;\n  }\n  .gap-1\\.5 {\n    gap: calc(var(--spacing) * 1.5);\n  }\n  .gap-2 {\n    gap: calc(var(--spacing) * 2);\n  }\n  .space-y-2 {\n    :where(& > :not(:last-child)) {\n      --tw-space-y-reverse: 0;\n      margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));\n      margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));\n    }\n  }\n  .space-y-4 {\n    :where(& > :not(:last-child)) {\n      --tw-space-y-reverse: 0;\n      margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));\n      margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));\n    }\n  }\n  .space-y-reverse {\n    :where(& > :not(:last-child)) {\n      --tw-space-y-reverse: 1;\n    }\n  }\n  .space-x-reverse {\n    :where(& > :not(:last-child)) {\n      --tw-space-x-reverse: 1;\n    }\n  }\n  .divide-x {\n    :where(& > :not(:last-child)) {\n      --tw-divide-x-reverse: 0;\n      border-inline-style: var(--tw-border-style);\n      border-inline-start-width: calc(1px * var(--tw-divide-x-reverse));\n      border-inline-end-width: calc(1px * calc(1 - var(--tw-divide-x-reverse)));\n    }\n  }\n  .divide-y {\n    :where(& > :not(:last-child)) {\n      --tw-divide-y-reverse: 0;\n      border-bottom-style: var(--tw-border-style);\n      border-top-style: var(--tw-border-style);\n      border-top-width: calc(1px * var(--tw-divide-y-reverse));\n      border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));\n    }\n  }\n  .divide-y-reverse {\n    :where(& > :not(:last-child)) {\n      --tw-divide-y-reverse: 1;\n    }\n  }\n  .truncate {\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  .overflow-x-hidden {\n    overflow-x: hidden;\n  }\n  .overflow-y-auto {\n    overflow-y: auto;\n  }\n  .rounded {\n    border-radius: 0.25rem;\n  }\n  .rounded-full {\n    border-radius: calc(infinity * 1px);\n  }\n  .rounded-lg {\n    border-radius: var(--radius-lg);\n  }\n  .rounded-md {\n    border-radius: var(--radius-md);\n  }\n  .rounded-sm {\n    border-radius: var(--radius-sm);\n  }\n  .rounded-s {\n    border-start-start-radius: 0.25rem;\n    border-end-start-radius: 0.25rem;\n  }\n  .rounded-ss {\n    border-start-start-radius: 0.25rem;\n  }\n  .rounded-e {\n    border-start-end-radius: 0.25rem;\n    border-end-end-radius: 0.25rem;\n  }\n  .rounded-se {\n    border-start-end-radius: 0.25rem;\n  }\n  .rounded-ee {\n    border-end-end-radius: 0.25rem;\n  }\n  .rounded-es {\n    border-end-start-radius: 0.25rem;\n  }\n  .rounded-t {\n    border-top-left-radius: 0.25rem;\n    border-top-right-radius: 0.25rem;\n  }\n  .rounded-l {\n    border-top-left-radius: 0.25rem;\n    border-bottom-left-radius: 0.25rem;\n  }\n  .rounded-tl {\n    border-top-left-radius: 0.25rem;\n  }\n  .rounded-r {\n    border-top-right-radius: 0.25rem;\n    border-bottom-right-radius: 0.25rem;\n  }\n  .rounded-tr {\n    border-top-right-radius: 0.25rem;\n  }\n  .rounded-b {\n    border-bottom-right-radius: 0.25rem;\n    border-bottom-left-radius: 0.25rem;\n  }\n  .rounded-br {\n    border-bottom-right-radius: 0.25rem;\n  }\n  .rounded-bl {\n    border-bottom-left-radius: 0.25rem;\n  }\n  .border {\n    border-style: var(--tw-border-style);\n    border-width: 1px;\n  }\n  .border-2 {\n    border-style: var(--tw-border-style);\n    border-width: 2px;\n  }\n  .border-x {\n    border-inline-style: var(--tw-border-style);\n    border-inline-width: 1px;\n  }\n  .border-y {\n    border-block-style: var(--tw-border-style);\n    border-block-width: 1px;\n  }\n  .border-s {\n    border-inline-start-style: var(--tw-border-style);\n    border-inline-start-width: 1px;\n  }\n  .border-e {\n    border-inline-end-style: var(--tw-border-style);\n    border-inline-end-width: 1px;\n  }\n  .border-t {\n    border-top-style: var(--tw-border-style);\n    border-top-width: 1px;\n  }\n  .border-r {\n    border-right-style: var(--tw-border-style);\n    border-right-width: 1px;\n  }\n  .border-b {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 1px;\n  }\n  .border-l {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n  .border-transparent {\n    border-color: transparent;\n  }\n  .bg-gray-100 {\n    background-color: var(--color-gray-100);\n  }\n  .bg-transparent {\n    background-color: transparent;\n  }\n  .bg-repeat {\n    background-repeat: repeat;\n  }\n  .mask-no-clip {\n    mask-clip: no-clip;\n  }\n  .mask-repeat {\n    mask-repeat: repeat;\n  }\n  .p-1 {\n    padding: calc(var(--spacing) * 1);\n  }\n  .p-4 {\n    padding: calc(var(--spacing) * 4);\n  }\n  .px-2 {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n  .px-3 {\n    padding-inline: calc(var(--spacing) * 3);\n  }\n  .px-4 {\n    padding-inline: calc(var(--spacing) * 4);\n  }\n  .px-6 {\n    padding-inline: calc(var(--spacing) * 6);\n  }\n  .py-1 {\n    padding-block: calc(var(--spacing) * 1);\n  }\n  .py-1\\.5 {\n    padding-block: calc(var(--spacing) * 1.5);\n  }\n  .py-2 {\n    padding-block: calc(var(--spacing) * 2);\n  }\n  .pr-8 {\n    padding-right: calc(var(--spacing) * 8);\n  }\n  .pl-2 {\n    padding-left: calc(var(--spacing) * 2);\n  }\n  .text-base {\n    font-size: var(--text-base);\n    line-height: var(--tw-leading, var(--text-base--line-height));\n  }\n  .text-lg {\n    font-size: var(--text-lg);\n    line-height: var(--tw-leading, var(--text-lg--line-height));\n  }\n  .text-sm {\n    font-size: var(--text-sm);\n    line-height: var(--tw-leading, var(--text-sm--line-height));\n  }\n  .text-xs {\n    font-size: var(--text-xs);\n    line-height: var(--tw-leading, var(--text-xs--line-height));\n  }\n  .leading-none {\n    --tw-leading: 1;\n    line-height: 1;\n  }\n  .font-medium {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n  .text-wrap {\n    text-wrap: wrap;\n  }\n  .text-clip {\n    text-overflow: clip;\n  }\n  .text-ellipsis {\n    text-overflow: ellipsis;\n  }\n  .whitespace-nowrap {\n    white-space: nowrap;\n  }\n  .text-red-500 {\n    color: var(--color-red-500);\n  }\n  .text-white {\n    color: var(--color-white);\n  }\n  .capitalize {\n    text-transform: capitalize;\n  }\n  .lowercase {\n    text-transform: lowercase;\n  }\n  .normal-case {\n    text-transform: none;\n  }\n  .uppercase {\n    text-transform: uppercase;\n  }\n  .italic {\n    font-style: italic;\n  }\n  .not-italic {\n    font-style: normal;\n  }\n  .diagonal-fractions {\n    --tw-numeric-fraction: diagonal-fractions;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .lining-nums {\n    --tw-numeric-figure: lining-nums;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .oldstyle-nums {\n    --tw-numeric-figure: oldstyle-nums;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .ordinal {\n    --tw-ordinal: ordinal;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .proportional-nums {\n    --tw-numeric-spacing: proportional-nums;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .slashed-zero {\n    --tw-slashed-zero: slashed-zero;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .stacked-fractions {\n    --tw-numeric-fraction: stacked-fractions;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .tabular-nums {\n    --tw-numeric-spacing: tabular-nums;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .normal-nums {\n    font-variant-numeric: normal;\n  }\n  .line-through {\n    text-decoration-line: line-through;\n  }\n  .no-underline {\n    text-decoration-line: none;\n  }\n  .overline {\n    text-decoration-line: overline;\n  }\n  .underline {\n    text-decoration-line: underline;\n  }\n  .underline-offset-4 {\n    text-underline-offset: 4px;\n  }\n  .antialiased {\n    -webkit-font-smoothing: antialiased;\n    -moz-osx-font-smoothing: grayscale;\n  }\n  .subpixel-antialiased {\n    -webkit-font-smoothing: auto;\n    -moz-osx-font-smoothing: auto;\n  }\n  .opacity-0 {\n    opacity: 0%;\n  }\n  .opacity-50 {\n    opacity: 50%;\n  }\n  .shadow {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .shadow-lg {\n    --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .shadow-md {\n    --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .shadow-sm {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .shadow-xs {\n    --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.05));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .ring {\n    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .ring-0 {\n    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .inset-ring {\n    --tw-inset-ring-shadow: inset 0 0 0 1px var(--tw-inset-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .outline-hidden {\n    --tw-outline-style: none;\n    outline-style: none;\n    @media (forced-colors: active) {\n      outline: 2px solid transparent;\n      outline-offset: 2px;\n    }\n  }\n  .outline {\n    outline-style: var(--tw-outline-style);\n    outline-width: 1px;\n  }\n  .blur {\n    --tw-blur: blur(8px);\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .drop-shadow {\n    --tw-drop-shadow-size: drop-shadow(0 1px 2px var(--tw-drop-shadow-color, rgb(0 0 0 / 0.1))) drop-shadow(0 1px 1px var(--tw-drop-shadow-color, rgb(0 0 0 / 0.06)));\n    --tw-drop-shadow: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1)) drop-shadow( 0 1px 1px rgb(0 0 0 / 0.06));\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .grayscale {\n    --tw-grayscale: grayscale(100%);\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .invert {\n    --tw-invert: invert(100%);\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .sepia {\n    --tw-sepia: sepia(100%);\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .filter {\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .backdrop-blur {\n    --tw-backdrop-blur: blur(8px);\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .backdrop-grayscale {\n    --tw-backdrop-grayscale: grayscale(100%);\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .backdrop-invert {\n    --tw-backdrop-invert: invert(100%);\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .backdrop-sepia {\n    --tw-backdrop-sepia: sepia(100%);\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .backdrop-filter {\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .transition {\n    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .transition-\\[color\\,box-shadow\\] {\n    transition-property: color,box-shadow;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .transition-all {\n    transition-property: all;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .transition-colors {\n    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .transition-transform {\n    transition-property: transform, translate, scale, rotate;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .outline-none {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n  .select-none {\n    -webkit-user-select: none;\n    user-select: none;\n  }\n  .divide-x-reverse {\n    :where(& > :not(:last-child)) {\n      --tw-divide-x-reverse: 1;\n    }\n  }\n  .ring-inset {\n    --tw-ring-inset: inset;\n  }\n  .group-data-\\[disabled\\=true\\]\\:pointer-events-none {\n    &:is(:where(.group)[data-disabled=\"true\"] *) {\n      pointer-events: none;\n    }\n  }\n  .group-data-\\[disabled\\=true\\]\\:opacity-50 {\n    &:is(:where(.group)[data-disabled=\"true\"] *) {\n      opacity: 50%;\n    }\n  }\n  .peer-disabled\\:cursor-not-allowed {\n    &:is(:where(.peer):disabled ~ *) {\n      cursor: not-allowed;\n    }\n  }\n  .peer-disabled\\:opacity-50 {\n    &:is(:where(.peer):disabled ~ *) {\n      opacity: 50%;\n    }\n  }\n  .file\\:inline-flex {\n    &::file-selector-button {\n      display: inline-flex;\n    }\n  }\n  .file\\:h-7 {\n    &::file-selector-button {\n      height: calc(var(--spacing) * 7);\n    }\n  }\n  .file\\:border-0 {\n    &::file-selector-button {\n      border-style: var(--tw-border-style);\n      border-width: 0px;\n    }\n  }\n  .file\\:bg-transparent {\n    &::file-selector-button {\n      background-color: transparent;\n    }\n  }\n  .file\\:text-sm {\n    &::file-selector-button {\n      font-size: var(--text-sm);\n      line-height: var(--tw-leading, var(--text-sm--line-height));\n    }\n  }\n  .file\\:font-medium {\n    &::file-selector-button {\n      --tw-font-weight: var(--font-weight-medium);\n      font-weight: var(--font-weight-medium);\n    }\n  }\n  .hover\\:underline {\n    &:hover {\n      @media (hover: hover) {\n        text-decoration-line: underline;\n      }\n    }\n  }\n  .focus-visible\\:ring-2 {\n    &:focus-visible {\n      --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n  }\n  .focus-visible\\:ring-\\[3px\\] {\n    &:focus-visible {\n      --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n  }\n  .focus-visible\\:ring-offset-2 {\n    &:focus-visible {\n      --tw-ring-offset-width: 2px;\n      --tw-ring-offset-shadow: var(--tw-ring-inset,) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);\n    }\n  }\n  .focus-visible\\:outline-none {\n    &:focus-visible {\n      --tw-outline-style: none;\n      outline-style: none;\n    }\n  }\n  .disabled\\:pointer-events-none {\n    &:disabled {\n      pointer-events: none;\n    }\n  }\n  .disabled\\:cursor-not-allowed {\n    &:disabled {\n      cursor: not-allowed;\n    }\n  }\n  .disabled\\:opacity-50 {\n    &:disabled {\n      opacity: 50%;\n    }\n  }\n  .has-\\[\\>svg\\]\\:px-2\\.5 {\n    &:has(>svg) {\n      padding-inline: calc(var(--spacing) * 2.5);\n    }\n  }\n  .has-\\[\\>svg\\]\\:px-3 {\n    &:has(>svg) {\n      padding-inline: calc(var(--spacing) * 3);\n    }\n  }\n  .has-\\[\\>svg\\]\\:px-4 {\n    &:has(>svg) {\n      padding-inline: calc(var(--spacing) * 4);\n    }\n  }\n  .data-\\[disabled\\]\\:pointer-events-none {\n    &[data-disabled] {\n      pointer-events: none;\n    }\n  }\n  .data-\\[disabled\\]\\:opacity-50 {\n    &[data-disabled] {\n      opacity: 50%;\n    }\n  }\n  .data-\\[side\\=bottom\\]\\:translate-y-1 {\n    &[data-side=\"bottom\"] {\n      --tw-translate-y: calc(var(--spacing) * 1);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[side\\=left\\]\\:-translate-x-1 {\n    &[data-side=\"left\"] {\n      --tw-translate-x: calc(var(--spacing) * -1);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[side\\=right\\]\\:translate-x-1 {\n    &[data-side=\"right\"] {\n      --tw-translate-x: calc(var(--spacing) * 1);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[side\\=top\\]\\:-translate-y-1 {\n    &[data-side=\"top\"] {\n      --tw-translate-y: calc(var(--spacing) * -1);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[size\\=default\\]\\:h-9 {\n    &[data-size=\"default\"] {\n      height: calc(var(--spacing) * 9);\n    }\n  }\n  .data-\\[size\\=sm\\]\\:h-8 {\n    &[data-size=\"sm\"] {\n      height: calc(var(--spacing) * 8);\n    }\n  }\n  .\\*\\:data-\\[slot\\=select-value\\]\\:line-clamp-1 {\n    :is(& > *) {\n      &[data-slot=\"select-value\"] {\n        overflow: hidden;\n        display: -webkit-box;\n        -webkit-box-orient: vertical;\n        -webkit-line-clamp: 1;\n      }\n    }\n  }\n  .\\*\\:data-\\[slot\\=select-value\\]\\:flex {\n    :is(& > *) {\n      &[data-slot=\"select-value\"] {\n        display: flex;\n      }\n    }\n  }\n  .\\*\\:data-\\[slot\\=select-value\\]\\:items-center {\n    :is(& > *) {\n      &[data-slot=\"select-value\"] {\n        align-items: center;\n      }\n    }\n  }\n  .\\*\\:data-\\[slot\\=select-value\\]\\:gap-2 {\n    :is(& > *) {\n      &[data-slot=\"select-value\"] {\n        gap: calc(var(--spacing) * 2);\n      }\n    }\n  }\n  .data-\\[state\\=checked\\]\\:translate-x-4 {\n    &[data-state=\"checked\"] {\n      --tw-translate-x: calc(var(--spacing) * 4);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[state\\=unchecked\\]\\:translate-x-0 {\n    &[data-state=\"unchecked\"] {\n      --tw-translate-x: calc(var(--spacing) * 0);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .md\\:text-sm {\n    @media (width >= 48rem) {\n      font-size: var(--text-sm);\n      line-height: var(--tw-leading, var(--text-sm--line-height));\n    }\n  }\n  .\\[\\&_svg\\]\\:pointer-events-none {\n    & svg {\n      pointer-events: none;\n    }\n  }\n  .\\[\\&_svg\\]\\:shrink-0 {\n    & svg {\n      flex-shrink: 0;\n    }\n  }\n  .\\[\\&_svg\\:not\\(\\[class\\*\\=\\'size-\\'\\]\\)\\]\\:size-4 {\n    & svg:not([class*='size-']) {\n      width: calc(var(--spacing) * 4);\n      height: calc(var(--spacing) * 4);\n    }\n  }\n  .\\*\\:\\[span\\]\\:last\\:flex {\n    :is(& > *) {\n      &:is(span) {\n        &:last-child {\n          display: flex;\n        }\n      }\n    }\n  }\n  .\\*\\:\\[span\\]\\:last\\:items-center {\n    :is(& > *) {\n      &:is(span) {\n        &:last-child {\n          align-items: center;\n        }\n      }\n    }\n  }\n  .\\*\\:\\[span\\]\\:last\\:gap-2 {\n    :is(& > *) {\n      &:is(span) {\n        &:last-child {\n          gap: calc(var(--spacing) * 2);\n        }\n      }\n    }\n  }\n}\n@property --tw-scale-x {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 1;\n}\n@property --tw-scale-y {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 1;\n}\n@property --tw-scale-z {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 1;\n}\n@property --tw-rotate-x {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-rotate-y {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-rotate-z {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-skew-x {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-skew-y {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-pan-x {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-pan-y {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-pinch-zoom {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-space-y-reverse {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-space-x-reverse {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-divide-x-reverse {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-border-style {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: solid;\n}\n@property --tw-divide-y-reverse {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-leading {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-font-weight {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-ordinal {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-slashed-zero {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-numeric-figure {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-numeric-spacing {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-numeric-fraction {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-inset-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-inset-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-inset-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-ring-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-ring-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-inset-ring-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-inset-ring-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-ring-inset {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-ring-offset-width {\n  syntax: \"<length>\";\n  inherits: false;\n  initial-value: 0px;\n}\n@property --tw-ring-offset-color {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: #fff;\n}\n@property --tw-ring-offset-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-outline-style {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: solid;\n}\n@property --tw-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-drop-shadow-size {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-translate-x {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-translate-y {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-translate-z {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@keyframes spin {\n  to {\n    transform: rotate(360deg);\n  }\n}\n@keyframes pulse {\n  50% {\n    opacity: 0.5;\n  }\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scale-x: 1;\n      --tw-scale-y: 1;\n      --tw-scale-z: 1;\n      --tw-rotate-x: initial;\n      --tw-rotate-y: initial;\n      --tw-rotate-z: initial;\n      --tw-skew-x: initial;\n      --tw-skew-y: initial;\n      --tw-pan-x: initial;\n      --tw-pan-y: initial;\n      --tw-pinch-zoom: initial;\n      --tw-space-y-reverse: 0;\n      --tw-space-x-reverse: 0;\n      --tw-divide-x-reverse: 0;\n      --tw-border-style: solid;\n      --tw-divide-y-reverse: 0;\n      --tw-leading: initial;\n      --tw-font-weight: initial;\n      --tw-ordinal: initial;\n      --tw-slashed-zero: initial;\n      --tw-numeric-figure: initial;\n      --tw-numeric-spacing: initial;\n      --tw-numeric-fraction: initial;\n      --tw-shadow: 0 0 #0000;\n      --tw-shadow-color: initial;\n      --tw-shadow-alpha: 100%;\n      --tw-inset-shadow: 0 0 #0000;\n      --tw-inset-shadow-color: initial;\n      --tw-inset-shadow-alpha: 100%;\n      --tw-ring-color: initial;\n      --tw-ring-shadow: 0 0 #0000;\n      --tw-inset-ring-color: initial;\n      --tw-inset-ring-shadow: 0 0 #0000;\n      --tw-ring-inset: initial;\n      --tw-ring-offset-width: 0px;\n      --tw-ring-offset-color: #fff;\n      --tw-ring-offset-shadow: 0 0 #0000;\n      --tw-outline-style: solid;\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n      --tw-backdrop-blur: initial;\n      --tw-backdrop-brightness: initial;\n      --tw-backdrop-contrast: initial;\n      --tw-backdrop-grayscale: initial;\n      --tw-backdrop-hue-rotate: initial;\n      --tw-backdrop-invert: initial;\n      --tw-backdrop-opacity: initial;\n      --tw-backdrop-saturate: initial;\n      --tw-backdrop-sepia: initial;\n      --tw-translate-x: 0;\n      --tw-translate-y: 0;\n      --tw-translate-z: 0;\n    }\n  }\n}\n";
+var css_248z = "/*! tailwindcss v4.1.18 | MIT License | https://tailwindcss.com */\n@layer properties;\n@layer theme, base, components, utilities;\n@layer theme {\n  :root, :host {\n    --font-sans: ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\",\n      \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\";\n    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\",\n      \"Courier New\", monospace;\n    --color-red-500: oklch(63.7% 0.237 25.331);\n    --color-gray-100: oklch(96.7% 0.003 264.542);\n    --color-white: #fff;\n    --spacing: 0.25rem;\n    --text-xs: 0.75rem;\n    --text-xs--line-height: calc(1 / 0.75);\n    --text-sm: 0.875rem;\n    --text-sm--line-height: calc(1.25 / 0.875);\n    --text-base: 1rem;\n    --text-base--line-height: calc(1.5 / 1);\n    --text-lg: 1.125rem;\n    --text-lg--line-height: calc(1.75 / 1.125);\n    --font-weight-medium: 500;\n    --radius-sm: 0.25rem;\n    --radius-md: 0.375rem;\n    --radius-lg: 0.5rem;\n    --animate-spin: spin 1s linear infinite;\n    --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;\n    --default-transition-duration: 150ms;\n    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);\n    --default-font-family: var(--font-sans);\n    --default-mono-font-family: var(--font-mono);\n  }\n}\n@layer base {\n  *, ::after, ::before, ::backdrop, ::file-selector-button {\n    box-sizing: border-box;\n    margin: 0;\n    padding: 0;\n    border: 0 solid;\n  }\n  html, :host {\n    line-height: 1.5;\n    -webkit-text-size-adjust: 100%;\n    tab-size: 4;\n    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\");\n    font-feature-settings: var(--default-font-feature-settings, normal);\n    font-variation-settings: var(--default-font-variation-settings, normal);\n    -webkit-tap-highlight-color: transparent;\n  }\n  hr {\n    height: 0;\n    color: inherit;\n    border-top-width: 1px;\n  }\n  abbr:where([title]) {\n    -webkit-text-decoration: underline dotted;\n    text-decoration: underline dotted;\n  }\n  h1, h2, h3, h4, h5, h6 {\n    font-size: inherit;\n    font-weight: inherit;\n  }\n  a {\n    color: inherit;\n    -webkit-text-decoration: inherit;\n    text-decoration: inherit;\n  }\n  b, strong {\n    font-weight: bolder;\n  }\n  code, kbd, samp, pre {\n    font-family: var(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace);\n    font-feature-settings: var(--default-mono-font-feature-settings, normal);\n    font-variation-settings: var(--default-mono-font-variation-settings, normal);\n    font-size: 1em;\n  }\n  small {\n    font-size: 80%;\n  }\n  sub, sup {\n    font-size: 75%;\n    line-height: 0;\n    position: relative;\n    vertical-align: baseline;\n  }\n  sub {\n    bottom: -0.25em;\n  }\n  sup {\n    top: -0.5em;\n  }\n  table {\n    text-indent: 0;\n    border-color: inherit;\n    border-collapse: collapse;\n  }\n  :-moz-focusring {\n    outline: auto;\n  }\n  progress {\n    vertical-align: baseline;\n  }\n  summary {\n    display: list-item;\n  }\n  ol, ul, menu {\n    list-style: none;\n  }\n  img, svg, video, canvas, audio, iframe, embed, object {\n    display: block;\n    vertical-align: middle;\n  }\n  img, video {\n    max-width: 100%;\n    height: auto;\n  }\n  button, input, select, optgroup, textarea, ::file-selector-button {\n    font: inherit;\n    font-feature-settings: inherit;\n    font-variation-settings: inherit;\n    letter-spacing: inherit;\n    color: inherit;\n    border-radius: 0;\n    background-color: transparent;\n    opacity: 1;\n  }\n  :where(select:is([multiple], [size])) optgroup {\n    font-weight: bolder;\n  }\n  :where(select:is([multiple], [size])) optgroup option {\n    padding-inline-start: 20px;\n  }\n  ::file-selector-button {\n    margin-inline-end: 4px;\n  }\n  ::placeholder {\n    opacity: 1;\n  }\n  @supports (not (-webkit-appearance: -apple-pay-button))  or (contain-intrinsic-size: 1px) {\n    ::placeholder {\n      color: currentcolor;\n      @supports (color: color-mix(in lab, red, red)) {\n        color: color-mix(in oklab, currentcolor 50%, transparent);\n      }\n    }\n  }\n  textarea {\n    resize: vertical;\n  }\n  ::-webkit-search-decoration {\n    -webkit-appearance: none;\n  }\n  ::-webkit-date-and-time-value {\n    min-height: 1lh;\n    text-align: inherit;\n  }\n  ::-webkit-datetime-edit {\n    display: inline-flex;\n  }\n  ::-webkit-datetime-edit-fields-wrapper {\n    padding: 0;\n  }\n  ::-webkit-datetime-edit, ::-webkit-datetime-edit-year-field, ::-webkit-datetime-edit-month-field, ::-webkit-datetime-edit-day-field, ::-webkit-datetime-edit-hour-field, ::-webkit-datetime-edit-minute-field, ::-webkit-datetime-edit-second-field, ::-webkit-datetime-edit-millisecond-field, ::-webkit-datetime-edit-meridiem-field {\n    padding-block: 0;\n  }\n  ::-webkit-calendar-picker-indicator {\n    line-height: 1;\n  }\n  :-moz-ui-invalid {\n    box-shadow: none;\n  }\n  button, input:where([type=\"button\"], [type=\"reset\"], [type=\"submit\"]), ::file-selector-button {\n    appearance: button;\n  }\n  ::-webkit-inner-spin-button, ::-webkit-outer-spin-button {\n    height: auto;\n  }\n  [hidden]:where(:not([hidden=\"until-found\"])) {\n    display: none !important;\n  }\n}\n@layer utilities {\n  .pointer-events-none {\n    pointer-events: none;\n  }\n  .collapse {\n    visibility: collapse;\n  }\n  .invisible {\n    visibility: hidden;\n  }\n  .visible {\n    visibility: visible;\n  }\n  .sr-only {\n    position: absolute;\n    width: 1px;\n    height: 1px;\n    padding: 0;\n    margin: -1px;\n    overflow: hidden;\n    clip-path: inset(50%);\n    white-space: nowrap;\n    border-width: 0;\n  }\n  .not-sr-only {\n    position: static;\n    width: auto;\n    height: auto;\n    padding: 0;\n    margin: 0;\n    overflow: visible;\n    clip-path: none;\n    white-space: normal;\n  }\n  .absolute {\n    position: absolute;\n  }\n  .fixed {\n    position: fixed;\n  }\n  .relative {\n    position: relative;\n  }\n  .static {\n    position: static;\n  }\n  .sticky {\n    position: sticky;\n  }\n  .-inset-1 {\n    inset: calc(var(--spacing) * -1);\n  }\n  .right-2 {\n    right: calc(var(--spacing) * 2);\n  }\n  .isolate {\n    isolation: isolate;\n  }\n  .isolation-auto {\n    isolation: auto;\n  }\n  .z-50 {\n    z-index: 50;\n  }\n  .container {\n    width: 100%;\n    @media (width >= 40rem) {\n      max-width: 40rem;\n    }\n    @media (width >= 48rem) {\n      max-width: 48rem;\n    }\n    @media (width >= 64rem) {\n      max-width: 64rem;\n    }\n    @media (width >= 80rem) {\n      max-width: 80rem;\n    }\n    @media (width >= 96rem) {\n      max-width: 96rem;\n    }\n  }\n  .-mx-1 {\n    margin-inline: calc(var(--spacing) * -1);\n  }\n  .my-1 {\n    margin-block: calc(var(--spacing) * 1);\n  }\n  .mt-1 {\n    margin-top: calc(var(--spacing) * 1);\n  }\n  .block {\n    display: block;\n  }\n  .contents {\n    display: contents;\n  }\n  .flex {\n    display: flex;\n  }\n  .flow-root {\n    display: flow-root;\n  }\n  .grid {\n    display: grid;\n  }\n  .hidden {\n    display: none;\n  }\n  .inline {\n    display: inline;\n  }\n  .inline-block {\n    display: inline-block;\n  }\n  .inline-flex {\n    display: inline-flex;\n  }\n  .inline-grid {\n    display: inline-grid;\n  }\n  .inline-table {\n    display: inline-table;\n  }\n  .list-item {\n    display: list-item;\n  }\n  .table {\n    display: table;\n  }\n  .table-caption {\n    display: table-caption;\n  }\n  .table-cell {\n    display: table-cell;\n  }\n  .table-column {\n    display: table-column;\n  }\n  .table-column-group {\n    display: table-column-group;\n  }\n  .table-footer-group {\n    display: table-footer-group;\n  }\n  .table-header-group {\n    display: table-header-group;\n  }\n  .table-row {\n    display: table-row;\n  }\n  .table-row-group {\n    display: table-row-group;\n  }\n  .field-sizing-content {\n    field-sizing: content;\n  }\n  .size-3 {\n    width: calc(var(--spacing) * 3);\n    height: calc(var(--spacing) * 3);\n  }\n  .size-3\\.5 {\n    width: calc(var(--spacing) * 3.5);\n    height: calc(var(--spacing) * 3.5);\n  }\n  .size-4 {\n    width: calc(var(--spacing) * 4);\n    height: calc(var(--spacing) * 4);\n  }\n  .size-8 {\n    width: calc(var(--spacing) * 8);\n    height: calc(var(--spacing) * 8);\n  }\n  .size-9 {\n    width: calc(var(--spacing) * 9);\n    height: calc(var(--spacing) * 9);\n  }\n  .size-10 {\n    width: calc(var(--spacing) * 10);\n    height: calc(var(--spacing) * 10);\n  }\n  .h-2 {\n    height: calc(var(--spacing) * 2);\n  }\n  .h-4 {\n    height: calc(var(--spacing) * 4);\n  }\n  .h-5 {\n    height: calc(var(--spacing) * 5);\n  }\n  .h-8 {\n    height: calc(var(--spacing) * 8);\n  }\n  .h-9 {\n    height: calc(var(--spacing) * 9);\n  }\n  .h-10 {\n    height: calc(var(--spacing) * 10);\n  }\n  .h-\\[var\\(--radix-select-trigger-height\\)\\] {\n    height: var(--radix-select-trigger-height);\n  }\n  .h-px {\n    height: 1px;\n  }\n  .max-h-\\(--radix-select-content-available-height\\) {\n    max-height: var(--radix-select-content-available-height);\n  }\n  .max-h-50 {\n    max-height: calc(var(--spacing) * 50);\n  }\n  .min-h-16 {\n    min-height: calc(var(--spacing) * 16);\n  }\n  .w-4 {\n    width: calc(var(--spacing) * 4);\n  }\n  .w-9 {\n    width: calc(var(--spacing) * 9);\n  }\n  .w-10 {\n    width: calc(var(--spacing) * 10);\n  }\n  .w-fit {\n    width: fit-content;\n  }\n  .w-full {\n    width: 100%;\n  }\n  .min-w-0 {\n    min-width: calc(var(--spacing) * 0);\n  }\n  .min-w-\\[8rem\\] {\n    min-width: 8rem;\n  }\n  .min-w-\\[var\\(--radix-select-trigger-width\\)\\] {\n    min-width: var(--radix-select-trigger-width);\n  }\n  .flex-shrink {\n    flex-shrink: 1;\n  }\n  .shrink {\n    flex-shrink: 1;\n  }\n  .shrink-0 {\n    flex-shrink: 0;\n  }\n  .flex-grow {\n    flex-grow: 1;\n  }\n  .grow {\n    flex-grow: 1;\n  }\n  .border-collapse {\n    border-collapse: collapse;\n  }\n  .origin-\\(--radix-select-content-transform-origin\\) {\n    transform-origin: var(--radix-select-content-transform-origin);\n  }\n  .translate-none {\n    translate: none;\n  }\n  .scale-3d {\n    scale: var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z);\n  }\n  .transform {\n    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);\n  }\n  .animate-pulse {\n    animation: var(--animate-pulse);\n  }\n  .animate-spin {\n    animation: var(--animate-spin);\n  }\n  .cursor-default {\n    cursor: default;\n  }\n  .cursor-pointer {\n    cursor: pointer;\n  }\n  .touch-pinch-zoom {\n    --tw-pinch-zoom: pinch-zoom;\n    touch-action: var(--tw-pan-x,) var(--tw-pan-y,) var(--tw-pinch-zoom,);\n  }\n  .resize {\n    resize: both;\n  }\n  .scroll-my-1 {\n    scroll-margin-block: calc(var(--spacing) * 1);\n  }\n  .flex-wrap {\n    flex-wrap: wrap;\n  }\n  .items-center {\n    align-items: center;\n  }\n  .justify-between {\n    justify-content: space-between;\n  }\n  .justify-center {\n    justify-content: center;\n  }\n  .gap-1 {\n    gap: calc(var(--spacing) * 1);\n  }\n  .gap-1\\.5 {\n    gap: calc(var(--spacing) * 1.5);\n  }\n  .gap-2 {\n    gap: calc(var(--spacing) * 2);\n  }\n  .space-y-2 {\n    :where(& > :not(:last-child)) {\n      --tw-space-y-reverse: 0;\n      margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));\n      margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--tw-space-y-reverse)));\n    }\n  }\n  .space-y-4 {\n    :where(& > :not(:last-child)) {\n      --tw-space-y-reverse: 0;\n      margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));\n      margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));\n    }\n  }\n  .space-y-reverse {\n    :where(& > :not(:last-child)) {\n      --tw-space-y-reverse: 1;\n    }\n  }\n  .space-x-reverse {\n    :where(& > :not(:last-child)) {\n      --tw-space-x-reverse: 1;\n    }\n  }\n  .divide-x {\n    :where(& > :not(:last-child)) {\n      --tw-divide-x-reverse: 0;\n      border-inline-style: var(--tw-border-style);\n      border-inline-start-width: calc(1px * var(--tw-divide-x-reverse));\n      border-inline-end-width: calc(1px * calc(1 - var(--tw-divide-x-reverse)));\n    }\n  }\n  .divide-y {\n    :where(& > :not(:last-child)) {\n      --tw-divide-y-reverse: 0;\n      border-bottom-style: var(--tw-border-style);\n      border-top-style: var(--tw-border-style);\n      border-top-width: calc(1px * var(--tw-divide-y-reverse));\n      border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));\n    }\n  }\n  .divide-y-reverse {\n    :where(& > :not(:last-child)) {\n      --tw-divide-y-reverse: 1;\n    }\n  }\n  .truncate {\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  .overflow-x-hidden {\n    overflow-x: hidden;\n  }\n  .overflow-y-auto {\n    overflow-y: auto;\n  }\n  .rounded {\n    border-radius: 0.25rem;\n  }\n  .rounded-full {\n    border-radius: calc(infinity * 1px);\n  }\n  .rounded-lg {\n    border-radius: var(--radius-lg);\n  }\n  .rounded-md {\n    border-radius: var(--radius-md);\n  }\n  .rounded-sm {\n    border-radius: var(--radius-sm);\n  }\n  .rounded-s {\n    border-start-start-radius: 0.25rem;\n    border-end-start-radius: 0.25rem;\n  }\n  .rounded-ss {\n    border-start-start-radius: 0.25rem;\n  }\n  .rounded-e {\n    border-start-end-radius: 0.25rem;\n    border-end-end-radius: 0.25rem;\n  }\n  .rounded-se {\n    border-start-end-radius: 0.25rem;\n  }\n  .rounded-ee {\n    border-end-end-radius: 0.25rem;\n  }\n  .rounded-es {\n    border-end-start-radius: 0.25rem;\n  }\n  .rounded-t {\n    border-top-left-radius: 0.25rem;\n    border-top-right-radius: 0.25rem;\n  }\n  .rounded-l {\n    border-top-left-radius: 0.25rem;\n    border-bottom-left-radius: 0.25rem;\n  }\n  .rounded-tl {\n    border-top-left-radius: 0.25rem;\n  }\n  .rounded-r {\n    border-top-right-radius: 0.25rem;\n    border-bottom-right-radius: 0.25rem;\n  }\n  .rounded-tr {\n    border-top-right-radius: 0.25rem;\n  }\n  .rounded-b {\n    border-bottom-right-radius: 0.25rem;\n    border-bottom-left-radius: 0.25rem;\n  }\n  .rounded-br {\n    border-bottom-right-radius: 0.25rem;\n  }\n  .rounded-bl {\n    border-bottom-left-radius: 0.25rem;\n  }\n  .border {\n    border-style: var(--tw-border-style);\n    border-width: 1px;\n  }\n  .border-2 {\n    border-style: var(--tw-border-style);\n    border-width: 2px;\n  }\n  .border-x {\n    border-inline-style: var(--tw-border-style);\n    border-inline-width: 1px;\n  }\n  .border-y {\n    border-block-style: var(--tw-border-style);\n    border-block-width: 1px;\n  }\n  .border-s {\n    border-inline-start-style: var(--tw-border-style);\n    border-inline-start-width: 1px;\n  }\n  .border-e {\n    border-inline-end-style: var(--tw-border-style);\n    border-inline-end-width: 1px;\n  }\n  .border-t {\n    border-top-style: var(--tw-border-style);\n    border-top-width: 1px;\n  }\n  .border-r {\n    border-right-style: var(--tw-border-style);\n    border-right-width: 1px;\n  }\n  .border-b {\n    border-bottom-style: var(--tw-border-style);\n    border-bottom-width: 1px;\n  }\n  .border-l {\n    border-left-style: var(--tw-border-style);\n    border-left-width: 1px;\n  }\n  .border-transparent {\n    border-color: transparent;\n  }\n  .bg-gray-100 {\n    background-color: var(--color-gray-100);\n  }\n  .bg-transparent {\n    background-color: transparent;\n  }\n  .bg-repeat {\n    background-repeat: repeat;\n  }\n  .mask-no-clip {\n    mask-clip: no-clip;\n  }\n  .mask-repeat {\n    mask-repeat: repeat;\n  }\n  .p-1 {\n    padding: calc(var(--spacing) * 1);\n  }\n  .p-4 {\n    padding: calc(var(--spacing) * 4);\n  }\n  .px-2 {\n    padding-inline: calc(var(--spacing) * 2);\n  }\n  .px-3 {\n    padding-inline: calc(var(--spacing) * 3);\n  }\n  .px-4 {\n    padding-inline: calc(var(--spacing) * 4);\n  }\n  .px-6 {\n    padding-inline: calc(var(--spacing) * 6);\n  }\n  .py-1 {\n    padding-block: calc(var(--spacing) * 1);\n  }\n  .py-1\\.5 {\n    padding-block: calc(var(--spacing) * 1.5);\n  }\n  .py-2 {\n    padding-block: calc(var(--spacing) * 2);\n  }\n  .pr-8 {\n    padding-right: calc(var(--spacing) * 8);\n  }\n  .pl-2 {\n    padding-left: calc(var(--spacing) * 2);\n  }\n  .text-base {\n    font-size: var(--text-base);\n    line-height: var(--tw-leading, var(--text-base--line-height));\n  }\n  .text-lg {\n    font-size: var(--text-lg);\n    line-height: var(--tw-leading, var(--text-lg--line-height));\n  }\n  .text-sm {\n    font-size: var(--text-sm);\n    line-height: var(--tw-leading, var(--text-sm--line-height));\n  }\n  .text-xs {\n    font-size: var(--text-xs);\n    line-height: var(--tw-leading, var(--text-xs--line-height));\n  }\n  .leading-none {\n    --tw-leading: 1;\n    line-height: 1;\n  }\n  .font-medium {\n    --tw-font-weight: var(--font-weight-medium);\n    font-weight: var(--font-weight-medium);\n  }\n  .text-wrap {\n    text-wrap: wrap;\n  }\n  .text-clip {\n    text-overflow: clip;\n  }\n  .text-ellipsis {\n    text-overflow: ellipsis;\n  }\n  .whitespace-nowrap {\n    white-space: nowrap;\n  }\n  .text-red-500 {\n    color: var(--color-red-500);\n  }\n  .text-white {\n    color: var(--color-white);\n  }\n  .capitalize {\n    text-transform: capitalize;\n  }\n  .lowercase {\n    text-transform: lowercase;\n  }\n  .normal-case {\n    text-transform: none;\n  }\n  .uppercase {\n    text-transform: uppercase;\n  }\n  .italic {\n    font-style: italic;\n  }\n  .not-italic {\n    font-style: normal;\n  }\n  .diagonal-fractions {\n    --tw-numeric-fraction: diagonal-fractions;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .lining-nums {\n    --tw-numeric-figure: lining-nums;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .oldstyle-nums {\n    --tw-numeric-figure: oldstyle-nums;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .ordinal {\n    --tw-ordinal: ordinal;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .proportional-nums {\n    --tw-numeric-spacing: proportional-nums;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .slashed-zero {\n    --tw-slashed-zero: slashed-zero;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .stacked-fractions {\n    --tw-numeric-fraction: stacked-fractions;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .tabular-nums {\n    --tw-numeric-spacing: tabular-nums;\n    font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);\n  }\n  .normal-nums {\n    font-variant-numeric: normal;\n  }\n  .line-through {\n    text-decoration-line: line-through;\n  }\n  .no-underline {\n    text-decoration-line: none;\n  }\n  .overline {\n    text-decoration-line: overline;\n  }\n  .underline {\n    text-decoration-line: underline;\n  }\n  .underline-offset-4 {\n    text-underline-offset: 4px;\n  }\n  .antialiased {\n    -webkit-font-smoothing: antialiased;\n    -moz-osx-font-smoothing: grayscale;\n  }\n  .subpixel-antialiased {\n    -webkit-font-smoothing: auto;\n    -moz-osx-font-smoothing: auto;\n  }\n  .opacity-0 {\n    opacity: 0%;\n  }\n  .opacity-50 {\n    opacity: 50%;\n  }\n  .shadow {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .shadow-lg {\n    --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .shadow-md {\n    --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .shadow-sm {\n    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .shadow-xs {\n    --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.05));\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .ring {\n    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .ring-0 {\n    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .inset-ring {\n    --tw-inset-ring-shadow: inset 0 0 0 1px var(--tw-inset-ring-color, currentcolor);\n    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n  }\n  .outline-hidden {\n    --tw-outline-style: none;\n    outline-style: none;\n    @media (forced-colors: active) {\n      outline: 2px solid transparent;\n      outline-offset: 2px;\n    }\n  }\n  .outline {\n    outline-style: var(--tw-outline-style);\n    outline-width: 1px;\n  }\n  .blur {\n    --tw-blur: blur(8px);\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .drop-shadow {\n    --tw-drop-shadow-size: drop-shadow(0 1px 2px var(--tw-drop-shadow-color, rgb(0 0 0 / 0.1))) drop-shadow(0 1px 1px var(--tw-drop-shadow-color, rgb(0 0 0 / 0.06)));\n    --tw-drop-shadow: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1)) drop-shadow( 0 1px 1px rgb(0 0 0 / 0.06));\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .grayscale {\n    --tw-grayscale: grayscale(100%);\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .invert {\n    --tw-invert: invert(100%);\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .sepia {\n    --tw-sepia: sepia(100%);\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .filter {\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n  .backdrop-blur {\n    --tw-backdrop-blur: blur(8px);\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .backdrop-grayscale {\n    --tw-backdrop-grayscale: grayscale(100%);\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .backdrop-invert {\n    --tw-backdrop-invert: invert(100%);\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .backdrop-sepia {\n    --tw-backdrop-sepia: sepia(100%);\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .backdrop-filter {\n    -webkit-backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n    backdrop-filter: var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);\n  }\n  .transition {\n    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .transition-\\[color\\,box-shadow\\] {\n    transition-property: color,box-shadow;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .transition-all {\n    transition-property: all;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .transition-colors {\n    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .transition-transform {\n    transition-property: transform, translate, scale, rotate;\n    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));\n    transition-duration: var(--tw-duration, var(--default-transition-duration));\n  }\n  .outline-none {\n    --tw-outline-style: none;\n    outline-style: none;\n  }\n  .select-none {\n    -webkit-user-select: none;\n    user-select: none;\n  }\n  .divide-x-reverse {\n    :where(& > :not(:last-child)) {\n      --tw-divide-x-reverse: 1;\n    }\n  }\n  .ring-inset {\n    --tw-ring-inset: inset;\n  }\n  .group-data-\\[disabled\\=true\\]\\:pointer-events-none {\n    &:is(:where(.group)[data-disabled=\"true\"] *) {\n      pointer-events: none;\n    }\n  }\n  .group-data-\\[disabled\\=true\\]\\:opacity-50 {\n    &:is(:where(.group)[data-disabled=\"true\"] *) {\n      opacity: 50%;\n    }\n  }\n  .peer-disabled\\:cursor-not-allowed {\n    &:is(:where(.peer):disabled ~ *) {\n      cursor: not-allowed;\n    }\n  }\n  .peer-disabled\\:opacity-50 {\n    &:is(:where(.peer):disabled ~ *) {\n      opacity: 50%;\n    }\n  }\n  .file\\:inline-flex {\n    &::file-selector-button {\n      display: inline-flex;\n    }\n  }\n  .file\\:h-7 {\n    &::file-selector-button {\n      height: calc(var(--spacing) * 7);\n    }\n  }\n  .file\\:border-0 {\n    &::file-selector-button {\n      border-style: var(--tw-border-style);\n      border-width: 0px;\n    }\n  }\n  .file\\:bg-transparent {\n    &::file-selector-button {\n      background-color: transparent;\n    }\n  }\n  .file\\:text-sm {\n    &::file-selector-button {\n      font-size: var(--text-sm);\n      line-height: var(--tw-leading, var(--text-sm--line-height));\n    }\n  }\n  .file\\:font-medium {\n    &::file-selector-button {\n      --tw-font-weight: var(--font-weight-medium);\n      font-weight: var(--font-weight-medium);\n    }\n  }\n  .hover\\:underline {\n    &:hover {\n      @media (hover: hover) {\n        text-decoration-line: underline;\n      }\n    }\n  }\n  .focus-visible\\:ring-2 {\n    &:focus-visible {\n      --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n  }\n  .focus-visible\\:ring-\\[3px\\] {\n    &:focus-visible {\n      --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);\n      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);\n    }\n  }\n  .focus-visible\\:ring-offset-2 {\n    &:focus-visible {\n      --tw-ring-offset-width: 2px;\n      --tw-ring-offset-shadow: var(--tw-ring-inset,) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);\n    }\n  }\n  .focus-visible\\:outline-none {\n    &:focus-visible {\n      --tw-outline-style: none;\n      outline-style: none;\n    }\n  }\n  .disabled\\:pointer-events-none {\n    &:disabled {\n      pointer-events: none;\n    }\n  }\n  .disabled\\:cursor-not-allowed {\n    &:disabled {\n      cursor: not-allowed;\n    }\n  }\n  .disabled\\:opacity-50 {\n    &:disabled {\n      opacity: 50%;\n    }\n  }\n  .has-\\[\\>svg\\]\\:px-2\\.5 {\n    &:has(>svg) {\n      padding-inline: calc(var(--spacing) * 2.5);\n    }\n  }\n  .has-\\[\\>svg\\]\\:px-3 {\n    &:has(>svg) {\n      padding-inline: calc(var(--spacing) * 3);\n    }\n  }\n  .has-\\[\\>svg\\]\\:px-4 {\n    &:has(>svg) {\n      padding-inline: calc(var(--spacing) * 4);\n    }\n  }\n  .data-\\[disabled\\]\\:pointer-events-none {\n    &[data-disabled] {\n      pointer-events: none;\n    }\n  }\n  .data-\\[disabled\\]\\:opacity-50 {\n    &[data-disabled] {\n      opacity: 50%;\n    }\n  }\n  .data-\\[side\\=bottom\\]\\:translate-y-1 {\n    &[data-side=\"bottom\"] {\n      --tw-translate-y: calc(var(--spacing) * 1);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[side\\=left\\]\\:-translate-x-1 {\n    &[data-side=\"left\"] {\n      --tw-translate-x: calc(var(--spacing) * -1);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[side\\=right\\]\\:translate-x-1 {\n    &[data-side=\"right\"] {\n      --tw-translate-x: calc(var(--spacing) * 1);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[side\\=top\\]\\:-translate-y-1 {\n    &[data-side=\"top\"] {\n      --tw-translate-y: calc(var(--spacing) * -1);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[size\\=default\\]\\:h-9 {\n    &[data-size=\"default\"] {\n      height: calc(var(--spacing) * 9);\n    }\n  }\n  .data-\\[size\\=sm\\]\\:h-8 {\n    &[data-size=\"sm\"] {\n      height: calc(var(--spacing) * 8);\n    }\n  }\n  .\\*\\:data-\\[slot\\=select-value\\]\\:line-clamp-1 {\n    :is(& > *) {\n      &[data-slot=\"select-value\"] {\n        overflow: hidden;\n        display: -webkit-box;\n        -webkit-box-orient: vertical;\n        -webkit-line-clamp: 1;\n      }\n    }\n  }\n  .\\*\\:data-\\[slot\\=select-value\\]\\:flex {\n    :is(& > *) {\n      &[data-slot=\"select-value\"] {\n        display: flex;\n      }\n    }\n  }\n  .\\*\\:data-\\[slot\\=select-value\\]\\:items-center {\n    :is(& > *) {\n      &[data-slot=\"select-value\"] {\n        align-items: center;\n      }\n    }\n  }\n  .\\*\\:data-\\[slot\\=select-value\\]\\:gap-2 {\n    :is(& > *) {\n      &[data-slot=\"select-value\"] {\n        gap: calc(var(--spacing) * 2);\n      }\n    }\n  }\n  .data-\\[state\\=checked\\]\\:translate-x-4 {\n    &[data-state=\"checked\"] {\n      --tw-translate-x: calc(var(--spacing) * 4);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .data-\\[state\\=unchecked\\]\\:translate-x-0 {\n    &[data-state=\"unchecked\"] {\n      --tw-translate-x: calc(var(--spacing) * 0);\n      translate: var(--tw-translate-x) var(--tw-translate-y);\n    }\n  }\n  .md\\:text-sm {\n    @media (width >= 48rem) {\n      font-size: var(--text-sm);\n      line-height: var(--tw-leading, var(--text-sm--line-height));\n    }\n  }\n  .\\[\\&_svg\\]\\:pointer-events-none {\n    & svg {\n      pointer-events: none;\n    }\n  }\n  .\\[\\&_svg\\]\\:shrink-0 {\n    & svg {\n      flex-shrink: 0;\n    }\n  }\n  .\\[\\&_svg\\:not\\(\\[class\\*\\=\\'size-\\'\\]\\)\\]\\:size-4 {\n    & svg:not([class*='size-']) {\n      width: calc(var(--spacing) * 4);\n      height: calc(var(--spacing) * 4);\n    }\n  }\n  .\\*\\:\\[span\\]\\:last\\:flex {\n    :is(& > *) {\n      &:is(span) {\n        &:last-child {\n          display: flex;\n        }\n      }\n    }\n  }\n  .\\*\\:\\[span\\]\\:last\\:items-center {\n    :is(& > *) {\n      &:is(span) {\n        &:last-child {\n          align-items: center;\n        }\n      }\n    }\n  }\n  .\\*\\:\\[span\\]\\:last\\:gap-2 {\n    :is(& > *) {\n      &:is(span) {\n        &:last-child {\n          gap: calc(var(--spacing) * 2);\n        }\n      }\n    }\n  }\n}\n@property --tw-scale-x {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 1;\n}\n@property --tw-scale-y {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 1;\n}\n@property --tw-scale-z {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 1;\n}\n@property --tw-rotate-x {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-rotate-y {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-rotate-z {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-skew-x {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-skew-y {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-pan-x {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-pan-y {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-pinch-zoom {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-space-y-reverse {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-space-x-reverse {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-divide-x-reverse {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-border-style {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: solid;\n}\n@property --tw-divide-y-reverse {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-leading {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-font-weight {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-ordinal {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-slashed-zero {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-numeric-figure {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-numeric-spacing {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-numeric-fraction {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-inset-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-inset-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-inset-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-ring-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-ring-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-inset-ring-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-inset-ring-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-ring-inset {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-ring-offset-width {\n  syntax: \"<length>\";\n  inherits: false;\n  initial-value: 0px;\n}\n@property --tw-ring-offset-color {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: #fff;\n}\n@property --tw-ring-offset-shadow {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0 0 #0000;\n}\n@property --tw-outline-style {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: solid;\n}\n@property --tw-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-drop-shadow-size {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-backdrop-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-translate-x {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-translate-y {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@property --tw-translate-z {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 0;\n}\n@keyframes spin {\n  to {\n    transform: rotate(360deg);\n  }\n}\n@keyframes pulse {\n  50% {\n    opacity: 0.5;\n  }\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scale-x: 1;\n      --tw-scale-y: 1;\n      --tw-scale-z: 1;\n      --tw-rotate-x: initial;\n      --tw-rotate-y: initial;\n      --tw-rotate-z: initial;\n      --tw-skew-x: initial;\n      --tw-skew-y: initial;\n      --tw-pan-x: initial;\n      --tw-pan-y: initial;\n      --tw-pinch-zoom: initial;\n      --tw-space-y-reverse: 0;\n      --tw-space-x-reverse: 0;\n      --tw-divide-x-reverse: 0;\n      --tw-border-style: solid;\n      --tw-divide-y-reverse: 0;\n      --tw-leading: initial;\n      --tw-font-weight: initial;\n      --tw-ordinal: initial;\n      --tw-slashed-zero: initial;\n      --tw-numeric-figure: initial;\n      --tw-numeric-spacing: initial;\n      --tw-numeric-fraction: initial;\n      --tw-shadow: 0 0 #0000;\n      --tw-shadow-color: initial;\n      --tw-shadow-alpha: 100%;\n      --tw-inset-shadow: 0 0 #0000;\n      --tw-inset-shadow-color: initial;\n      --tw-inset-shadow-alpha: 100%;\n      --tw-ring-color: initial;\n      --tw-ring-shadow: 0 0 #0000;\n      --tw-inset-ring-color: initial;\n      --tw-inset-ring-shadow: 0 0 #0000;\n      --tw-ring-inset: initial;\n      --tw-ring-offset-width: 0px;\n      --tw-ring-offset-color: #fff;\n      --tw-ring-offset-shadow: 0 0 #0000;\n      --tw-outline-style: solid;\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n      --tw-backdrop-blur: initial;\n      --tw-backdrop-brightness: initial;\n      --tw-backdrop-contrast: initial;\n      --tw-backdrop-grayscale: initial;\n      --tw-backdrop-hue-rotate: initial;\n      --tw-backdrop-invert: initial;\n      --tw-backdrop-opacity: initial;\n      --tw-backdrop-saturate: initial;\n      --tw-backdrop-sepia: initial;\n      --tw-translate-x: 0;\n      --tw-translate-y: 0;\n      --tw-translate-z: 0;\n    }\n  }\n}\n";
 styleInject(css_248z);
-
-var usePromPromiseQuery = function (fetchFn) {
-    var _a = React.useState(null), data = _a[0], setData = _a[1];
-    var _b = React.useState(true), loading = _b[0], setLoading = _b[1];
-    var _c = React.useState(null), error = _c[0], setError = _c[1];
-    var lastFnRef = React.useRef(undefined);
-    var execute = React.useCallback(function (fn) { return tslib.__awaiter(void 0, void 0, void 0, function () {
-        var functionToExecute, result, err_1;
-        return tslib.__generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    setLoading(true);
-                    setError(null);
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, 4, 5]);
-                    functionToExecute = fn || lastFnRef.current;
-                    if (fn)
-                        lastFnRef.current = fn;
-                    if (!functionToExecute) {
-                        setLoading(false);
-                        throw new Error("No function to refetch");
-                    }
-                    return [4 /*yield*/, functionToExecute()];
-                case 2:
-                    result = _a.sent();
-                    setData(result);
-                    console.log("НЕЕЕЕЕТ");
-                    return [2 /*return*/, result];
-                case 3:
-                    err_1 = _a.sent();
-                    setError(err_1);
-                    throw err_1;
-                case 4:
-                    setLoading(false);
-                    return [7 /*endfinally*/];
-                case 5: return [2 /*return*/];
-            }
-        });
-    }); }, []);
-    React.useEffect(function () {
-        if (fetchFn) {
-            execute(fetchFn);
-        }
-    }, []);
-    var onRefetch = React.useCallback(function () { return tslib.__awaiter(void 0, void 0, void 0, function () {
-        return tslib.__generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!lastFnRef.current) {
-                        console.warn("No function to refetch");
-                        return [2 /*return*/, null];
-                    }
-                    return [4 /*yield*/, execute(lastFnRef.current)];
-                case 1: return [2 /*return*/, _a.sent()];
-            }
-        });
-    }); }, [execute]);
-    return {
-        data: data,
-        error: error,
-        execute: execute,
-        loading: loading,
-        onRefetch: onRefetch,
-    };
-};
 
 function PromTest() {
     return (jsxRuntimeExports.jsx("div", { className: "text-primary test-text text-lg font-medium p-4 bg-gray-100 rounded-lg", children: "test \u0446\u0432\u0435\u0442\u0430 \u043E\u0430\u043B\u0434\u044B\u0432\u043E\u0430\u043B\u043E\u0432\u0430\u043B" }));
 }
 
-exports.PROM_MSG_ERROR = PROM_MSG_ERROR;
-exports.PromButton = PromButton;
-exports.PromFormFiled = PromFormFiled;
-exports.PromFrom = PromFrom;
-exports.PromInput = PromInput;
-exports.PromLabel = PromLabel;
-exports.PromMessage = PromMessage;
-exports.PromSelect = PromSelect;
-exports.PromSelectContent = PromSelectContent;
-exports.PromSelectField = PromSelectField;
-exports.PromSelectGroup = PromSelectGroup;
-exports.PromSelectItem = PromSelectItem;
-exports.PromSelectLabel = PromSelectLabel;
-exports.PromSelectScrollDownButton = PromSelectScrollDownButton;
-exports.PromSelectScrollUpButton = PromSelectScrollUpButton;
-exports.PromSelectSeparator = PromSelectSeparator;
-exports.PromSelectTrigger = PromSelectTrigger;
-exports.PromSelectValue = PromSelectValue;
-exports.PromSkeleton = PromSkeleton;
-exports.PromSwitchField = PromSwitchField;
-exports.PromTest = PromTest;
-exports.PromTextarea = PromTextarea;
-exports.buttonVariants = buttonVariants;
-exports.cn = cn;
-exports.promSchemaPhone = promSchemaPhone;
-exports.promSelectFilterOptions = promSelectFilterOptions;
-exports.skeletonVariants = skeletonVariants;
-exports.useCreatePromForm = useCreatePromForm;
-exports.usePromForm = usePromForm;
-exports.usePromPromiseQuery = usePromPromiseQuery;
+export { PROM_MSG_ERROR, PromButton, PromFormFiled, PromFrom, PromInput, PromLabel, PromMessage, PromSelect, PromSelectContent, PromSelectField, PromSelectGroup, PromSelectItem, PromSelectLabel, PromSelectScrollDownButton, PromSelectScrollUpButton, PromSelectSeparator, PromSelectTrigger, PromSelectValue, PromSkeleton, PromSwitchField, PromTest, PromTextarea, buttonVariants, cn, promSchemaPhone, promSelectFilterOptions, skeletonVariants, useCreatePromForm, usePromForm };

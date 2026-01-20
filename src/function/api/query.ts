@@ -25,8 +25,6 @@ const usePromPromiseQuery = <T>(fetchFn?: () => Promise<T>) => {
 
       const result = await functionToExecute();
       setData(result);
-      console.log("НЕЕЕЕЕТ");
-      return result;
     } catch (err) {
       setError(err);
       throw err;
