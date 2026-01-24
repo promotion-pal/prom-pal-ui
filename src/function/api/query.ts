@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const usePromPromiseQuery = <T>(fetchFn?: () => Promise<T>) => {

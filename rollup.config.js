@@ -5,11 +5,11 @@ import commonjs from "@rollup/plugin-commonjs";
 import postcss from "rollup-plugin-postcss";
 
 const uiConfig = {
-  input: "src/ui/index.ts",
+  input: "src/components/index.ts",
   external: ["react", "react-dom", "react-hook-form", "tslib"],
   output: [
-    { dir: "build/ui/cjs", format: "cjs", exports: "named" },
-    { dir: "build/ui/esm", format: "esm" },
+    { dir: "build/components/cjs", format: "cjs", exports: "named" },
+    { dir: "build/components/esm", format: "esm" },
   ],
   plugins: [
     resolve(),

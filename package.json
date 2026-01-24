@@ -1,6 +1,6 @@
 {
   "name": "prom-pal-ui",
-  "version": "1.2.5",
+  "version": "1.2.7",
   "type": "module",
   "main": "build/cjs/index.js",
   "module": "build/esm/index.js",
