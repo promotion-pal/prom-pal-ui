@@ -6,7 +6,7 @@ import postcss from "rollup-plugin-postcss";
 
 const uiConfig = {
   input: "src/components/index.ts",
-  external: ["react", "react-dom", "react-hook-form", "tslib"],
+  external: ["react", "react-dom", "react-hook-form"],
   output: [
     { dir: "build/components/cjs", format: "cjs", exports: "named" },
     { dir: "build/components/esm", format: "esm" },
@@ -29,7 +29,7 @@ const uiConfig = {
 
 const functionConfig = {
   input: "src/function/index.ts",
-  external: ["react", "react-dom", "react-hook-form", "tslib"],
+  external: ["react", "react-dom", "react-hook-form"],
   output: [
     { dir: "build/function/cjs", format: "cjs", exports: "named" },
     { dir: "build/function/esm", format: "esm" },
