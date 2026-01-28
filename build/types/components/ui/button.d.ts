@@ -2,11 +2,11 @@ import { type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { PromComponentProps } from "../types";
 declare const buttonVariants: (props?: {
-    variant?: "link" | "default" | "destructive" | "outline" | "secondary" | "ghost";
+    variant?: "default" | "link" | "destructive" | "outline" | "secondary" | "ghost";
     size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg";
 } & import("class-variance-authority/dist/types").ClassProp) => string;
 declare const skeletonVariants: (props?: {
-    variant?: "link" | "default" | "destructive" | "outline" | "secondary" | "ghost";
+    variant?: "default" | "link" | "destructive" | "outline" | "secondary" | "ghost";
     size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg";
 } & import("class-variance-authority/dist/types").ClassProp) => string;
 interface PromButtonProps extends React.ComponentProps<"button">, VariantProps<typeof buttonVariants>, PromComponentProps {

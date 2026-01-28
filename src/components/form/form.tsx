@@ -132,11 +132,6 @@ const usePromForm = <T extends FieldValues>() => {
   };
 };
 
-type PromFormFiledProps<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> = ControllerProps<TFieldValues, TName>;
-
 const PromFormFiled = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -151,7 +146,6 @@ const PromMessage = () => {
   const { errors } = useFormState({ control });
 
   if (Object.keys(errors).length > 0) {
-    console.log(errors);
     return <p>Ошибка</p>;
   }
   return null;

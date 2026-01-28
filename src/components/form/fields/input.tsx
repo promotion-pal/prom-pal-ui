@@ -15,18 +15,38 @@ interface PromInputProps
     Omit<React.ComponentProps<"input">, "name"> {
   name: string;
   label?: string;
+  allowedPattern?: RegExp;
+  mask?: (e: string) => string;
 }
 
 const PromInput: FC<PromInputProps> = ({
   name,
+  mask,
   label,
   isLoad,
   styleTitle,
   styleWrapper,
   type = "text",
+  allowedPattern,
   ...props
 }) => {
-  const { control } = useFormContext();
+  const { control, setValue } = useFormContext();
+
+  const handleChange = (value: string) => {
+    let processedValue = value;
+
+    if (mask) {
+      processedValue = mask(value);
+    }
+
+    if (allowedPattern) {
+      if (!allowedPattern.test(processedValue)) {
+        return;
+      }
+    }
+
+    setValue(name, processedValue as any);
+  };
 
   return (
     <PromFormFiled
@@ -41,6 +61,7 @@ const PromInput: FC<PromInputProps> = ({
           <input
             {...field}
             {...props}
+            onChange={(e) => handleChange(e.target.value)}
             type={type}
             disabled={isLoad || props.disabled}
             className={cn(

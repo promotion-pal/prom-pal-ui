@@ -55,7 +55,12 @@ const PromSelectField: FC<PromSelectFieldProps> = ({
                 <PromSelectValue placeholder={placeholder} />
               </PromSelectTrigger>
 
-              <PromSelectContent className="max-h-50">
+              <PromSelectContent
+                style={{
+                  maxHeight: 200,
+                  overflowY: "auto",
+                }}
+              >
                 {options.map((item) => (
                   <PromSelectItem key={item.key} value={String(item.key)}>
                     {item.value}
