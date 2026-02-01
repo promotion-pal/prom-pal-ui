@@ -24216,10 +24216,6 @@ function PromButton(_a) {
     return (jsxRuntimeExports.jsxs(Comp, __assign({ "data-slot": "button", className: cn(buttonVariants({ variant: variant, size: size, className: className })), disabled: disabled || isLoad }, props, { children: [isLoad && (jsxRuntimeExports.jsx(LoaderCircle, { className: "size-4 animate-spin", "data-slot": "button-loader" })), isLoad && loadingText ? loadingText : children] })));
 }
 
-function PromTest() {
-    return (jsxRuntimeExports.jsx("div", { className: "text-primary test-text text-lg font-medium p-4 bg-gray-100 rounded-lg", children: "test \u0446\u0432\u0435\u0442\u0430 \u043E\u0430\u043B\u0434\u044B\u0432\u043E\u0430\u043B\u043E\u0432\u0430\u043B" }));
-}
-
 exports.PROM_MSG_ERROR = PROM_MSG_ERROR;
 exports.PromButton = PromButton;
 exports.PromFormFiled = PromFormFiled;
@@ -24241,9 +24237,7 @@ exports.PromSelectValue = PromSelectValue;
 exports.PromSkeleton = PromSkeleton;
 exports.PromSwitch = PromSwitch;
 exports.PromSwitchField = PromSwitchField;
-exports.PromTest = PromTest;
 exports.PromTextarea = PromTextarea;
-exports.buttonVariants = buttonVariants;
 exports.promAllowedPatternEmail = promAllowedPatternEmail;
 exports.promAllowedPatternNaturalNumbers = promAllowedPatternNaturalNumbers;
 exports.promAllowedPatternOnlyRu = promAllowedPatternOnlyRu;
@@ -24257,6 +24251,5 @@ exports.promMaskTelegram = promMaskTelegram;
 exports.promMaskWhatsapp = promMaskWhatsapp;
 exports.promSchemaPhone = promSchemaPhone;
 exports.promSelectFilterOptions = promSelectFilterOptions;
-exports.skeletonVariants = skeletonVariants;
 exports.useCreatePromForm = useCreatePromForm;
 exports.usePromForm = usePromForm;
