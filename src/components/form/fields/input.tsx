@@ -55,7 +55,9 @@ const PromInput: FC<PromInputProps> = ({
       render={({ field, fieldState }) => (
         <div className="space-y-2">
           {label && (
-            <PromLabel className="block text-sm font-medium">{label}</PromLabel>
+            <PromLabel className={cn("block text-sm font-medium", styleTitle)}>
+              {label}
+            </PromLabel>
           )}
 
           <input
@@ -69,7 +71,6 @@ const PromInput: FC<PromInputProps> = ({
               "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
               "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
               styleWrapper,
-              styleTitle,
             )}
           />
 
