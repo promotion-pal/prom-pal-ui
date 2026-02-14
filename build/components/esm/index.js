@@ -1,8 +1,8 @@
 import * as React from 'react';
-import React__default, { useState, useLayoutEffect, forwardRef, createElement } from 'react';
-import { get, set as set$1, appendErrors, useForm, FormProvider, useFormContext, useFormState, Controller } from 'react-hook-form';
+import React__default, { forwardRef, createElement, useLayoutEffect, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 import ReactDOM__default from 'react-dom';
+import { get, set as set$1, appendErrors, useForm, FormProvider, useFormContext, useFormState, Controller } from 'react-hook-form';
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -519,7 +519,9021 @@ function requireJsxRuntime () {
 
 var jsxRuntimeExports = requireJsxRuntime();
 
-const r$1=(t,r,o)=>{if(t&&"reportValidity"in t){const s=get(o,r);t.setCustomValidity(s&&s.message||""),t.reportValidity();}},o=(e,t)=>{for(const o in t.fields){const s=t.fields[o];s&&s.ref&&"reportValidity"in s.ref?r$1(s.ref,o,e):s&&s.refs&&s.refs.forEach(t=>r$1(t,o,e));}},s$1=(r,s)=>{s.shouldUseNativeValidation&&o(r,s);const n={};for(const o in r){const f=get(s.fields,o),c=Object.assign(r[o]||{},{ref:f&&f.ref});if(i$1(s.names||Object.keys(r),o)){const r=Object.assign({},get(n,o));set$1(r,"root",c),set$1(n,o,r);}else set$1(n,o,c);}return n},i$1=(e,t)=>{const r=n(t);return e.some(e=>n(e).match(`^${r}\\.\\d+`))};function n(e){return e.replace(/\]|\[/g,"")}
+// packages/react/compose-refs/src/compose-refs.tsx
+function setRef(ref, value) {
+  if (typeof ref === "function") {
+    return ref(value);
+  } else if (ref !== null && ref !== void 0) {
+    ref.current = value;
+  }
+}
+function composeRefs(...refs) {
+  return (node) => {
+    let hasCleanup = false;
+    const cleanups = refs.map((ref) => {
+      const cleanup = setRef(ref, node);
+      if (!hasCleanup && typeof cleanup == "function") {
+        hasCleanup = true;
+      }
+      return cleanup;
+    });
+    if (hasCleanup) {
+      return () => {
+        for (let i = 0; i < cleanups.length; i++) {
+          const cleanup = cleanups[i];
+          if (typeof cleanup == "function") {
+            cleanup();
+          } else {
+            setRef(refs[i], null);
+          }
+        }
+      };
+    }
+  };
+}
+function useComposedRefs(...refs) {
+  return React.useCallback(composeRefs(...refs), refs);
+}
+
+// src/slot.tsx
+var REACT_LAZY_TYPE = Symbol.for("react.lazy");
+var use = React[" use ".trim().toString()];
+function isPromiseLike(value) {
+  return typeof value === "object" && value !== null && "then" in value;
+}
+function isLazyComponent(element) {
+  return element != null && typeof element === "object" && "$$typeof" in element && element.$$typeof === REACT_LAZY_TYPE && "_payload" in element && isPromiseLike(element._payload);
+}
+// @__NO_SIDE_EFFECTS__
+function createSlot$1(ownerName) {
+  const SlotClone = /* @__PURE__ */ createSlotClone$1(ownerName);
+  const Slot2 = React.forwardRef((props, forwardedRef) => {
+    let { children, ...slotProps } = props;
+    if (isLazyComponent(children) && typeof use === "function") {
+      children = use(children._payload);
+    }
+    const childrenArray = React.Children.toArray(children);
+    const slottable = childrenArray.find(isSlottable$1);
+    if (slottable) {
+      const newElement = slottable.props.children;
+      const newChildren = childrenArray.map((child) => {
+        if (child === slottable) {
+          if (React.Children.count(newElement) > 1) return React.Children.only(null);
+          return React.isValidElement(newElement) ? newElement.props.children : null;
+        } else {
+          return child;
+        }
+      });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children: React.isValidElement(newElement) ? React.cloneElement(newElement, void 0, newChildren) : null });
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children });
+  });
+  Slot2.displayName = `${ownerName}.Slot`;
+  return Slot2;
+}
+var Slot$1 = /* @__PURE__ */ createSlot$1("Slot");
+// @__NO_SIDE_EFFECTS__
+function createSlotClone$1(ownerName) {
+  const SlotClone = React.forwardRef((props, forwardedRef) => {
+    let { children, ...slotProps } = props;
+    if (isLazyComponent(children) && typeof use === "function") {
+      children = use(children._payload);
+    }
+    if (React.isValidElement(children)) {
+      const childrenRef = getElementRef$1(children);
+      const props2 = mergeProps$1(slotProps, children.props);
+      if (children.type !== React.Fragment) {
+        props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
+      }
+      return React.cloneElement(children, props2);
+    }
+    return React.Children.count(children) > 1 ? React.Children.only(null) : null;
+  });
+  SlotClone.displayName = `${ownerName}.SlotClone`;
+  return SlotClone;
+}
+var SLOTTABLE_IDENTIFIER$1 = Symbol("radix.slottable");
+function isSlottable$1(child) {
+  return React.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER$1;
+}
+function mergeProps$1(slotProps, childProps) {
+  const overrideProps = { ...childProps };
+  for (const propName in childProps) {
+    const slotPropValue = slotProps[propName];
+    const childPropValue = childProps[propName];
+    const isHandler = /^on[A-Z]/.test(propName);
+    if (isHandler) {
+      if (slotPropValue && childPropValue) {
+        overrideProps[propName] = (...args) => {
+          const result = childPropValue(...args);
+          slotPropValue(...args);
+          return result;
+        };
+      } else if (slotPropValue) {
+        overrideProps[propName] = slotPropValue;
+      }
+    } else if (propName === "style") {
+      overrideProps[propName] = { ...slotPropValue, ...childPropValue };
+    } else if (propName === "className") {
+      overrideProps[propName] = [slotPropValue, childPropValue].filter(Boolean).join(" ");
+    }
+  }
+  return { ...slotProps, ...overrideProps };
+}
+function getElementRef$1(element) {
+  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
+  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.ref;
+  }
+  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
+  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.props.ref;
+  }
+  return element.props.ref || element.ref;
+}
+
+function r$1(e){var t,f,n="";if("string"==typeof e||"number"==typeof e)n+=e;else if("object"==typeof e)if(Array.isArray(e)){var o=e.length;for(t=0;t<o;t++)e[t]&&(f=r$1(e[t]))&&(n&&(n+=" "),n+=f);}else for(f in e)e[f]&&(n&&(n+=" "),n+=f);return n}function clsx(){for(var e,t,f=0,n="",o=arguments.length;f<o;f++)(e=arguments[f])&&(t=r$1(e))&&(n&&(n+=" "),n+=t);return n}
+
+const falsyToString = (value)=>typeof value === "boolean" ? `${value}` : value === 0 ? "0" : value;
+const cx = clsx;
+const cva = (base, config)=>(props)=>{
+        var _config_compoundVariants;
+        if ((config === null || config === void 0 ? void 0 : config.variants) == null) return cx(base, props === null || props === void 0 ? void 0 : props.class, props === null || props === void 0 ? void 0 : props.className);
+        const { variants, defaultVariants } = config;
+        const getVariantClassNames = Object.keys(variants).map((variant)=>{
+            const variantProp = props === null || props === void 0 ? void 0 : props[variant];
+            const defaultVariantProp = defaultVariants === null || defaultVariants === void 0 ? void 0 : defaultVariants[variant];
+            if (variantProp === null) return null;
+            const variantKey = falsyToString(variantProp) || falsyToString(defaultVariantProp);
+            return variants[variant][variantKey];
+        });
+        const propsWithoutUndefined = props && Object.entries(props).reduce((acc, param)=>{
+            let [key, value] = param;
+            if (value === undefined) {
+                return acc;
+            }
+            acc[key] = value;
+            return acc;
+        }, {});
+        const getCompoundVariantClassNames = config === null || config === void 0 ? void 0 : (_config_compoundVariants = config.compoundVariants) === null || _config_compoundVariants === void 0 ? void 0 : _config_compoundVariants.reduce((acc, param)=>{
+            let { class: cvClass, className: cvClassName, ...compoundVariantOptions } = param;
+            return Object.entries(compoundVariantOptions).every((param)=>{
+                let [key, value] = param;
+                return Array.isArray(value) ? value.includes({
+                    ...defaultVariants,
+                    ...propsWithoutUndefined
+                }[key]) : ({
+                    ...defaultVariants,
+                    ...propsWithoutUndefined
+                })[key] === value;
+            }) ? [
+                ...acc,
+                cvClass,
+                cvClassName
+            ] : acc;
+        }, []);
+        return cx(base, getVariantClassNames, getCompoundVariantClassNames, props === null || props === void 0 ? void 0 : props.class, props === null || props === void 0 ? void 0 : props.className);
+    };
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+const toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+const toCamelCase = (string) => string.replace(
+  /^([A-Z])|[\s-_]+(\w)/g,
+  (match, p1, p2) => p2 ? p2.toUpperCase() : p1.toLowerCase()
+);
+const toPascalCase = (string) => {
+  const camelCase = toCamelCase(string);
+  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+};
+const mergeClasses = (...classes) => classes.filter((className, index, array) => {
+  return Boolean(className) && className.trim() !== "" && array.indexOf(className) === index;
+}).join(" ").trim();
+const hasA11yProp = (props) => {
+  for (const prop in props) {
+    if (prop.startsWith("aria-") || prop === "role" || prop === "title") {
+      return true;
+    }
+  }
+};
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+var defaultAttributes = {
+  xmlns: "http://www.w3.org/2000/svg",
+  width: 24,
+  height: 24,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+};
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const Icon$1 = forwardRef(
+  ({
+    color = "currentColor",
+    size = 24,
+    strokeWidth = 2,
+    absoluteStrokeWidth,
+    className = "",
+    children,
+    iconNode,
+    ...rest
+  }, ref) => createElement(
+    "svg",
+    {
+      ref,
+      ...defaultAttributes,
+      width: size,
+      height: size,
+      stroke: color,
+      strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
+      className: mergeClasses("lucide", className),
+      ...!children && !hasA11yProp(rest) && { "aria-hidden": "true" },
+      ...rest
+    },
+    [
+      ...iconNode.map(([tag, attrs]) => createElement(tag, attrs)),
+      ...Array.isArray(children) ? children : [children]
+    ]
+  )
+);
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const createLucideIcon = (iconName, iconNode) => {
+  const Component = forwardRef(
+    ({ className, ...props }, ref) => createElement(Icon$1, {
+      ref,
+      iconNode,
+      className: mergeClasses(
+        `lucide-${toKebabCase(toPascalCase(iconName))}`,
+        `lucide-${iconName}`,
+        className
+      ),
+      ...props
+    })
+  );
+  Component.displayName = toPascalCase(iconName);
+  return Component;
+};
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode$5 = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
+const Check = createLucideIcon("check", __iconNode$5);
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode$4 = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+const ChevronDown = createLucideIcon("chevron-down", __iconNode$4);
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode$3 = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
+const ChevronUp = createLucideIcon("chevron-up", __iconNode$3);
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode$2 = [
+  [
+    "path",
+    {
+      d: "M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49",
+      key: "ct8e1f"
+    }
+  ],
+  ["path", { d: "M14.084 14.158a3 3 0 0 1-4.242-4.242", key: "151rxh" }],
+  [
+    "path",
+    {
+      d: "M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143",
+      key: "13bj9a"
+    }
+  ],
+  ["path", { d: "m2 2 20 20", key: "1ooewy" }]
+];
+const EyeOff = createLucideIcon("eye-off", __iconNode$2);
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode$1 = [
+  [
+    "path",
+    {
+      d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
+      key: "1nclc0"
+    }
+  ],
+  ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
+];
+const Eye = createLucideIcon("eye", __iconNode$1);
+
+/**
+ * @license lucide-react v0.562.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+
+const __iconNode = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+const LoaderCircle = createLucideIcon("loader-circle", __iconNode);
+
+/**
+ * Concatenates two arrays faster than the array spread operator.
+ */
+const concatArrays = (array1, array2) => {
+  // Pre-allocate for better V8 optimization
+  const combinedArray = new Array(array1.length + array2.length);
+  for (let i = 0; i < array1.length; i++) {
+    combinedArray[i] = array1[i];
+  }
+  for (let i = 0; i < array2.length; i++) {
+    combinedArray[array1.length + i] = array2[i];
+  }
+  return combinedArray;
+};
+
+// Factory function ensures consistent object shapes
+const createClassValidatorObject = (classGroupId, validator) => ({
+  classGroupId,
+  validator
+});
+// Factory ensures consistent ClassPartObject shape
+const createClassPartObject = (nextPart = new Map(), validators = null, classGroupId) => ({
+  nextPart,
+  validators,
+  classGroupId
+});
+const CLASS_PART_SEPARATOR = '-';
+const EMPTY_CONFLICTS = [];
+// I use two dots here because one dot is used as prefix for class groups in plugins
+const ARBITRARY_PROPERTY_PREFIX = 'arbitrary..';
+const createClassGroupUtils = config => {
+  const classMap = createClassMap(config);
+  const {
+    conflictingClassGroups,
+    conflictingClassGroupModifiers
+  } = config;
+  const getClassGroupId = className => {
+    if (className.startsWith('[') && className.endsWith(']')) {
+      return getGroupIdForArbitraryProperty(className);
+    }
+    const classParts = className.split(CLASS_PART_SEPARATOR);
+    // Classes like `-inset-1` produce an empty string as first classPart. We assume that classes for negative values are used correctly and skip it.
+    const startIndex = classParts[0] === '' && classParts.length > 1 ? 1 : 0;
+    return getGroupRecursive(classParts, startIndex, classMap);
+  };
+  const getConflictingClassGroupIds = (classGroupId, hasPostfixModifier) => {
+    if (hasPostfixModifier) {
+      const modifierConflicts = conflictingClassGroupModifiers[classGroupId];
+      const baseConflicts = conflictingClassGroups[classGroupId];
+      if (modifierConflicts) {
+        if (baseConflicts) {
+          // Merge base conflicts with modifier conflicts
+          return concatArrays(baseConflicts, modifierConflicts);
+        }
+        // Only modifier conflicts
+        return modifierConflicts;
+      }
+      // Fall back to without postfix if no modifier conflicts
+      return baseConflicts || EMPTY_CONFLICTS;
+    }
+    return conflictingClassGroups[classGroupId] || EMPTY_CONFLICTS;
+  };
+  return {
+    getClassGroupId,
+    getConflictingClassGroupIds
+  };
+};
+const getGroupRecursive = (classParts, startIndex, classPartObject) => {
+  const classPathsLength = classParts.length - startIndex;
+  if (classPathsLength === 0) {
+    return classPartObject.classGroupId;
+  }
+  const currentClassPart = classParts[startIndex];
+  const nextClassPartObject = classPartObject.nextPart.get(currentClassPart);
+  if (nextClassPartObject) {
+    const result = getGroupRecursive(classParts, startIndex + 1, nextClassPartObject);
+    if (result) return result;
+  }
+  const validators = classPartObject.validators;
+  if (validators === null) {
+    return undefined;
+  }
+  // Build classRest string efficiently by joining from startIndex onwards
+  const classRest = startIndex === 0 ? classParts.join(CLASS_PART_SEPARATOR) : classParts.slice(startIndex).join(CLASS_PART_SEPARATOR);
+  const validatorsLength = validators.length;
+  for (let i = 0; i < validatorsLength; i++) {
+    const validatorObj = validators[i];
+    if (validatorObj.validator(classRest)) {
+      return validatorObj.classGroupId;
+    }
+  }
+  return undefined;
+};
+/**
+ * Get the class group ID for an arbitrary property.
+ *
+ * @param className - The class name to get the group ID for. Is expected to be string starting with `[` and ending with `]`.
+ */
+const getGroupIdForArbitraryProperty = className => className.slice(1, -1).indexOf(':') === -1 ? undefined : (() => {
+  const content = className.slice(1, -1);
+  const colonIndex = content.indexOf(':');
+  const property = content.slice(0, colonIndex);
+  return property ? ARBITRARY_PROPERTY_PREFIX + property : undefined;
+})();
+/**
+ * Exported for testing only
+ */
+const createClassMap = config => {
+  const {
+    theme,
+    classGroups
+  } = config;
+  return processClassGroups(classGroups, theme);
+};
+// Split into separate functions to maintain monomorphic call sites
+const processClassGroups = (classGroups, theme) => {
+  const classMap = createClassPartObject();
+  for (const classGroupId in classGroups) {
+    const group = classGroups[classGroupId];
+    processClassesRecursively(group, classMap, classGroupId, theme);
+  }
+  return classMap;
+};
+const processClassesRecursively = (classGroup, classPartObject, classGroupId, theme) => {
+  const len = classGroup.length;
+  for (let i = 0; i < len; i++) {
+    const classDefinition = classGroup[i];
+    processClassDefinition(classDefinition, classPartObject, classGroupId, theme);
+  }
+};
+// Split into separate functions for each type to maintain monomorphic call sites
+const processClassDefinition = (classDefinition, classPartObject, classGroupId, theme) => {
+  if (typeof classDefinition === 'string') {
+    processStringDefinition(classDefinition, classPartObject, classGroupId);
+    return;
+  }
+  if (typeof classDefinition === 'function') {
+    processFunctionDefinition(classDefinition, classPartObject, classGroupId, theme);
+    return;
+  }
+  processObjectDefinition(classDefinition, classPartObject, classGroupId, theme);
+};
+const processStringDefinition = (classDefinition, classPartObject, classGroupId) => {
+  const classPartObjectToEdit = classDefinition === '' ? classPartObject : getPart(classPartObject, classDefinition);
+  classPartObjectToEdit.classGroupId = classGroupId;
+};
+const processFunctionDefinition = (classDefinition, classPartObject, classGroupId, theme) => {
+  if (isThemeGetter(classDefinition)) {
+    processClassesRecursively(classDefinition(theme), classPartObject, classGroupId, theme);
+    return;
+  }
+  if (classPartObject.validators === null) {
+    classPartObject.validators = [];
+  }
+  classPartObject.validators.push(createClassValidatorObject(classGroupId, classDefinition));
+};
+const processObjectDefinition = (classDefinition, classPartObject, classGroupId, theme) => {
+  const entries = Object.entries(classDefinition);
+  const len = entries.length;
+  for (let i = 0; i < len; i++) {
+    const [key, value] = entries[i];
+    processClassesRecursively(value, getPart(classPartObject, key), classGroupId, theme);
+  }
+};
+const getPart = (classPartObject, path) => {
+  let current = classPartObject;
+  const parts = path.split(CLASS_PART_SEPARATOR);
+  const len = parts.length;
+  for (let i = 0; i < len; i++) {
+    const part = parts[i];
+    let next = current.nextPart.get(part);
+    if (!next) {
+      next = createClassPartObject();
+      current.nextPart.set(part, next);
+    }
+    current = next;
+  }
+  return current;
+};
+// Type guard maintains monomorphic check
+const isThemeGetter = func => 'isThemeGetter' in func && func.isThemeGetter === true;
+
+// LRU cache implementation using plain objects for simplicity
+const createLruCache = maxCacheSize => {
+  if (maxCacheSize < 1) {
+    return {
+      get: () => undefined,
+      set: () => {}
+    };
+  }
+  let cacheSize = 0;
+  let cache = Object.create(null);
+  let previousCache = Object.create(null);
+  const update = (key, value) => {
+    cache[key] = value;
+    cacheSize++;
+    if (cacheSize > maxCacheSize) {
+      cacheSize = 0;
+      previousCache = cache;
+      cache = Object.create(null);
+    }
+  };
+  return {
+    get(key) {
+      let value = cache[key];
+      if (value !== undefined) {
+        return value;
+      }
+      if ((value = previousCache[key]) !== undefined) {
+        update(key, value);
+        return value;
+      }
+    },
+    set(key, value) {
+      if (key in cache) {
+        cache[key] = value;
+      } else {
+        update(key, value);
+      }
+    }
+  };
+};
+const IMPORTANT_MODIFIER = '!';
+const MODIFIER_SEPARATOR = ':';
+const EMPTY_MODIFIERS = [];
+// Pre-allocated result object shape for consistency
+const createResultObject = (modifiers, hasImportantModifier, baseClassName, maybePostfixModifierPosition, isExternal) => ({
+  modifiers,
+  hasImportantModifier,
+  baseClassName,
+  maybePostfixModifierPosition,
+  isExternal
+});
+const createParseClassName = config => {
+  const {
+    prefix,
+    experimentalParseClassName
+  } = config;
+  /**
+   * Parse class name into parts.
+   *
+   * Inspired by `splitAtTopLevelOnly` used in Tailwind CSS
+   * @see https://github.com/tailwindlabs/tailwindcss/blob/v3.2.2/src/util/splitAtTopLevelOnly.js
+   */
+  let parseClassName = className => {
+    // Use simple array with push for better performance
+    const modifiers = [];
+    let bracketDepth = 0;
+    let parenDepth = 0;
+    let modifierStart = 0;
+    let postfixModifierPosition;
+    const len = className.length;
+    for (let index = 0; index < len; index++) {
+      const currentCharacter = className[index];
+      if (bracketDepth === 0 && parenDepth === 0) {
+        if (currentCharacter === MODIFIER_SEPARATOR) {
+          modifiers.push(className.slice(modifierStart, index));
+          modifierStart = index + 1;
+          continue;
+        }
+        if (currentCharacter === '/') {
+          postfixModifierPosition = index;
+          continue;
+        }
+      }
+      if (currentCharacter === '[') bracketDepth++;else if (currentCharacter === ']') bracketDepth--;else if (currentCharacter === '(') parenDepth++;else if (currentCharacter === ')') parenDepth--;
+    }
+    const baseClassNameWithImportantModifier = modifiers.length === 0 ? className : className.slice(modifierStart);
+    // Inline important modifier check
+    let baseClassName = baseClassNameWithImportantModifier;
+    let hasImportantModifier = false;
+    if (baseClassNameWithImportantModifier.endsWith(IMPORTANT_MODIFIER)) {
+      baseClassName = baseClassNameWithImportantModifier.slice(0, -1);
+      hasImportantModifier = true;
+    } else if (
+    /**
+     * In Tailwind CSS v3 the important modifier was at the start of the base class name. This is still supported for legacy reasons.
+     * @see https://github.com/dcastil/tailwind-merge/issues/513#issuecomment-2614029864
+     */
+    baseClassNameWithImportantModifier.startsWith(IMPORTANT_MODIFIER)) {
+      baseClassName = baseClassNameWithImportantModifier.slice(1);
+      hasImportantModifier = true;
+    }
+    const maybePostfixModifierPosition = postfixModifierPosition && postfixModifierPosition > modifierStart ? postfixModifierPosition - modifierStart : undefined;
+    return createResultObject(modifiers, hasImportantModifier, baseClassName, maybePostfixModifierPosition);
+  };
+  if (prefix) {
+    const fullPrefix = prefix + MODIFIER_SEPARATOR;
+    const parseClassNameOriginal = parseClassName;
+    parseClassName = className => className.startsWith(fullPrefix) ? parseClassNameOriginal(className.slice(fullPrefix.length)) : createResultObject(EMPTY_MODIFIERS, false, className, undefined, true);
+  }
+  if (experimentalParseClassName) {
+    const parseClassNameOriginal = parseClassName;
+    parseClassName = className => experimentalParseClassName({
+      className,
+      parseClassName: parseClassNameOriginal
+    });
+  }
+  return parseClassName;
+};
+
+/**
+ * Sorts modifiers according to following schema:
+ * - Predefined modifiers are sorted alphabetically
+ * - When an arbitrary variant appears, it must be preserved which modifiers are before and after it
+ */
+const createSortModifiers = config => {
+  // Pre-compute weights for all known modifiers for O(1) comparison
+  const modifierWeights = new Map();
+  // Assign weights to sensitive modifiers (highest priority, but preserve order)
+  config.orderSensitiveModifiers.forEach((mod, index) => {
+    modifierWeights.set(mod, 1000000 + index); // High weights for sensitive mods
+  });
+  return modifiers => {
+    const result = [];
+    let currentSegment = [];
+    // Process modifiers in one pass
+    for (let i = 0; i < modifiers.length; i++) {
+      const modifier = modifiers[i];
+      // Check if modifier is sensitive (starts with '[' or in orderSensitiveModifiers)
+      const isArbitrary = modifier[0] === '[';
+      const isOrderSensitive = modifierWeights.has(modifier);
+      if (isArbitrary || isOrderSensitive) {
+        // Sort and flush current segment alphabetically
+        if (currentSegment.length > 0) {
+          currentSegment.sort();
+          result.push(...currentSegment);
+          currentSegment = [];
+        }
+        result.push(modifier);
+      } else {
+        // Regular modifier - add to current segment for batch sorting
+        currentSegment.push(modifier);
+      }
+    }
+    // Sort and add any remaining segment items
+    if (currentSegment.length > 0) {
+      currentSegment.sort();
+      result.push(...currentSegment);
+    }
+    return result;
+  };
+};
+const createConfigUtils = config => ({
+  cache: createLruCache(config.cacheSize),
+  parseClassName: createParseClassName(config),
+  sortModifiers: createSortModifiers(config),
+  ...createClassGroupUtils(config)
+});
+const SPLIT_CLASSES_REGEX = /\s+/;
+const mergeClassList = (classList, configUtils) => {
+  const {
+    parseClassName,
+    getClassGroupId,
+    getConflictingClassGroupIds,
+    sortModifiers
+  } = configUtils;
+  /**
+   * Set of classGroupIds in following format:
+   * `{importantModifier}{variantModifiers}{classGroupId}`
+   * @example 'float'
+   * @example 'hover:focus:bg-color'
+   * @example 'md:!pr'
+   */
+  const classGroupsInConflict = [];
+  const classNames = classList.trim().split(SPLIT_CLASSES_REGEX);
+  let result = '';
+  for (let index = classNames.length - 1; index >= 0; index -= 1) {
+    const originalClassName = classNames[index];
+    const {
+      isExternal,
+      modifiers,
+      hasImportantModifier,
+      baseClassName,
+      maybePostfixModifierPosition
+    } = parseClassName(originalClassName);
+    if (isExternal) {
+      result = originalClassName + (result.length > 0 ? ' ' + result : result);
+      continue;
+    }
+    let hasPostfixModifier = !!maybePostfixModifierPosition;
+    let classGroupId = getClassGroupId(hasPostfixModifier ? baseClassName.substring(0, maybePostfixModifierPosition) : baseClassName);
+    if (!classGroupId) {
+      if (!hasPostfixModifier) {
+        // Not a Tailwind class
+        result = originalClassName + (result.length > 0 ? ' ' + result : result);
+        continue;
+      }
+      classGroupId = getClassGroupId(baseClassName);
+      if (!classGroupId) {
+        // Not a Tailwind class
+        result = originalClassName + (result.length > 0 ? ' ' + result : result);
+        continue;
+      }
+      hasPostfixModifier = false;
+    }
+    // Fast path: skip sorting for empty or single modifier
+    const variantModifier = modifiers.length === 0 ? '' : modifiers.length === 1 ? modifiers[0] : sortModifiers(modifiers).join(':');
+    const modifierId = hasImportantModifier ? variantModifier + IMPORTANT_MODIFIER : variantModifier;
+    const classId = modifierId + classGroupId;
+    if (classGroupsInConflict.indexOf(classId) > -1) {
+      // Tailwind class omitted due to conflict
+      continue;
+    }
+    classGroupsInConflict.push(classId);
+    const conflictGroups = getConflictingClassGroupIds(classGroupId, hasPostfixModifier);
+    for (let i = 0; i < conflictGroups.length; ++i) {
+      const group = conflictGroups[i];
+      classGroupsInConflict.push(modifierId + group);
+    }
+    // Tailwind class not in conflict
+    result = originalClassName + (result.length > 0 ? ' ' + result : result);
+  }
+  return result;
+};
+
+/**
+ * The code in this file is copied from https://github.com/lukeed/clsx and modified to suit the needs of tailwind-merge better.
+ *
+ * Specifically:
+ * - Runtime code from https://github.com/lukeed/clsx/blob/v1.2.1/src/index.js
+ * - TypeScript types from https://github.com/lukeed/clsx/blob/v1.2.1/clsx.d.ts
+ *
+ * Original code has MIT license: Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
+ */
+const twJoin = (...classLists) => {
+  let index = 0;
+  let argument;
+  let resolvedValue;
+  let string = '';
+  while (index < classLists.length) {
+    if (argument = classLists[index++]) {
+      if (resolvedValue = toValue(argument)) {
+        string && (string += ' ');
+        string += resolvedValue;
+      }
+    }
+  }
+  return string;
+};
+const toValue = mix => {
+  // Fast path for strings
+  if (typeof mix === 'string') {
+    return mix;
+  }
+  let resolvedValue;
+  let string = '';
+  for (let k = 0; k < mix.length; k++) {
+    if (mix[k]) {
+      if (resolvedValue = toValue(mix[k])) {
+        string && (string += ' ');
+        string += resolvedValue;
+      }
+    }
+  }
+  return string;
+};
+const createTailwindMerge = (createConfigFirst, ...createConfigRest) => {
+  let configUtils;
+  let cacheGet;
+  let cacheSet;
+  let functionToCall;
+  const initTailwindMerge = classList => {
+    const config = createConfigRest.reduce((previousConfig, createConfigCurrent) => createConfigCurrent(previousConfig), createConfigFirst());
+    configUtils = createConfigUtils(config);
+    cacheGet = configUtils.cache.get;
+    cacheSet = configUtils.cache.set;
+    functionToCall = tailwindMerge;
+    return tailwindMerge(classList);
+  };
+  const tailwindMerge = classList => {
+    const cachedResult = cacheGet(classList);
+    if (cachedResult) {
+      return cachedResult;
+    }
+    const result = mergeClassList(classList, configUtils);
+    cacheSet(classList, result);
+    return result;
+  };
+  functionToCall = initTailwindMerge;
+  return (...args) => functionToCall(twJoin(...args));
+};
+const fallbackThemeArr = [];
+const fromTheme = key => {
+  const themeGetter = theme => theme[key] || fallbackThemeArr;
+  themeGetter.isThemeGetter = true;
+  return themeGetter;
+};
+const arbitraryValueRegex = /^\[(?:(\w[\w-]*):)?(.+)\]$/i;
+const arbitraryVariableRegex = /^\((?:(\w[\w-]*):)?(.+)\)$/i;
+const fractionRegex = /^\d+\/\d+$/;
+const tshirtUnitRegex = /^(\d+(\.\d+)?)?(xs|sm|md|lg|xl)$/;
+const lengthUnitRegex = /\d+(%|px|r?em|[sdl]?v([hwib]|min|max)|pt|pc|in|cm|mm|cap|ch|ex|r?lh|cq(w|h|i|b|min|max))|\b(calc|min|max|clamp)\(.+\)|^0$/;
+const colorFunctionRegex = /^(rgba?|hsla?|hwb|(ok)?(lab|lch)|color-mix)\(.+\)$/;
+// Shadow always begins with x and y offset separated by underscore optionally prepended by inset
+const shadowRegex = /^(inset_)?-?((\d+)?\.?(\d+)[a-z]+|0)_-?((\d+)?\.?(\d+)[a-z]+|0)/;
+const imageRegex = /^(url|image|image-set|cross-fade|element|(repeating-)?(linear|radial|conic)-gradient)\(.+\)$/;
+const isFraction = value => fractionRegex.test(value);
+const isNumber = value => !!value && !Number.isNaN(Number(value));
+const isInteger = value => !!value && Number.isInteger(Number(value));
+const isPercent = value => value.endsWith('%') && isNumber(value.slice(0, -1));
+const isTshirtSize = value => tshirtUnitRegex.test(value);
+const isAny = () => true;
+const isLengthOnly = value =>
+// `colorFunctionRegex` check is necessary because color functions can have percentages in them which which would be incorrectly classified as lengths.
+// For example, `hsl(0 0% 0%)` would be classified as a length without this check.
+// I could also use lookbehind assertion in `lengthUnitRegex` but that isn't supported widely enough.
+lengthUnitRegex.test(value) && !colorFunctionRegex.test(value);
+const isNever = () => false;
+const isShadow = value => shadowRegex.test(value);
+const isImage = value => imageRegex.test(value);
+const isAnyNonArbitrary = value => !isArbitraryValue(value) && !isArbitraryVariable(value);
+const isArbitrarySize = value => getIsArbitraryValue(value, isLabelSize, isNever);
+const isArbitraryValue = value => arbitraryValueRegex.test(value);
+const isArbitraryLength = value => getIsArbitraryValue(value, isLabelLength, isLengthOnly);
+const isArbitraryNumber = value => getIsArbitraryValue(value, isLabelNumber, isNumber);
+const isArbitraryPosition = value => getIsArbitraryValue(value, isLabelPosition, isNever);
+const isArbitraryImage = value => getIsArbitraryValue(value, isLabelImage, isImage);
+const isArbitraryShadow = value => getIsArbitraryValue(value, isLabelShadow, isShadow);
+const isArbitraryVariable = value => arbitraryVariableRegex.test(value);
+const isArbitraryVariableLength = value => getIsArbitraryVariable(value, isLabelLength);
+const isArbitraryVariableFamilyName = value => getIsArbitraryVariable(value, isLabelFamilyName);
+const isArbitraryVariablePosition = value => getIsArbitraryVariable(value, isLabelPosition);
+const isArbitraryVariableSize = value => getIsArbitraryVariable(value, isLabelSize);
+const isArbitraryVariableImage = value => getIsArbitraryVariable(value, isLabelImage);
+const isArbitraryVariableShadow = value => getIsArbitraryVariable(value, isLabelShadow, true);
+// Helpers
+const getIsArbitraryValue = (value, testLabel, testValue) => {
+  const result = arbitraryValueRegex.exec(value);
+  if (result) {
+    if (result[1]) {
+      return testLabel(result[1]);
+    }
+    return testValue(result[2]);
+  }
+  return false;
+};
+const getIsArbitraryVariable = (value, testLabel, shouldMatchNoLabel = false) => {
+  const result = arbitraryVariableRegex.exec(value);
+  if (result) {
+    if (result[1]) {
+      return testLabel(result[1]);
+    }
+    return shouldMatchNoLabel;
+  }
+  return false;
+};
+// Labels
+const isLabelPosition = label => label === 'position' || label === 'percentage';
+const isLabelImage = label => label === 'image' || label === 'url';
+const isLabelSize = label => label === 'length' || label === 'size' || label === 'bg-size';
+const isLabelLength = label => label === 'length';
+const isLabelNumber = label => label === 'number';
+const isLabelFamilyName = label => label === 'family-name';
+const isLabelShadow = label => label === 'shadow';
+const getDefaultConfig = () => {
+  /**
+   * Theme getters for theme variable namespaces
+   * @see https://tailwindcss.com/docs/theme#theme-variable-namespaces
+   */
+  /***/
+  const themeColor = fromTheme('color');
+  const themeFont = fromTheme('font');
+  const themeText = fromTheme('text');
+  const themeFontWeight = fromTheme('font-weight');
+  const themeTracking = fromTheme('tracking');
+  const themeLeading = fromTheme('leading');
+  const themeBreakpoint = fromTheme('breakpoint');
+  const themeContainer = fromTheme('container');
+  const themeSpacing = fromTheme('spacing');
+  const themeRadius = fromTheme('radius');
+  const themeShadow = fromTheme('shadow');
+  const themeInsetShadow = fromTheme('inset-shadow');
+  const themeTextShadow = fromTheme('text-shadow');
+  const themeDropShadow = fromTheme('drop-shadow');
+  const themeBlur = fromTheme('blur');
+  const themePerspective = fromTheme('perspective');
+  const themeAspect = fromTheme('aspect');
+  const themeEase = fromTheme('ease');
+  const themeAnimate = fromTheme('animate');
+  /**
+   * Helpers to avoid repeating the same scales
+   *
+   * We use functions that create a new array every time they're called instead of static arrays.
+   * This ensures that users who modify any scale by mutating the array (e.g. with `array.push(element)`) don't accidentally mutate arrays in other parts of the config.
+   */
+  /***/
+  const scaleBreak = () => ['auto', 'avoid', 'all', 'avoid-page', 'page', 'left', 'right', 'column'];
+  const scalePosition = () => ['center', 'top', 'bottom', 'left', 'right', 'top-left',
+  // Deprecated since Tailwind CSS v4.1.0, see https://github.com/tailwindlabs/tailwindcss/pull/17378
+  'left-top', 'top-right',
+  // Deprecated since Tailwind CSS v4.1.0, see https://github.com/tailwindlabs/tailwindcss/pull/17378
+  'right-top', 'bottom-right',
+  // Deprecated since Tailwind CSS v4.1.0, see https://github.com/tailwindlabs/tailwindcss/pull/17378
+  'right-bottom', 'bottom-left',
+  // Deprecated since Tailwind CSS v4.1.0, see https://github.com/tailwindlabs/tailwindcss/pull/17378
+  'left-bottom'];
+  const scalePositionWithArbitrary = () => [...scalePosition(), isArbitraryVariable, isArbitraryValue];
+  const scaleOverflow = () => ['auto', 'hidden', 'clip', 'visible', 'scroll'];
+  const scaleOverscroll = () => ['auto', 'contain', 'none'];
+  const scaleUnambiguousSpacing = () => [isArbitraryVariable, isArbitraryValue, themeSpacing];
+  const scaleInset = () => [isFraction, 'full', 'auto', ...scaleUnambiguousSpacing()];
+  const scaleGridTemplateColsRows = () => [isInteger, 'none', 'subgrid', isArbitraryVariable, isArbitraryValue];
+  const scaleGridColRowStartAndEnd = () => ['auto', {
+    span: ['full', isInteger, isArbitraryVariable, isArbitraryValue]
+  }, isInteger, isArbitraryVariable, isArbitraryValue];
+  const scaleGridColRowStartOrEnd = () => [isInteger, 'auto', isArbitraryVariable, isArbitraryValue];
+  const scaleGridAutoColsRows = () => ['auto', 'min', 'max', 'fr', isArbitraryVariable, isArbitraryValue];
+  const scaleAlignPrimaryAxis = () => ['start', 'end', 'center', 'between', 'around', 'evenly', 'stretch', 'baseline', 'center-safe', 'end-safe'];
+  const scaleAlignSecondaryAxis = () => ['start', 'end', 'center', 'stretch', 'center-safe', 'end-safe'];
+  const scaleMargin = () => ['auto', ...scaleUnambiguousSpacing()];
+  const scaleSizing = () => [isFraction, 'auto', 'full', 'dvw', 'dvh', 'lvw', 'lvh', 'svw', 'svh', 'min', 'max', 'fit', ...scaleUnambiguousSpacing()];
+  const scaleColor = () => [themeColor, isArbitraryVariable, isArbitraryValue];
+  const scaleBgPosition = () => [...scalePosition(), isArbitraryVariablePosition, isArbitraryPosition, {
+    position: [isArbitraryVariable, isArbitraryValue]
+  }];
+  const scaleBgRepeat = () => ['no-repeat', {
+    repeat: ['', 'x', 'y', 'space', 'round']
+  }];
+  const scaleBgSize = () => ['auto', 'cover', 'contain', isArbitraryVariableSize, isArbitrarySize, {
+    size: [isArbitraryVariable, isArbitraryValue]
+  }];
+  const scaleGradientStopPosition = () => [isPercent, isArbitraryVariableLength, isArbitraryLength];
+  const scaleRadius = () => [
+  // Deprecated since Tailwind CSS v4.0.0
+  '', 'none', 'full', themeRadius, isArbitraryVariable, isArbitraryValue];
+  const scaleBorderWidth = () => ['', isNumber, isArbitraryVariableLength, isArbitraryLength];
+  const scaleLineStyle = () => ['solid', 'dashed', 'dotted', 'double'];
+  const scaleBlendMode = () => ['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity'];
+  const scaleMaskImagePosition = () => [isNumber, isPercent, isArbitraryVariablePosition, isArbitraryPosition];
+  const scaleBlur = () => [
+  // Deprecated since Tailwind CSS v4.0.0
+  '', 'none', themeBlur, isArbitraryVariable, isArbitraryValue];
+  const scaleRotate = () => ['none', isNumber, isArbitraryVariable, isArbitraryValue];
+  const scaleScale = () => ['none', isNumber, isArbitraryVariable, isArbitraryValue];
+  const scaleSkew = () => [isNumber, isArbitraryVariable, isArbitraryValue];
+  const scaleTranslate = () => [isFraction, 'full', ...scaleUnambiguousSpacing()];
+  return {
+    cacheSize: 500,
+    theme: {
+      animate: ['spin', 'ping', 'pulse', 'bounce'],
+      aspect: ['video'],
+      blur: [isTshirtSize],
+      breakpoint: [isTshirtSize],
+      color: [isAny],
+      container: [isTshirtSize],
+      'drop-shadow': [isTshirtSize],
+      ease: ['in', 'out', 'in-out'],
+      font: [isAnyNonArbitrary],
+      'font-weight': ['thin', 'extralight', 'light', 'normal', 'medium', 'semibold', 'bold', 'extrabold', 'black'],
+      'inset-shadow': [isTshirtSize],
+      leading: ['none', 'tight', 'snug', 'normal', 'relaxed', 'loose'],
+      perspective: ['dramatic', 'near', 'normal', 'midrange', 'distant', 'none'],
+      radius: [isTshirtSize],
+      shadow: [isTshirtSize],
+      spacing: ['px', isNumber],
+      text: [isTshirtSize],
+      'text-shadow': [isTshirtSize],
+      tracking: ['tighter', 'tight', 'normal', 'wide', 'wider', 'widest']
+    },
+    classGroups: {
+      // --------------
+      // --- Layout ---
+      // --------------
+      /**
+       * Aspect Ratio
+       * @see https://tailwindcss.com/docs/aspect-ratio
+       */
+      aspect: [{
+        aspect: ['auto', 'square', isFraction, isArbitraryValue, isArbitraryVariable, themeAspect]
+      }],
+      /**
+       * Container
+       * @see https://tailwindcss.com/docs/container
+       * @deprecated since Tailwind CSS v4.0.0
+       */
+      container: ['container'],
+      /**
+       * Columns
+       * @see https://tailwindcss.com/docs/columns
+       */
+      columns: [{
+        columns: [isNumber, isArbitraryValue, isArbitraryVariable, themeContainer]
+      }],
+      /**
+       * Break After
+       * @see https://tailwindcss.com/docs/break-after
+       */
+      'break-after': [{
+        'break-after': scaleBreak()
+      }],
+      /**
+       * Break Before
+       * @see https://tailwindcss.com/docs/break-before
+       */
+      'break-before': [{
+        'break-before': scaleBreak()
+      }],
+      /**
+       * Break Inside
+       * @see https://tailwindcss.com/docs/break-inside
+       */
+      'break-inside': [{
+        'break-inside': ['auto', 'avoid', 'avoid-page', 'avoid-column']
+      }],
+      /**
+       * Box Decoration Break
+       * @see https://tailwindcss.com/docs/box-decoration-break
+       */
+      'box-decoration': [{
+        'box-decoration': ['slice', 'clone']
+      }],
+      /**
+       * Box Sizing
+       * @see https://tailwindcss.com/docs/box-sizing
+       */
+      box: [{
+        box: ['border', 'content']
+      }],
+      /**
+       * Display
+       * @see https://tailwindcss.com/docs/display
+       */
+      display: ['block', 'inline-block', 'inline', 'flex', 'inline-flex', 'table', 'inline-table', 'table-caption', 'table-cell', 'table-column', 'table-column-group', 'table-footer-group', 'table-header-group', 'table-row-group', 'table-row', 'flow-root', 'grid', 'inline-grid', 'contents', 'list-item', 'hidden'],
+      /**
+       * Screen Reader Only
+       * @see https://tailwindcss.com/docs/display#screen-reader-only
+       */
+      sr: ['sr-only', 'not-sr-only'],
+      /**
+       * Floats
+       * @see https://tailwindcss.com/docs/float
+       */
+      float: [{
+        float: ['right', 'left', 'none', 'start', 'end']
+      }],
+      /**
+       * Clear
+       * @see https://tailwindcss.com/docs/clear
+       */
+      clear: [{
+        clear: ['left', 'right', 'both', 'none', 'start', 'end']
+      }],
+      /**
+       * Isolation
+       * @see https://tailwindcss.com/docs/isolation
+       */
+      isolation: ['isolate', 'isolation-auto'],
+      /**
+       * Object Fit
+       * @see https://tailwindcss.com/docs/object-fit
+       */
+      'object-fit': [{
+        object: ['contain', 'cover', 'fill', 'none', 'scale-down']
+      }],
+      /**
+       * Object Position
+       * @see https://tailwindcss.com/docs/object-position
+       */
+      'object-position': [{
+        object: scalePositionWithArbitrary()
+      }],
+      /**
+       * Overflow
+       * @see https://tailwindcss.com/docs/overflow
+       */
+      overflow: [{
+        overflow: scaleOverflow()
+      }],
+      /**
+       * Overflow X
+       * @see https://tailwindcss.com/docs/overflow
+       */
+      'overflow-x': [{
+        'overflow-x': scaleOverflow()
+      }],
+      /**
+       * Overflow Y
+       * @see https://tailwindcss.com/docs/overflow
+       */
+      'overflow-y': [{
+        'overflow-y': scaleOverflow()
+      }],
+      /**
+       * Overscroll Behavior
+       * @see https://tailwindcss.com/docs/overscroll-behavior
+       */
+      overscroll: [{
+        overscroll: scaleOverscroll()
+      }],
+      /**
+       * Overscroll Behavior X
+       * @see https://tailwindcss.com/docs/overscroll-behavior
+       */
+      'overscroll-x': [{
+        'overscroll-x': scaleOverscroll()
+      }],
+      /**
+       * Overscroll Behavior Y
+       * @see https://tailwindcss.com/docs/overscroll-behavior
+       */
+      'overscroll-y': [{
+        'overscroll-y': scaleOverscroll()
+      }],
+      /**
+       * Position
+       * @see https://tailwindcss.com/docs/position
+       */
+      position: ['static', 'fixed', 'absolute', 'relative', 'sticky'],
+      /**
+       * Top / Right / Bottom / Left
+       * @see https://tailwindcss.com/docs/top-right-bottom-left
+       */
+      inset: [{
+        inset: scaleInset()
+      }],
+      /**
+       * Right / Left
+       * @see https://tailwindcss.com/docs/top-right-bottom-left
+       */
+      'inset-x': [{
+        'inset-x': scaleInset()
+      }],
+      /**
+       * Top / Bottom
+       * @see https://tailwindcss.com/docs/top-right-bottom-left
+       */
+      'inset-y': [{
+        'inset-y': scaleInset()
+      }],
+      /**
+       * Start
+       * @see https://tailwindcss.com/docs/top-right-bottom-left
+       */
+      start: [{
+        start: scaleInset()
+      }],
+      /**
+       * End
+       * @see https://tailwindcss.com/docs/top-right-bottom-left
+       */
+      end: [{
+        end: scaleInset()
+      }],
+      /**
+       * Top
+       * @see https://tailwindcss.com/docs/top-right-bottom-left
+       */
+      top: [{
+        top: scaleInset()
+      }],
+      /**
+       * Right
+       * @see https://tailwindcss.com/docs/top-right-bottom-left
+       */
+      right: [{
+        right: scaleInset()
+      }],
+      /**
+       * Bottom
+       * @see https://tailwindcss.com/docs/top-right-bottom-left
+       */
+      bottom: [{
+        bottom: scaleInset()
+      }],
+      /**
+       * Left
+       * @see https://tailwindcss.com/docs/top-right-bottom-left
+       */
+      left: [{
+        left: scaleInset()
+      }],
+      /**
+       * Visibility
+       * @see https://tailwindcss.com/docs/visibility
+       */
+      visibility: ['visible', 'invisible', 'collapse'],
+      /**
+       * Z-Index
+       * @see https://tailwindcss.com/docs/z-index
+       */
+      z: [{
+        z: [isInteger, 'auto', isArbitraryVariable, isArbitraryValue]
+      }],
+      // ------------------------
+      // --- Flexbox and Grid ---
+      // ------------------------
+      /**
+       * Flex Basis
+       * @see https://tailwindcss.com/docs/flex-basis
+       */
+      basis: [{
+        basis: [isFraction, 'full', 'auto', themeContainer, ...scaleUnambiguousSpacing()]
+      }],
+      /**
+       * Flex Direction
+       * @see https://tailwindcss.com/docs/flex-direction
+       */
+      'flex-direction': [{
+        flex: ['row', 'row-reverse', 'col', 'col-reverse']
+      }],
+      /**
+       * Flex Wrap
+       * @see https://tailwindcss.com/docs/flex-wrap
+       */
+      'flex-wrap': [{
+        flex: ['nowrap', 'wrap', 'wrap-reverse']
+      }],
+      /**
+       * Flex
+       * @see https://tailwindcss.com/docs/flex
+       */
+      flex: [{
+        flex: [isNumber, isFraction, 'auto', 'initial', 'none', isArbitraryValue]
+      }],
+      /**
+       * Flex Grow
+       * @see https://tailwindcss.com/docs/flex-grow
+       */
+      grow: [{
+        grow: ['', isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Flex Shrink
+       * @see https://tailwindcss.com/docs/flex-shrink
+       */
+      shrink: [{
+        shrink: ['', isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Order
+       * @see https://tailwindcss.com/docs/order
+       */
+      order: [{
+        order: [isInteger, 'first', 'last', 'none', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Grid Template Columns
+       * @see https://tailwindcss.com/docs/grid-template-columns
+       */
+      'grid-cols': [{
+        'grid-cols': scaleGridTemplateColsRows()
+      }],
+      /**
+       * Grid Column Start / End
+       * @see https://tailwindcss.com/docs/grid-column
+       */
+      'col-start-end': [{
+        col: scaleGridColRowStartAndEnd()
+      }],
+      /**
+       * Grid Column Start
+       * @see https://tailwindcss.com/docs/grid-column
+       */
+      'col-start': [{
+        'col-start': scaleGridColRowStartOrEnd()
+      }],
+      /**
+       * Grid Column End
+       * @see https://tailwindcss.com/docs/grid-column
+       */
+      'col-end': [{
+        'col-end': scaleGridColRowStartOrEnd()
+      }],
+      /**
+       * Grid Template Rows
+       * @see https://tailwindcss.com/docs/grid-template-rows
+       */
+      'grid-rows': [{
+        'grid-rows': scaleGridTemplateColsRows()
+      }],
+      /**
+       * Grid Row Start / End
+       * @see https://tailwindcss.com/docs/grid-row
+       */
+      'row-start-end': [{
+        row: scaleGridColRowStartAndEnd()
+      }],
+      /**
+       * Grid Row Start
+       * @see https://tailwindcss.com/docs/grid-row
+       */
+      'row-start': [{
+        'row-start': scaleGridColRowStartOrEnd()
+      }],
+      /**
+       * Grid Row End
+       * @see https://tailwindcss.com/docs/grid-row
+       */
+      'row-end': [{
+        'row-end': scaleGridColRowStartOrEnd()
+      }],
+      /**
+       * Grid Auto Flow
+       * @see https://tailwindcss.com/docs/grid-auto-flow
+       */
+      'grid-flow': [{
+        'grid-flow': ['row', 'col', 'dense', 'row-dense', 'col-dense']
+      }],
+      /**
+       * Grid Auto Columns
+       * @see https://tailwindcss.com/docs/grid-auto-columns
+       */
+      'auto-cols': [{
+        'auto-cols': scaleGridAutoColsRows()
+      }],
+      /**
+       * Grid Auto Rows
+       * @see https://tailwindcss.com/docs/grid-auto-rows
+       */
+      'auto-rows': [{
+        'auto-rows': scaleGridAutoColsRows()
+      }],
+      /**
+       * Gap
+       * @see https://tailwindcss.com/docs/gap
+       */
+      gap: [{
+        gap: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Gap X
+       * @see https://tailwindcss.com/docs/gap
+       */
+      'gap-x': [{
+        'gap-x': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Gap Y
+       * @see https://tailwindcss.com/docs/gap
+       */
+      'gap-y': [{
+        'gap-y': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Justify Content
+       * @see https://tailwindcss.com/docs/justify-content
+       */
+      'justify-content': [{
+        justify: [...scaleAlignPrimaryAxis(), 'normal']
+      }],
+      /**
+       * Justify Items
+       * @see https://tailwindcss.com/docs/justify-items
+       */
+      'justify-items': [{
+        'justify-items': [...scaleAlignSecondaryAxis(), 'normal']
+      }],
+      /**
+       * Justify Self
+       * @see https://tailwindcss.com/docs/justify-self
+       */
+      'justify-self': [{
+        'justify-self': ['auto', ...scaleAlignSecondaryAxis()]
+      }],
+      /**
+       * Align Content
+       * @see https://tailwindcss.com/docs/align-content
+       */
+      'align-content': [{
+        content: ['normal', ...scaleAlignPrimaryAxis()]
+      }],
+      /**
+       * Align Items
+       * @see https://tailwindcss.com/docs/align-items
+       */
+      'align-items': [{
+        items: [...scaleAlignSecondaryAxis(), {
+          baseline: ['', 'last']
+        }]
+      }],
+      /**
+       * Align Self
+       * @see https://tailwindcss.com/docs/align-self
+       */
+      'align-self': [{
+        self: ['auto', ...scaleAlignSecondaryAxis(), {
+          baseline: ['', 'last']
+        }]
+      }],
+      /**
+       * Place Content
+       * @see https://tailwindcss.com/docs/place-content
+       */
+      'place-content': [{
+        'place-content': scaleAlignPrimaryAxis()
+      }],
+      /**
+       * Place Items
+       * @see https://tailwindcss.com/docs/place-items
+       */
+      'place-items': [{
+        'place-items': [...scaleAlignSecondaryAxis(), 'baseline']
+      }],
+      /**
+       * Place Self
+       * @see https://tailwindcss.com/docs/place-self
+       */
+      'place-self': [{
+        'place-self': ['auto', ...scaleAlignSecondaryAxis()]
+      }],
+      // Spacing
+      /**
+       * Padding
+       * @see https://tailwindcss.com/docs/padding
+       */
+      p: [{
+        p: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Padding X
+       * @see https://tailwindcss.com/docs/padding
+       */
+      px: [{
+        px: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Padding Y
+       * @see https://tailwindcss.com/docs/padding
+       */
+      py: [{
+        py: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Padding Start
+       * @see https://tailwindcss.com/docs/padding
+       */
+      ps: [{
+        ps: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Padding End
+       * @see https://tailwindcss.com/docs/padding
+       */
+      pe: [{
+        pe: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Padding Top
+       * @see https://tailwindcss.com/docs/padding
+       */
+      pt: [{
+        pt: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Padding Right
+       * @see https://tailwindcss.com/docs/padding
+       */
+      pr: [{
+        pr: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Padding Bottom
+       * @see https://tailwindcss.com/docs/padding
+       */
+      pb: [{
+        pb: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Padding Left
+       * @see https://tailwindcss.com/docs/padding
+       */
+      pl: [{
+        pl: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Margin
+       * @see https://tailwindcss.com/docs/margin
+       */
+      m: [{
+        m: scaleMargin()
+      }],
+      /**
+       * Margin X
+       * @see https://tailwindcss.com/docs/margin
+       */
+      mx: [{
+        mx: scaleMargin()
+      }],
+      /**
+       * Margin Y
+       * @see https://tailwindcss.com/docs/margin
+       */
+      my: [{
+        my: scaleMargin()
+      }],
+      /**
+       * Margin Start
+       * @see https://tailwindcss.com/docs/margin
+       */
+      ms: [{
+        ms: scaleMargin()
+      }],
+      /**
+       * Margin End
+       * @see https://tailwindcss.com/docs/margin
+       */
+      me: [{
+        me: scaleMargin()
+      }],
+      /**
+       * Margin Top
+       * @see https://tailwindcss.com/docs/margin
+       */
+      mt: [{
+        mt: scaleMargin()
+      }],
+      /**
+       * Margin Right
+       * @see https://tailwindcss.com/docs/margin
+       */
+      mr: [{
+        mr: scaleMargin()
+      }],
+      /**
+       * Margin Bottom
+       * @see https://tailwindcss.com/docs/margin
+       */
+      mb: [{
+        mb: scaleMargin()
+      }],
+      /**
+       * Margin Left
+       * @see https://tailwindcss.com/docs/margin
+       */
+      ml: [{
+        ml: scaleMargin()
+      }],
+      /**
+       * Space Between X
+       * @see https://tailwindcss.com/docs/margin#adding-space-between-children
+       */
+      'space-x': [{
+        'space-x': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Space Between X Reverse
+       * @see https://tailwindcss.com/docs/margin#adding-space-between-children
+       */
+      'space-x-reverse': ['space-x-reverse'],
+      /**
+       * Space Between Y
+       * @see https://tailwindcss.com/docs/margin#adding-space-between-children
+       */
+      'space-y': [{
+        'space-y': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Space Between Y Reverse
+       * @see https://tailwindcss.com/docs/margin#adding-space-between-children
+       */
+      'space-y-reverse': ['space-y-reverse'],
+      // --------------
+      // --- Sizing ---
+      // --------------
+      /**
+       * Size
+       * @see https://tailwindcss.com/docs/width#setting-both-width-and-height
+       */
+      size: [{
+        size: scaleSizing()
+      }],
+      /**
+       * Width
+       * @see https://tailwindcss.com/docs/width
+       */
+      w: [{
+        w: [themeContainer, 'screen', ...scaleSizing()]
+      }],
+      /**
+       * Min-Width
+       * @see https://tailwindcss.com/docs/min-width
+       */
+      'min-w': [{
+        'min-w': [themeContainer, 'screen', /** Deprecated. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
+        'none', ...scaleSizing()]
+      }],
+      /**
+       * Max-Width
+       * @see https://tailwindcss.com/docs/max-width
+       */
+      'max-w': [{
+        'max-w': [themeContainer, 'screen', 'none', /** Deprecated since Tailwind CSS v4.0.0. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
+        'prose', /** Deprecated since Tailwind CSS v4.0.0. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
+        {
+          screen: [themeBreakpoint]
+        }, ...scaleSizing()]
+      }],
+      /**
+       * Height
+       * @see https://tailwindcss.com/docs/height
+       */
+      h: [{
+        h: ['screen', 'lh', ...scaleSizing()]
+      }],
+      /**
+       * Min-Height
+       * @see https://tailwindcss.com/docs/min-height
+       */
+      'min-h': [{
+        'min-h': ['screen', 'lh', 'none', ...scaleSizing()]
+      }],
+      /**
+       * Max-Height
+       * @see https://tailwindcss.com/docs/max-height
+       */
+      'max-h': [{
+        'max-h': ['screen', 'lh', ...scaleSizing()]
+      }],
+      // ------------------
+      // --- Typography ---
+      // ------------------
+      /**
+       * Font Size
+       * @see https://tailwindcss.com/docs/font-size
+       */
+      'font-size': [{
+        text: ['base', themeText, isArbitraryVariableLength, isArbitraryLength]
+      }],
+      /**
+       * Font Smoothing
+       * @see https://tailwindcss.com/docs/font-smoothing
+       */
+      'font-smoothing': ['antialiased', 'subpixel-antialiased'],
+      /**
+       * Font Style
+       * @see https://tailwindcss.com/docs/font-style
+       */
+      'font-style': ['italic', 'not-italic'],
+      /**
+       * Font Weight
+       * @see https://tailwindcss.com/docs/font-weight
+       */
+      'font-weight': [{
+        font: [themeFontWeight, isArbitraryVariable, isArbitraryNumber]
+      }],
+      /**
+       * Font Stretch
+       * @see https://tailwindcss.com/docs/font-stretch
+       */
+      'font-stretch': [{
+        'font-stretch': ['ultra-condensed', 'extra-condensed', 'condensed', 'semi-condensed', 'normal', 'semi-expanded', 'expanded', 'extra-expanded', 'ultra-expanded', isPercent, isArbitraryValue]
+      }],
+      /**
+       * Font Family
+       * @see https://tailwindcss.com/docs/font-family
+       */
+      'font-family': [{
+        font: [isArbitraryVariableFamilyName, isArbitraryValue, themeFont]
+      }],
+      /**
+       * Font Variant Numeric
+       * @see https://tailwindcss.com/docs/font-variant-numeric
+       */
+      'fvn-normal': ['normal-nums'],
+      /**
+       * Font Variant Numeric
+       * @see https://tailwindcss.com/docs/font-variant-numeric
+       */
+      'fvn-ordinal': ['ordinal'],
+      /**
+       * Font Variant Numeric
+       * @see https://tailwindcss.com/docs/font-variant-numeric
+       */
+      'fvn-slashed-zero': ['slashed-zero'],
+      /**
+       * Font Variant Numeric
+       * @see https://tailwindcss.com/docs/font-variant-numeric
+       */
+      'fvn-figure': ['lining-nums', 'oldstyle-nums'],
+      /**
+       * Font Variant Numeric
+       * @see https://tailwindcss.com/docs/font-variant-numeric
+       */
+      'fvn-spacing': ['proportional-nums', 'tabular-nums'],
+      /**
+       * Font Variant Numeric
+       * @see https://tailwindcss.com/docs/font-variant-numeric
+       */
+      'fvn-fraction': ['diagonal-fractions', 'stacked-fractions'],
+      /**
+       * Letter Spacing
+       * @see https://tailwindcss.com/docs/letter-spacing
+       */
+      tracking: [{
+        tracking: [themeTracking, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Line Clamp
+       * @see https://tailwindcss.com/docs/line-clamp
+       */
+      'line-clamp': [{
+        'line-clamp': [isNumber, 'none', isArbitraryVariable, isArbitraryNumber]
+      }],
+      /**
+       * Line Height
+       * @see https://tailwindcss.com/docs/line-height
+       */
+      leading: [{
+        leading: [/** Deprecated since Tailwind CSS v4.0.0. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
+        themeLeading, ...scaleUnambiguousSpacing()]
+      }],
+      /**
+       * List Style Image
+       * @see https://tailwindcss.com/docs/list-style-image
+       */
+      'list-image': [{
+        'list-image': ['none', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * List Style Position
+       * @see https://tailwindcss.com/docs/list-style-position
+       */
+      'list-style-position': [{
+        list: ['inside', 'outside']
+      }],
+      /**
+       * List Style Type
+       * @see https://tailwindcss.com/docs/list-style-type
+       */
+      'list-style-type': [{
+        list: ['disc', 'decimal', 'none', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Text Alignment
+       * @see https://tailwindcss.com/docs/text-align
+       */
+      'text-alignment': [{
+        text: ['left', 'center', 'right', 'justify', 'start', 'end']
+      }],
+      /**
+       * Placeholder Color
+       * @deprecated since Tailwind CSS v3.0.0
+       * @see https://v3.tailwindcss.com/docs/placeholder-color
+       */
+      'placeholder-color': [{
+        placeholder: scaleColor()
+      }],
+      /**
+       * Text Color
+       * @see https://tailwindcss.com/docs/text-color
+       */
+      'text-color': [{
+        text: scaleColor()
+      }],
+      /**
+       * Text Decoration
+       * @see https://tailwindcss.com/docs/text-decoration
+       */
+      'text-decoration': ['underline', 'overline', 'line-through', 'no-underline'],
+      /**
+       * Text Decoration Style
+       * @see https://tailwindcss.com/docs/text-decoration-style
+       */
+      'text-decoration-style': [{
+        decoration: [...scaleLineStyle(), 'wavy']
+      }],
+      /**
+       * Text Decoration Thickness
+       * @see https://tailwindcss.com/docs/text-decoration-thickness
+       */
+      'text-decoration-thickness': [{
+        decoration: [isNumber, 'from-font', 'auto', isArbitraryVariable, isArbitraryLength]
+      }],
+      /**
+       * Text Decoration Color
+       * @see https://tailwindcss.com/docs/text-decoration-color
+       */
+      'text-decoration-color': [{
+        decoration: scaleColor()
+      }],
+      /**
+       * Text Underline Offset
+       * @see https://tailwindcss.com/docs/text-underline-offset
+       */
+      'underline-offset': [{
+        'underline-offset': [isNumber, 'auto', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Text Transform
+       * @see https://tailwindcss.com/docs/text-transform
+       */
+      'text-transform': ['uppercase', 'lowercase', 'capitalize', 'normal-case'],
+      /**
+       * Text Overflow
+       * @see https://tailwindcss.com/docs/text-overflow
+       */
+      'text-overflow': ['truncate', 'text-ellipsis', 'text-clip'],
+      /**
+       * Text Wrap
+       * @see https://tailwindcss.com/docs/text-wrap
+       */
+      'text-wrap': [{
+        text: ['wrap', 'nowrap', 'balance', 'pretty']
+      }],
+      /**
+       * Text Indent
+       * @see https://tailwindcss.com/docs/text-indent
+       */
+      indent: [{
+        indent: scaleUnambiguousSpacing()
+      }],
+      /**
+       * Vertical Alignment
+       * @see https://tailwindcss.com/docs/vertical-align
+       */
+      'vertical-align': [{
+        align: ['baseline', 'top', 'middle', 'bottom', 'text-top', 'text-bottom', 'sub', 'super', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Whitespace
+       * @see https://tailwindcss.com/docs/whitespace
+       */
+      whitespace: [{
+        whitespace: ['normal', 'nowrap', 'pre', 'pre-line', 'pre-wrap', 'break-spaces']
+      }],
+      /**
+       * Word Break
+       * @see https://tailwindcss.com/docs/word-break
+       */
+      break: [{
+        break: ['normal', 'words', 'all', 'keep']
+      }],
+      /**
+       * Overflow Wrap
+       * @see https://tailwindcss.com/docs/overflow-wrap
+       */
+      wrap: [{
+        wrap: ['break-word', 'anywhere', 'normal']
+      }],
+      /**
+       * Hyphens
+       * @see https://tailwindcss.com/docs/hyphens
+       */
+      hyphens: [{
+        hyphens: ['none', 'manual', 'auto']
+      }],
+      /**
+       * Content
+       * @see https://tailwindcss.com/docs/content
+       */
+      content: [{
+        content: ['none', isArbitraryVariable, isArbitraryValue]
+      }],
+      // -------------------
+      // --- Backgrounds ---
+      // -------------------
+      /**
+       * Background Attachment
+       * @see https://tailwindcss.com/docs/background-attachment
+       */
+      'bg-attachment': [{
+        bg: ['fixed', 'local', 'scroll']
+      }],
+      /**
+       * Background Clip
+       * @see https://tailwindcss.com/docs/background-clip
+       */
+      'bg-clip': [{
+        'bg-clip': ['border', 'padding', 'content', 'text']
+      }],
+      /**
+       * Background Origin
+       * @see https://tailwindcss.com/docs/background-origin
+       */
+      'bg-origin': [{
+        'bg-origin': ['border', 'padding', 'content']
+      }],
+      /**
+       * Background Position
+       * @see https://tailwindcss.com/docs/background-position
+       */
+      'bg-position': [{
+        bg: scaleBgPosition()
+      }],
+      /**
+       * Background Repeat
+       * @see https://tailwindcss.com/docs/background-repeat
+       */
+      'bg-repeat': [{
+        bg: scaleBgRepeat()
+      }],
+      /**
+       * Background Size
+       * @see https://tailwindcss.com/docs/background-size
+       */
+      'bg-size': [{
+        bg: scaleBgSize()
+      }],
+      /**
+       * Background Image
+       * @see https://tailwindcss.com/docs/background-image
+       */
+      'bg-image': [{
+        bg: ['none', {
+          linear: [{
+            to: ['t', 'tr', 'r', 'br', 'b', 'bl', 'l', 'tl']
+          }, isInteger, isArbitraryVariable, isArbitraryValue],
+          radial: ['', isArbitraryVariable, isArbitraryValue],
+          conic: [isInteger, isArbitraryVariable, isArbitraryValue]
+        }, isArbitraryVariableImage, isArbitraryImage]
+      }],
+      /**
+       * Background Color
+       * @see https://tailwindcss.com/docs/background-color
+       */
+      'bg-color': [{
+        bg: scaleColor()
+      }],
+      /**
+       * Gradient Color Stops From Position
+       * @see https://tailwindcss.com/docs/gradient-color-stops
+       */
+      'gradient-from-pos': [{
+        from: scaleGradientStopPosition()
+      }],
+      /**
+       * Gradient Color Stops Via Position
+       * @see https://tailwindcss.com/docs/gradient-color-stops
+       */
+      'gradient-via-pos': [{
+        via: scaleGradientStopPosition()
+      }],
+      /**
+       * Gradient Color Stops To Position
+       * @see https://tailwindcss.com/docs/gradient-color-stops
+       */
+      'gradient-to-pos': [{
+        to: scaleGradientStopPosition()
+      }],
+      /**
+       * Gradient Color Stops From
+       * @see https://tailwindcss.com/docs/gradient-color-stops
+       */
+      'gradient-from': [{
+        from: scaleColor()
+      }],
+      /**
+       * Gradient Color Stops Via
+       * @see https://tailwindcss.com/docs/gradient-color-stops
+       */
+      'gradient-via': [{
+        via: scaleColor()
+      }],
+      /**
+       * Gradient Color Stops To
+       * @see https://tailwindcss.com/docs/gradient-color-stops
+       */
+      'gradient-to': [{
+        to: scaleColor()
+      }],
+      // ---------------
+      // --- Borders ---
+      // ---------------
+      /**
+       * Border Radius
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      rounded: [{
+        rounded: scaleRadius()
+      }],
+      /**
+       * Border Radius Start
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-s': [{
+        'rounded-s': scaleRadius()
+      }],
+      /**
+       * Border Radius End
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-e': [{
+        'rounded-e': scaleRadius()
+      }],
+      /**
+       * Border Radius Top
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-t': [{
+        'rounded-t': scaleRadius()
+      }],
+      /**
+       * Border Radius Right
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-r': [{
+        'rounded-r': scaleRadius()
+      }],
+      /**
+       * Border Radius Bottom
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-b': [{
+        'rounded-b': scaleRadius()
+      }],
+      /**
+       * Border Radius Left
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-l': [{
+        'rounded-l': scaleRadius()
+      }],
+      /**
+       * Border Radius Start Start
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-ss': [{
+        'rounded-ss': scaleRadius()
+      }],
+      /**
+       * Border Radius Start End
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-se': [{
+        'rounded-se': scaleRadius()
+      }],
+      /**
+       * Border Radius End End
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-ee': [{
+        'rounded-ee': scaleRadius()
+      }],
+      /**
+       * Border Radius End Start
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-es': [{
+        'rounded-es': scaleRadius()
+      }],
+      /**
+       * Border Radius Top Left
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-tl': [{
+        'rounded-tl': scaleRadius()
+      }],
+      /**
+       * Border Radius Top Right
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-tr': [{
+        'rounded-tr': scaleRadius()
+      }],
+      /**
+       * Border Radius Bottom Right
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-br': [{
+        'rounded-br': scaleRadius()
+      }],
+      /**
+       * Border Radius Bottom Left
+       * @see https://tailwindcss.com/docs/border-radius
+       */
+      'rounded-bl': [{
+        'rounded-bl': scaleRadius()
+      }],
+      /**
+       * Border Width
+       * @see https://tailwindcss.com/docs/border-width
+       */
+      'border-w': [{
+        border: scaleBorderWidth()
+      }],
+      /**
+       * Border Width X
+       * @see https://tailwindcss.com/docs/border-width
+       */
+      'border-w-x': [{
+        'border-x': scaleBorderWidth()
+      }],
+      /**
+       * Border Width Y
+       * @see https://tailwindcss.com/docs/border-width
+       */
+      'border-w-y': [{
+        'border-y': scaleBorderWidth()
+      }],
+      /**
+       * Border Width Start
+       * @see https://tailwindcss.com/docs/border-width
+       */
+      'border-w-s': [{
+        'border-s': scaleBorderWidth()
+      }],
+      /**
+       * Border Width End
+       * @see https://tailwindcss.com/docs/border-width
+       */
+      'border-w-e': [{
+        'border-e': scaleBorderWidth()
+      }],
+      /**
+       * Border Width Top
+       * @see https://tailwindcss.com/docs/border-width
+       */
+      'border-w-t': [{
+        'border-t': scaleBorderWidth()
+      }],
+      /**
+       * Border Width Right
+       * @see https://tailwindcss.com/docs/border-width
+       */
+      'border-w-r': [{
+        'border-r': scaleBorderWidth()
+      }],
+      /**
+       * Border Width Bottom
+       * @see https://tailwindcss.com/docs/border-width
+       */
+      'border-w-b': [{
+        'border-b': scaleBorderWidth()
+      }],
+      /**
+       * Border Width Left
+       * @see https://tailwindcss.com/docs/border-width
+       */
+      'border-w-l': [{
+        'border-l': scaleBorderWidth()
+      }],
+      /**
+       * Divide Width X
+       * @see https://tailwindcss.com/docs/border-width#between-children
+       */
+      'divide-x': [{
+        'divide-x': scaleBorderWidth()
+      }],
+      /**
+       * Divide Width X Reverse
+       * @see https://tailwindcss.com/docs/border-width#between-children
+       */
+      'divide-x-reverse': ['divide-x-reverse'],
+      /**
+       * Divide Width Y
+       * @see https://tailwindcss.com/docs/border-width#between-children
+       */
+      'divide-y': [{
+        'divide-y': scaleBorderWidth()
+      }],
+      /**
+       * Divide Width Y Reverse
+       * @see https://tailwindcss.com/docs/border-width#between-children
+       */
+      'divide-y-reverse': ['divide-y-reverse'],
+      /**
+       * Border Style
+       * @see https://tailwindcss.com/docs/border-style
+       */
+      'border-style': [{
+        border: [...scaleLineStyle(), 'hidden', 'none']
+      }],
+      /**
+       * Divide Style
+       * @see https://tailwindcss.com/docs/border-style#setting-the-divider-style
+       */
+      'divide-style': [{
+        divide: [...scaleLineStyle(), 'hidden', 'none']
+      }],
+      /**
+       * Border Color
+       * @see https://tailwindcss.com/docs/border-color
+       */
+      'border-color': [{
+        border: scaleColor()
+      }],
+      /**
+       * Border Color X
+       * @see https://tailwindcss.com/docs/border-color
+       */
+      'border-color-x': [{
+        'border-x': scaleColor()
+      }],
+      /**
+       * Border Color Y
+       * @see https://tailwindcss.com/docs/border-color
+       */
+      'border-color-y': [{
+        'border-y': scaleColor()
+      }],
+      /**
+       * Border Color S
+       * @see https://tailwindcss.com/docs/border-color
+       */
+      'border-color-s': [{
+        'border-s': scaleColor()
+      }],
+      /**
+       * Border Color E
+       * @see https://tailwindcss.com/docs/border-color
+       */
+      'border-color-e': [{
+        'border-e': scaleColor()
+      }],
+      /**
+       * Border Color Top
+       * @see https://tailwindcss.com/docs/border-color
+       */
+      'border-color-t': [{
+        'border-t': scaleColor()
+      }],
+      /**
+       * Border Color Right
+       * @see https://tailwindcss.com/docs/border-color
+       */
+      'border-color-r': [{
+        'border-r': scaleColor()
+      }],
+      /**
+       * Border Color Bottom
+       * @see https://tailwindcss.com/docs/border-color
+       */
+      'border-color-b': [{
+        'border-b': scaleColor()
+      }],
+      /**
+       * Border Color Left
+       * @see https://tailwindcss.com/docs/border-color
+       */
+      'border-color-l': [{
+        'border-l': scaleColor()
+      }],
+      /**
+       * Divide Color
+       * @see https://tailwindcss.com/docs/divide-color
+       */
+      'divide-color': [{
+        divide: scaleColor()
+      }],
+      /**
+       * Outline Style
+       * @see https://tailwindcss.com/docs/outline-style
+       */
+      'outline-style': [{
+        outline: [...scaleLineStyle(), 'none', 'hidden']
+      }],
+      /**
+       * Outline Offset
+       * @see https://tailwindcss.com/docs/outline-offset
+       */
+      'outline-offset': [{
+        'outline-offset': [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Outline Width
+       * @see https://tailwindcss.com/docs/outline-width
+       */
+      'outline-w': [{
+        outline: ['', isNumber, isArbitraryVariableLength, isArbitraryLength]
+      }],
+      /**
+       * Outline Color
+       * @see https://tailwindcss.com/docs/outline-color
+       */
+      'outline-color': [{
+        outline: scaleColor()
+      }],
+      // ---------------
+      // --- Effects ---
+      // ---------------
+      /**
+       * Box Shadow
+       * @see https://tailwindcss.com/docs/box-shadow
+       */
+      shadow: [{
+        shadow: [
+        // Deprecated since Tailwind CSS v4.0.0
+        '', 'none', themeShadow, isArbitraryVariableShadow, isArbitraryShadow]
+      }],
+      /**
+       * Box Shadow Color
+       * @see https://tailwindcss.com/docs/box-shadow#setting-the-shadow-color
+       */
+      'shadow-color': [{
+        shadow: scaleColor()
+      }],
+      /**
+       * Inset Box Shadow
+       * @see https://tailwindcss.com/docs/box-shadow#adding-an-inset-shadow
+       */
+      'inset-shadow': [{
+        'inset-shadow': ['none', themeInsetShadow, isArbitraryVariableShadow, isArbitraryShadow]
+      }],
+      /**
+       * Inset Box Shadow Color
+       * @see https://tailwindcss.com/docs/box-shadow#setting-the-inset-shadow-color
+       */
+      'inset-shadow-color': [{
+        'inset-shadow': scaleColor()
+      }],
+      /**
+       * Ring Width
+       * @see https://tailwindcss.com/docs/box-shadow#adding-a-ring
+       */
+      'ring-w': [{
+        ring: scaleBorderWidth()
+      }],
+      /**
+       * Ring Width Inset
+       * @see https://v3.tailwindcss.com/docs/ring-width#inset-rings
+       * @deprecated since Tailwind CSS v4.0.0
+       * @see https://github.com/tailwindlabs/tailwindcss/blob/v4.0.0/packages/tailwindcss/src/utilities.ts#L4158
+       */
+      'ring-w-inset': ['ring-inset'],
+      /**
+       * Ring Color
+       * @see https://tailwindcss.com/docs/box-shadow#setting-the-ring-color
+       */
+      'ring-color': [{
+        ring: scaleColor()
+      }],
+      /**
+       * Ring Offset Width
+       * @see https://v3.tailwindcss.com/docs/ring-offset-width
+       * @deprecated since Tailwind CSS v4.0.0
+       * @see https://github.com/tailwindlabs/tailwindcss/blob/v4.0.0/packages/tailwindcss/src/utilities.ts#L4158
+       */
+      'ring-offset-w': [{
+        'ring-offset': [isNumber, isArbitraryLength]
+      }],
+      /**
+       * Ring Offset Color
+       * @see https://v3.tailwindcss.com/docs/ring-offset-color
+       * @deprecated since Tailwind CSS v4.0.0
+       * @see https://github.com/tailwindlabs/tailwindcss/blob/v4.0.0/packages/tailwindcss/src/utilities.ts#L4158
+       */
+      'ring-offset-color': [{
+        'ring-offset': scaleColor()
+      }],
+      /**
+       * Inset Ring Width
+       * @see https://tailwindcss.com/docs/box-shadow#adding-an-inset-ring
+       */
+      'inset-ring-w': [{
+        'inset-ring': scaleBorderWidth()
+      }],
+      /**
+       * Inset Ring Color
+       * @see https://tailwindcss.com/docs/box-shadow#setting-the-inset-ring-color
+       */
+      'inset-ring-color': [{
+        'inset-ring': scaleColor()
+      }],
+      /**
+       * Text Shadow
+       * @see https://tailwindcss.com/docs/text-shadow
+       */
+      'text-shadow': [{
+        'text-shadow': ['none', themeTextShadow, isArbitraryVariableShadow, isArbitraryShadow]
+      }],
+      /**
+       * Text Shadow Color
+       * @see https://tailwindcss.com/docs/text-shadow#setting-the-shadow-color
+       */
+      'text-shadow-color': [{
+        'text-shadow': scaleColor()
+      }],
+      /**
+       * Opacity
+       * @see https://tailwindcss.com/docs/opacity
+       */
+      opacity: [{
+        opacity: [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Mix Blend Mode
+       * @see https://tailwindcss.com/docs/mix-blend-mode
+       */
+      'mix-blend': [{
+        'mix-blend': [...scaleBlendMode(), 'plus-darker', 'plus-lighter']
+      }],
+      /**
+       * Background Blend Mode
+       * @see https://tailwindcss.com/docs/background-blend-mode
+       */
+      'bg-blend': [{
+        'bg-blend': scaleBlendMode()
+      }],
+      /**
+       * Mask Clip
+       * @see https://tailwindcss.com/docs/mask-clip
+       */
+      'mask-clip': [{
+        'mask-clip': ['border', 'padding', 'content', 'fill', 'stroke', 'view']
+      }, 'mask-no-clip'],
+      /**
+       * Mask Composite
+       * @see https://tailwindcss.com/docs/mask-composite
+       */
+      'mask-composite': [{
+        mask: ['add', 'subtract', 'intersect', 'exclude']
+      }],
+      /**
+       * Mask Image
+       * @see https://tailwindcss.com/docs/mask-image
+       */
+      'mask-image-linear-pos': [{
+        'mask-linear': [isNumber]
+      }],
+      'mask-image-linear-from-pos': [{
+        'mask-linear-from': scaleMaskImagePosition()
+      }],
+      'mask-image-linear-to-pos': [{
+        'mask-linear-to': scaleMaskImagePosition()
+      }],
+      'mask-image-linear-from-color': [{
+        'mask-linear-from': scaleColor()
+      }],
+      'mask-image-linear-to-color': [{
+        'mask-linear-to': scaleColor()
+      }],
+      'mask-image-t-from-pos': [{
+        'mask-t-from': scaleMaskImagePosition()
+      }],
+      'mask-image-t-to-pos': [{
+        'mask-t-to': scaleMaskImagePosition()
+      }],
+      'mask-image-t-from-color': [{
+        'mask-t-from': scaleColor()
+      }],
+      'mask-image-t-to-color': [{
+        'mask-t-to': scaleColor()
+      }],
+      'mask-image-r-from-pos': [{
+        'mask-r-from': scaleMaskImagePosition()
+      }],
+      'mask-image-r-to-pos': [{
+        'mask-r-to': scaleMaskImagePosition()
+      }],
+      'mask-image-r-from-color': [{
+        'mask-r-from': scaleColor()
+      }],
+      'mask-image-r-to-color': [{
+        'mask-r-to': scaleColor()
+      }],
+      'mask-image-b-from-pos': [{
+        'mask-b-from': scaleMaskImagePosition()
+      }],
+      'mask-image-b-to-pos': [{
+        'mask-b-to': scaleMaskImagePosition()
+      }],
+      'mask-image-b-from-color': [{
+        'mask-b-from': scaleColor()
+      }],
+      'mask-image-b-to-color': [{
+        'mask-b-to': scaleColor()
+      }],
+      'mask-image-l-from-pos': [{
+        'mask-l-from': scaleMaskImagePosition()
+      }],
+      'mask-image-l-to-pos': [{
+        'mask-l-to': scaleMaskImagePosition()
+      }],
+      'mask-image-l-from-color': [{
+        'mask-l-from': scaleColor()
+      }],
+      'mask-image-l-to-color': [{
+        'mask-l-to': scaleColor()
+      }],
+      'mask-image-x-from-pos': [{
+        'mask-x-from': scaleMaskImagePosition()
+      }],
+      'mask-image-x-to-pos': [{
+        'mask-x-to': scaleMaskImagePosition()
+      }],
+      'mask-image-x-from-color': [{
+        'mask-x-from': scaleColor()
+      }],
+      'mask-image-x-to-color': [{
+        'mask-x-to': scaleColor()
+      }],
+      'mask-image-y-from-pos': [{
+        'mask-y-from': scaleMaskImagePosition()
+      }],
+      'mask-image-y-to-pos': [{
+        'mask-y-to': scaleMaskImagePosition()
+      }],
+      'mask-image-y-from-color': [{
+        'mask-y-from': scaleColor()
+      }],
+      'mask-image-y-to-color': [{
+        'mask-y-to': scaleColor()
+      }],
+      'mask-image-radial': [{
+        'mask-radial': [isArbitraryVariable, isArbitraryValue]
+      }],
+      'mask-image-radial-from-pos': [{
+        'mask-radial-from': scaleMaskImagePosition()
+      }],
+      'mask-image-radial-to-pos': [{
+        'mask-radial-to': scaleMaskImagePosition()
+      }],
+      'mask-image-radial-from-color': [{
+        'mask-radial-from': scaleColor()
+      }],
+      'mask-image-radial-to-color': [{
+        'mask-radial-to': scaleColor()
+      }],
+      'mask-image-radial-shape': [{
+        'mask-radial': ['circle', 'ellipse']
+      }],
+      'mask-image-radial-size': [{
+        'mask-radial': [{
+          closest: ['side', 'corner'],
+          farthest: ['side', 'corner']
+        }]
+      }],
+      'mask-image-radial-pos': [{
+        'mask-radial-at': scalePosition()
+      }],
+      'mask-image-conic-pos': [{
+        'mask-conic': [isNumber]
+      }],
+      'mask-image-conic-from-pos': [{
+        'mask-conic-from': scaleMaskImagePosition()
+      }],
+      'mask-image-conic-to-pos': [{
+        'mask-conic-to': scaleMaskImagePosition()
+      }],
+      'mask-image-conic-from-color': [{
+        'mask-conic-from': scaleColor()
+      }],
+      'mask-image-conic-to-color': [{
+        'mask-conic-to': scaleColor()
+      }],
+      /**
+       * Mask Mode
+       * @see https://tailwindcss.com/docs/mask-mode
+       */
+      'mask-mode': [{
+        mask: ['alpha', 'luminance', 'match']
+      }],
+      /**
+       * Mask Origin
+       * @see https://tailwindcss.com/docs/mask-origin
+       */
+      'mask-origin': [{
+        'mask-origin': ['border', 'padding', 'content', 'fill', 'stroke', 'view']
+      }],
+      /**
+       * Mask Position
+       * @see https://tailwindcss.com/docs/mask-position
+       */
+      'mask-position': [{
+        mask: scaleBgPosition()
+      }],
+      /**
+       * Mask Repeat
+       * @see https://tailwindcss.com/docs/mask-repeat
+       */
+      'mask-repeat': [{
+        mask: scaleBgRepeat()
+      }],
+      /**
+       * Mask Size
+       * @see https://tailwindcss.com/docs/mask-size
+       */
+      'mask-size': [{
+        mask: scaleBgSize()
+      }],
+      /**
+       * Mask Type
+       * @see https://tailwindcss.com/docs/mask-type
+       */
+      'mask-type': [{
+        'mask-type': ['alpha', 'luminance']
+      }],
+      /**
+       * Mask Image
+       * @see https://tailwindcss.com/docs/mask-image
+       */
+      'mask-image': [{
+        mask: ['none', isArbitraryVariable, isArbitraryValue]
+      }],
+      // ---------------
+      // --- Filters ---
+      // ---------------
+      /**
+       * Filter
+       * @see https://tailwindcss.com/docs/filter
+       */
+      filter: [{
+        filter: [
+        // Deprecated since Tailwind CSS v3.0.0
+        '', 'none', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Blur
+       * @see https://tailwindcss.com/docs/blur
+       */
+      blur: [{
+        blur: scaleBlur()
+      }],
+      /**
+       * Brightness
+       * @see https://tailwindcss.com/docs/brightness
+       */
+      brightness: [{
+        brightness: [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Contrast
+       * @see https://tailwindcss.com/docs/contrast
+       */
+      contrast: [{
+        contrast: [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Drop Shadow
+       * @see https://tailwindcss.com/docs/drop-shadow
+       */
+      'drop-shadow': [{
+        'drop-shadow': [
+        // Deprecated since Tailwind CSS v4.0.0
+        '', 'none', themeDropShadow, isArbitraryVariableShadow, isArbitraryShadow]
+      }],
+      /**
+       * Drop Shadow Color
+       * @see https://tailwindcss.com/docs/filter-drop-shadow#setting-the-shadow-color
+       */
+      'drop-shadow-color': [{
+        'drop-shadow': scaleColor()
+      }],
+      /**
+       * Grayscale
+       * @see https://tailwindcss.com/docs/grayscale
+       */
+      grayscale: [{
+        grayscale: ['', isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Hue Rotate
+       * @see https://tailwindcss.com/docs/hue-rotate
+       */
+      'hue-rotate': [{
+        'hue-rotate': [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Invert
+       * @see https://tailwindcss.com/docs/invert
+       */
+      invert: [{
+        invert: ['', isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Saturate
+       * @see https://tailwindcss.com/docs/saturate
+       */
+      saturate: [{
+        saturate: [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Sepia
+       * @see https://tailwindcss.com/docs/sepia
+       */
+      sepia: [{
+        sepia: ['', isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Backdrop Filter
+       * @see https://tailwindcss.com/docs/backdrop-filter
+       */
+      'backdrop-filter': [{
+        'backdrop-filter': [
+        // Deprecated since Tailwind CSS v3.0.0
+        '', 'none', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Backdrop Blur
+       * @see https://tailwindcss.com/docs/backdrop-blur
+       */
+      'backdrop-blur': [{
+        'backdrop-blur': scaleBlur()
+      }],
+      /**
+       * Backdrop Brightness
+       * @see https://tailwindcss.com/docs/backdrop-brightness
+       */
+      'backdrop-brightness': [{
+        'backdrop-brightness': [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Backdrop Contrast
+       * @see https://tailwindcss.com/docs/backdrop-contrast
+       */
+      'backdrop-contrast': [{
+        'backdrop-contrast': [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Backdrop Grayscale
+       * @see https://tailwindcss.com/docs/backdrop-grayscale
+       */
+      'backdrop-grayscale': [{
+        'backdrop-grayscale': ['', isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Backdrop Hue Rotate
+       * @see https://tailwindcss.com/docs/backdrop-hue-rotate
+       */
+      'backdrop-hue-rotate': [{
+        'backdrop-hue-rotate': [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Backdrop Invert
+       * @see https://tailwindcss.com/docs/backdrop-invert
+       */
+      'backdrop-invert': [{
+        'backdrop-invert': ['', isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Backdrop Opacity
+       * @see https://tailwindcss.com/docs/backdrop-opacity
+       */
+      'backdrop-opacity': [{
+        'backdrop-opacity': [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Backdrop Saturate
+       * @see https://tailwindcss.com/docs/backdrop-saturate
+       */
+      'backdrop-saturate': [{
+        'backdrop-saturate': [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Backdrop Sepia
+       * @see https://tailwindcss.com/docs/backdrop-sepia
+       */
+      'backdrop-sepia': [{
+        'backdrop-sepia': ['', isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      // --------------
+      // --- Tables ---
+      // --------------
+      /**
+       * Border Collapse
+       * @see https://tailwindcss.com/docs/border-collapse
+       */
+      'border-collapse': [{
+        border: ['collapse', 'separate']
+      }],
+      /**
+       * Border Spacing
+       * @see https://tailwindcss.com/docs/border-spacing
+       */
+      'border-spacing': [{
+        'border-spacing': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Border Spacing X
+       * @see https://tailwindcss.com/docs/border-spacing
+       */
+      'border-spacing-x': [{
+        'border-spacing-x': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Border Spacing Y
+       * @see https://tailwindcss.com/docs/border-spacing
+       */
+      'border-spacing-y': [{
+        'border-spacing-y': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Table Layout
+       * @see https://tailwindcss.com/docs/table-layout
+       */
+      'table-layout': [{
+        table: ['auto', 'fixed']
+      }],
+      /**
+       * Caption Side
+       * @see https://tailwindcss.com/docs/caption-side
+       */
+      caption: [{
+        caption: ['top', 'bottom']
+      }],
+      // ---------------------------------
+      // --- Transitions and Animation ---
+      // ---------------------------------
+      /**
+       * Transition Property
+       * @see https://tailwindcss.com/docs/transition-property
+       */
+      transition: [{
+        transition: ['', 'all', 'colors', 'opacity', 'shadow', 'transform', 'none', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Transition Behavior
+       * @see https://tailwindcss.com/docs/transition-behavior
+       */
+      'transition-behavior': [{
+        transition: ['normal', 'discrete']
+      }],
+      /**
+       * Transition Duration
+       * @see https://tailwindcss.com/docs/transition-duration
+       */
+      duration: [{
+        duration: [isNumber, 'initial', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Transition Timing Function
+       * @see https://tailwindcss.com/docs/transition-timing-function
+       */
+      ease: [{
+        ease: ['linear', 'initial', themeEase, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Transition Delay
+       * @see https://tailwindcss.com/docs/transition-delay
+       */
+      delay: [{
+        delay: [isNumber, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Animation
+       * @see https://tailwindcss.com/docs/animation
+       */
+      animate: [{
+        animate: ['none', themeAnimate, isArbitraryVariable, isArbitraryValue]
+      }],
+      // ------------------
+      // --- Transforms ---
+      // ------------------
+      /**
+       * Backface Visibility
+       * @see https://tailwindcss.com/docs/backface-visibility
+       */
+      backface: [{
+        backface: ['hidden', 'visible']
+      }],
+      /**
+       * Perspective
+       * @see https://tailwindcss.com/docs/perspective
+       */
+      perspective: [{
+        perspective: [themePerspective, isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Perspective Origin
+       * @see https://tailwindcss.com/docs/perspective-origin
+       */
+      'perspective-origin': [{
+        'perspective-origin': scalePositionWithArbitrary()
+      }],
+      /**
+       * Rotate
+       * @see https://tailwindcss.com/docs/rotate
+       */
+      rotate: [{
+        rotate: scaleRotate()
+      }],
+      /**
+       * Rotate X
+       * @see https://tailwindcss.com/docs/rotate
+       */
+      'rotate-x': [{
+        'rotate-x': scaleRotate()
+      }],
+      /**
+       * Rotate Y
+       * @see https://tailwindcss.com/docs/rotate
+       */
+      'rotate-y': [{
+        'rotate-y': scaleRotate()
+      }],
+      /**
+       * Rotate Z
+       * @see https://tailwindcss.com/docs/rotate
+       */
+      'rotate-z': [{
+        'rotate-z': scaleRotate()
+      }],
+      /**
+       * Scale
+       * @see https://tailwindcss.com/docs/scale
+       */
+      scale: [{
+        scale: scaleScale()
+      }],
+      /**
+       * Scale X
+       * @see https://tailwindcss.com/docs/scale
+       */
+      'scale-x': [{
+        'scale-x': scaleScale()
+      }],
+      /**
+       * Scale Y
+       * @see https://tailwindcss.com/docs/scale
+       */
+      'scale-y': [{
+        'scale-y': scaleScale()
+      }],
+      /**
+       * Scale Z
+       * @see https://tailwindcss.com/docs/scale
+       */
+      'scale-z': [{
+        'scale-z': scaleScale()
+      }],
+      /**
+       * Scale 3D
+       * @see https://tailwindcss.com/docs/scale
+       */
+      'scale-3d': ['scale-3d'],
+      /**
+       * Skew
+       * @see https://tailwindcss.com/docs/skew
+       */
+      skew: [{
+        skew: scaleSkew()
+      }],
+      /**
+       * Skew X
+       * @see https://tailwindcss.com/docs/skew
+       */
+      'skew-x': [{
+        'skew-x': scaleSkew()
+      }],
+      /**
+       * Skew Y
+       * @see https://tailwindcss.com/docs/skew
+       */
+      'skew-y': [{
+        'skew-y': scaleSkew()
+      }],
+      /**
+       * Transform
+       * @see https://tailwindcss.com/docs/transform
+       */
+      transform: [{
+        transform: [isArbitraryVariable, isArbitraryValue, '', 'none', 'gpu', 'cpu']
+      }],
+      /**
+       * Transform Origin
+       * @see https://tailwindcss.com/docs/transform-origin
+       */
+      'transform-origin': [{
+        origin: scalePositionWithArbitrary()
+      }],
+      /**
+       * Transform Style
+       * @see https://tailwindcss.com/docs/transform-style
+       */
+      'transform-style': [{
+        transform: ['3d', 'flat']
+      }],
+      /**
+       * Translate
+       * @see https://tailwindcss.com/docs/translate
+       */
+      translate: [{
+        translate: scaleTranslate()
+      }],
+      /**
+       * Translate X
+       * @see https://tailwindcss.com/docs/translate
+       */
+      'translate-x': [{
+        'translate-x': scaleTranslate()
+      }],
+      /**
+       * Translate Y
+       * @see https://tailwindcss.com/docs/translate
+       */
+      'translate-y': [{
+        'translate-y': scaleTranslate()
+      }],
+      /**
+       * Translate Z
+       * @see https://tailwindcss.com/docs/translate
+       */
+      'translate-z': [{
+        'translate-z': scaleTranslate()
+      }],
+      /**
+       * Translate None
+       * @see https://tailwindcss.com/docs/translate
+       */
+      'translate-none': ['translate-none'],
+      // ---------------------
+      // --- Interactivity ---
+      // ---------------------
+      /**
+       * Accent Color
+       * @see https://tailwindcss.com/docs/accent-color
+       */
+      accent: [{
+        accent: scaleColor()
+      }],
+      /**
+       * Appearance
+       * @see https://tailwindcss.com/docs/appearance
+       */
+      appearance: [{
+        appearance: ['none', 'auto']
+      }],
+      /**
+       * Caret Color
+       * @see https://tailwindcss.com/docs/just-in-time-mode#caret-color-utilities
+       */
+      'caret-color': [{
+        caret: scaleColor()
+      }],
+      /**
+       * Color Scheme
+       * @see https://tailwindcss.com/docs/color-scheme
+       */
+      'color-scheme': [{
+        scheme: ['normal', 'dark', 'light', 'light-dark', 'only-dark', 'only-light']
+      }],
+      /**
+       * Cursor
+       * @see https://tailwindcss.com/docs/cursor
+       */
+      cursor: [{
+        cursor: ['auto', 'default', 'pointer', 'wait', 'text', 'move', 'help', 'not-allowed', 'none', 'context-menu', 'progress', 'cell', 'crosshair', 'vertical-text', 'alias', 'copy', 'no-drop', 'grab', 'grabbing', 'all-scroll', 'col-resize', 'row-resize', 'n-resize', 'e-resize', 's-resize', 'w-resize', 'ne-resize', 'nw-resize', 'se-resize', 'sw-resize', 'ew-resize', 'ns-resize', 'nesw-resize', 'nwse-resize', 'zoom-in', 'zoom-out', isArbitraryVariable, isArbitraryValue]
+      }],
+      /**
+       * Field Sizing
+       * @see https://tailwindcss.com/docs/field-sizing
+       */
+      'field-sizing': [{
+        'field-sizing': ['fixed', 'content']
+      }],
+      /**
+       * Pointer Events
+       * @see https://tailwindcss.com/docs/pointer-events
+       */
+      'pointer-events': [{
+        'pointer-events': ['auto', 'none']
+      }],
+      /**
+       * Resize
+       * @see https://tailwindcss.com/docs/resize
+       */
+      resize: [{
+        resize: ['none', '', 'y', 'x']
+      }],
+      /**
+       * Scroll Behavior
+       * @see https://tailwindcss.com/docs/scroll-behavior
+       */
+      'scroll-behavior': [{
+        scroll: ['auto', 'smooth']
+      }],
+      /**
+       * Scroll Margin
+       * @see https://tailwindcss.com/docs/scroll-margin
+       */
+      'scroll-m': [{
+        'scroll-m': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Margin X
+       * @see https://tailwindcss.com/docs/scroll-margin
+       */
+      'scroll-mx': [{
+        'scroll-mx': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Margin Y
+       * @see https://tailwindcss.com/docs/scroll-margin
+       */
+      'scroll-my': [{
+        'scroll-my': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Margin Start
+       * @see https://tailwindcss.com/docs/scroll-margin
+       */
+      'scroll-ms': [{
+        'scroll-ms': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Margin End
+       * @see https://tailwindcss.com/docs/scroll-margin
+       */
+      'scroll-me': [{
+        'scroll-me': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Margin Top
+       * @see https://tailwindcss.com/docs/scroll-margin
+       */
+      'scroll-mt': [{
+        'scroll-mt': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Margin Right
+       * @see https://tailwindcss.com/docs/scroll-margin
+       */
+      'scroll-mr': [{
+        'scroll-mr': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Margin Bottom
+       * @see https://tailwindcss.com/docs/scroll-margin
+       */
+      'scroll-mb': [{
+        'scroll-mb': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Margin Left
+       * @see https://tailwindcss.com/docs/scroll-margin
+       */
+      'scroll-ml': [{
+        'scroll-ml': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Padding
+       * @see https://tailwindcss.com/docs/scroll-padding
+       */
+      'scroll-p': [{
+        'scroll-p': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Padding X
+       * @see https://tailwindcss.com/docs/scroll-padding
+       */
+      'scroll-px': [{
+        'scroll-px': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Padding Y
+       * @see https://tailwindcss.com/docs/scroll-padding
+       */
+      'scroll-py': [{
+        'scroll-py': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Padding Start
+       * @see https://tailwindcss.com/docs/scroll-padding
+       */
+      'scroll-ps': [{
+        'scroll-ps': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Padding End
+       * @see https://tailwindcss.com/docs/scroll-padding
+       */
+      'scroll-pe': [{
+        'scroll-pe': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Padding Top
+       * @see https://tailwindcss.com/docs/scroll-padding
+       */
+      'scroll-pt': [{
+        'scroll-pt': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Padding Right
+       * @see https://tailwindcss.com/docs/scroll-padding
+       */
+      'scroll-pr': [{
+        'scroll-pr': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Padding Bottom
+       * @see https://tailwindcss.com/docs/scroll-padding
+       */
+      'scroll-pb': [{
+        'scroll-pb': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Padding Left
+       * @see https://tailwindcss.com/docs/scroll-padding
+       */
+      'scroll-pl': [{
+        'scroll-pl': scaleUnambiguousSpacing()
+      }],
+      /**
+       * Scroll Snap Align
+       * @see https://tailwindcss.com/docs/scroll-snap-align
+       */
+      'snap-align': [{
+        snap: ['start', 'end', 'center', 'align-none']
+      }],
+      /**
+       * Scroll Snap Stop
+       * @see https://tailwindcss.com/docs/scroll-snap-stop
+       */
+      'snap-stop': [{
+        snap: ['normal', 'always']
+      }],
+      /**
+       * Scroll Snap Type
+       * @see https://tailwindcss.com/docs/scroll-snap-type
+       */
+      'snap-type': [{
+        snap: ['none', 'x', 'y', 'both']
+      }],
+      /**
+       * Scroll Snap Type Strictness
+       * @see https://tailwindcss.com/docs/scroll-snap-type
+       */
+      'snap-strictness': [{
+        snap: ['mandatory', 'proximity']
+      }],
+      /**
+       * Touch Action
+       * @see https://tailwindcss.com/docs/touch-action
+       */
+      touch: [{
+        touch: ['auto', 'none', 'manipulation']
+      }],
+      /**
+       * Touch Action X
+       * @see https://tailwindcss.com/docs/touch-action
+       */
+      'touch-x': [{
+        'touch-pan': ['x', 'left', 'right']
+      }],
+      /**
+       * Touch Action Y
+       * @see https://tailwindcss.com/docs/touch-action
+       */
+      'touch-y': [{
+        'touch-pan': ['y', 'up', 'down']
+      }],
+      /**
+       * Touch Action Pinch Zoom
+       * @see https://tailwindcss.com/docs/touch-action
+       */
+      'touch-pz': ['touch-pinch-zoom'],
+      /**
+       * User Select
+       * @see https://tailwindcss.com/docs/user-select
+       */
+      select: [{
+        select: ['none', 'text', 'all', 'auto']
+      }],
+      /**
+       * Will Change
+       * @see https://tailwindcss.com/docs/will-change
+       */
+      'will-change': [{
+        'will-change': ['auto', 'scroll', 'contents', 'transform', isArbitraryVariable, isArbitraryValue]
+      }],
+      // -----------
+      // --- SVG ---
+      // -----------
+      /**
+       * Fill
+       * @see https://tailwindcss.com/docs/fill
+       */
+      fill: [{
+        fill: ['none', ...scaleColor()]
+      }],
+      /**
+       * Stroke Width
+       * @see https://tailwindcss.com/docs/stroke-width
+       */
+      'stroke-w': [{
+        stroke: [isNumber, isArbitraryVariableLength, isArbitraryLength, isArbitraryNumber]
+      }],
+      /**
+       * Stroke
+       * @see https://tailwindcss.com/docs/stroke
+       */
+      stroke: [{
+        stroke: ['none', ...scaleColor()]
+      }],
+      // ---------------------
+      // --- Accessibility ---
+      // ---------------------
+      /**
+       * Forced Color Adjust
+       * @see https://tailwindcss.com/docs/forced-color-adjust
+       */
+      'forced-color-adjust': [{
+        'forced-color-adjust': ['auto', 'none']
+      }]
+    },
+    conflictingClassGroups: {
+      overflow: ['overflow-x', 'overflow-y'],
+      overscroll: ['overscroll-x', 'overscroll-y'],
+      inset: ['inset-x', 'inset-y', 'start', 'end', 'top', 'right', 'bottom', 'left'],
+      'inset-x': ['right', 'left'],
+      'inset-y': ['top', 'bottom'],
+      flex: ['basis', 'grow', 'shrink'],
+      gap: ['gap-x', 'gap-y'],
+      p: ['px', 'py', 'ps', 'pe', 'pt', 'pr', 'pb', 'pl'],
+      px: ['pr', 'pl'],
+      py: ['pt', 'pb'],
+      m: ['mx', 'my', 'ms', 'me', 'mt', 'mr', 'mb', 'ml'],
+      mx: ['mr', 'ml'],
+      my: ['mt', 'mb'],
+      size: ['w', 'h'],
+      'font-size': ['leading'],
+      'fvn-normal': ['fvn-ordinal', 'fvn-slashed-zero', 'fvn-figure', 'fvn-spacing', 'fvn-fraction'],
+      'fvn-ordinal': ['fvn-normal'],
+      'fvn-slashed-zero': ['fvn-normal'],
+      'fvn-figure': ['fvn-normal'],
+      'fvn-spacing': ['fvn-normal'],
+      'fvn-fraction': ['fvn-normal'],
+      'line-clamp': ['display', 'overflow'],
+      rounded: ['rounded-s', 'rounded-e', 'rounded-t', 'rounded-r', 'rounded-b', 'rounded-l', 'rounded-ss', 'rounded-se', 'rounded-ee', 'rounded-es', 'rounded-tl', 'rounded-tr', 'rounded-br', 'rounded-bl'],
+      'rounded-s': ['rounded-ss', 'rounded-es'],
+      'rounded-e': ['rounded-se', 'rounded-ee'],
+      'rounded-t': ['rounded-tl', 'rounded-tr'],
+      'rounded-r': ['rounded-tr', 'rounded-br'],
+      'rounded-b': ['rounded-br', 'rounded-bl'],
+      'rounded-l': ['rounded-tl', 'rounded-bl'],
+      'border-spacing': ['border-spacing-x', 'border-spacing-y'],
+      'border-w': ['border-w-x', 'border-w-y', 'border-w-s', 'border-w-e', 'border-w-t', 'border-w-r', 'border-w-b', 'border-w-l'],
+      'border-w-x': ['border-w-r', 'border-w-l'],
+      'border-w-y': ['border-w-t', 'border-w-b'],
+      'border-color': ['border-color-x', 'border-color-y', 'border-color-s', 'border-color-e', 'border-color-t', 'border-color-r', 'border-color-b', 'border-color-l'],
+      'border-color-x': ['border-color-r', 'border-color-l'],
+      'border-color-y': ['border-color-t', 'border-color-b'],
+      translate: ['translate-x', 'translate-y', 'translate-none'],
+      'translate-none': ['translate', 'translate-x', 'translate-y', 'translate-z'],
+      'scroll-m': ['scroll-mx', 'scroll-my', 'scroll-ms', 'scroll-me', 'scroll-mt', 'scroll-mr', 'scroll-mb', 'scroll-ml'],
+      'scroll-mx': ['scroll-mr', 'scroll-ml'],
+      'scroll-my': ['scroll-mt', 'scroll-mb'],
+      'scroll-p': ['scroll-px', 'scroll-py', 'scroll-ps', 'scroll-pe', 'scroll-pt', 'scroll-pr', 'scroll-pb', 'scroll-pl'],
+      'scroll-px': ['scroll-pr', 'scroll-pl'],
+      'scroll-py': ['scroll-pt', 'scroll-pb'],
+      touch: ['touch-x', 'touch-y', 'touch-pz'],
+      'touch-x': ['touch'],
+      'touch-y': ['touch'],
+      'touch-pz': ['touch']
+    },
+    conflictingClassGroupModifiers: {
+      'font-size': ['leading']
+    },
+    orderSensitiveModifiers: ['*', '**', 'after', 'backdrop', 'before', 'details-content', 'file', 'first-letter', 'first-line', 'marker', 'placeholder', 'selection']
+  };
+};
+const twMerge = /*#__PURE__*/createTailwindMerge(getDefaultConfig);
+
+function cn() {
+    var inputs = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        inputs[_i] = arguments[_i];
+    }
+    return twMerge(clsx(inputs));
+}
+
+var buttonVariants = cva("inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive", {
+    variants: {
+        variant: {
+            default: "bg-primary text-primary-foreground hover:bg-primary/90",
+            destructive: "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+            outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+            secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+            ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+            link: "text-primary underline-offset-4 hover:underline",
+        },
+        size: {
+            default: "h-9 px-4 py-2 has-[>svg]:px-3",
+            sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+            lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+            icon: "size-9",
+            "icon-sm": "size-8",
+            "icon-lg": "size-10",
+        },
+    },
+    defaultVariants: {
+        variant: "default",
+        size: "default",
+    },
+});
+var skeletonVariants = cva("inline-flex rounded-md bg-muted animate-pulse", {
+    variants: {
+        variant: {
+            default: "bg-primary/20",
+            destructive: "bg-destructive/20",
+            outline: "bg-border",
+            secondary: "bg-secondary/50",
+            ghost: "bg-accent/50",
+            link: "bg-primary/20",
+        },
+        size: {
+            default: "h-9 px-4 py-2",
+            sm: "h-8 px-3",
+            lg: "h-10 px-6",
+            icon: "size-9",
+            "icon-sm": "size-8",
+            "icon-lg": "size-10",
+        },
+    },
+    defaultVariants: {
+        variant: "default",
+        size: "default",
+    },
+});
+function PromButton(_a) {
+    var size = _a.size, variant = _a.variant, children = _a.children, disabled = _a.disabled, className = _a.className, loadingText = _a.loadingText, _b = _a.isLoad, isLoad = _b === void 0 ? false : _b, _c = _a.asChild, asChild = _c === void 0 ? false : _c, _d = _a.skeleton, skeleton = _d === void 0 ? false : _d, props = __rest(_a, ["size", "variant", "children", "disabled", "className", "loadingText", "isLoad", "asChild", "skeleton"]);
+    var Comp = asChild ? Slot$1 : "button";
+    if (skeleton) {
+        return (jsxRuntimeExports.jsx("div", { "data-slot": "button-skeleton", className: cn(skeletonVariants({ variant: variant, size: size, className: className })), children: jsxRuntimeExports.jsx("span", { className: "opacity-0", children: children }) }));
+    }
+    return (jsxRuntimeExports.jsxs(Comp, __assign({ "data-slot": "button", className: cn(buttonVariants({ variant: variant, size: size, className: className })), disabled: disabled || isLoad }, props, { children: [isLoad && (jsxRuntimeExports.jsx(LoaderCircle, { className: "size-4 animate-spin", "data-slot": "button-loader" })), isLoad && loadingText ? loadingText : children] })));
+}
+
+// packages/core/number/src/number.ts
+function clamp$1(value, [min, max]) {
+  return Math.min(max, Math.max(min, value));
+}
+
+// src/primitive.tsx
+function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
+  return function handleEvent(event) {
+    originalEventHandler?.(event);
+    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
+      return ourEventHandler?.(event);
+    }
+  };
+}
+
+// packages/react/context/src/create-context.tsx
+function createContextScope(scopeName, createContextScopeDeps = []) {
+  let defaultContexts = [];
+  function createContext3(rootComponentName, defaultContext) {
+    const BaseContext = React.createContext(defaultContext);
+    const index = defaultContexts.length;
+    defaultContexts = [...defaultContexts, defaultContext];
+    const Provider = (props) => {
+      const { scope, children, ...context } = props;
+      const Context = scope?.[scopeName]?.[index] || BaseContext;
+      const value = React.useMemo(() => context, Object.values(context));
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Context.Provider, { value, children });
+    };
+    Provider.displayName = rootComponentName + "Provider";
+    function useContext2(consumerName, scope) {
+      const Context = scope?.[scopeName]?.[index] || BaseContext;
+      const context = React.useContext(Context);
+      if (context) return context;
+      if (defaultContext !== void 0) return defaultContext;
+      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
+    }
+    return [Provider, useContext2];
+  }
+  const createScope = () => {
+    const scopeContexts = defaultContexts.map((defaultContext) => {
+      return React.createContext(defaultContext);
+    });
+    return function useScope(scope) {
+      const contexts = scope?.[scopeName] || scopeContexts;
+      return React.useMemo(
+        () => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }),
+        [scope, contexts]
+      );
+    };
+  };
+  createScope.scopeName = scopeName;
+  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
+}
+function composeContextScopes(...scopes) {
+  const baseScope = scopes[0];
+  if (scopes.length === 1) return baseScope;
+  const createScope = () => {
+    const scopeHooks = scopes.map((createScope2) => ({
+      useScope: createScope2(),
+      scopeName: createScope2.scopeName
+    }));
+    return function useComposedScopes(overrideScopes) {
+      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
+        const scopeProps = useScope(overrideScopes);
+        const currentScope = scopeProps[`__scope${scopeName}`];
+        return { ...nextScopes2, ...currentScope };
+      }, {});
+      return React.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
+    };
+  };
+  createScope.scopeName = baseScope.scopeName;
+  return createScope;
+}
+
+// src/slot.tsx
+// @__NO_SIDE_EFFECTS__
+function createSlot(ownerName) {
+  const SlotClone = /* @__PURE__ */ createSlotClone(ownerName);
+  const Slot2 = React.forwardRef((props, forwardedRef) => {
+    const { children, ...slotProps } = props;
+    const childrenArray = React.Children.toArray(children);
+    const slottable = childrenArray.find(isSlottable);
+    if (slottable) {
+      const newElement = slottable.props.children;
+      const newChildren = childrenArray.map((child) => {
+        if (child === slottable) {
+          if (React.Children.count(newElement) > 1) return React.Children.only(null);
+          return React.isValidElement(newElement) ? newElement.props.children : null;
+        } else {
+          return child;
+        }
+      });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children: React.isValidElement(newElement) ? React.cloneElement(newElement, void 0, newChildren) : null });
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children });
+  });
+  Slot2.displayName = `${ownerName}.Slot`;
+  return Slot2;
+}
+// @__NO_SIDE_EFFECTS__
+function createSlotClone(ownerName) {
+  const SlotClone = React.forwardRef((props, forwardedRef) => {
+    const { children, ...slotProps } = props;
+    if (React.isValidElement(children)) {
+      const childrenRef = getElementRef(children);
+      const props2 = mergeProps(slotProps, children.props);
+      if (children.type !== React.Fragment) {
+        props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
+      }
+      return React.cloneElement(children, props2);
+    }
+    return React.Children.count(children) > 1 ? React.Children.only(null) : null;
+  });
+  SlotClone.displayName = `${ownerName}.SlotClone`;
+  return SlotClone;
+}
+var SLOTTABLE_IDENTIFIER = Symbol("radix.slottable");
+function isSlottable(child) {
+  return React.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
+}
+function mergeProps(slotProps, childProps) {
+  const overrideProps = { ...childProps };
+  for (const propName in childProps) {
+    const slotPropValue = slotProps[propName];
+    const childPropValue = childProps[propName];
+    const isHandler = /^on[A-Z]/.test(propName);
+    if (isHandler) {
+      if (slotPropValue && childPropValue) {
+        overrideProps[propName] = (...args) => {
+          const result = childPropValue(...args);
+          slotPropValue(...args);
+          return result;
+        };
+      } else if (slotPropValue) {
+        overrideProps[propName] = slotPropValue;
+      }
+    } else if (propName === "style") {
+      overrideProps[propName] = { ...slotPropValue, ...childPropValue };
+    } else if (propName === "className") {
+      overrideProps[propName] = [slotPropValue, childPropValue].filter(Boolean).join(" ");
+    }
+  }
+  return { ...slotProps, ...overrideProps };
+}
+function getElementRef(element) {
+  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
+  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.ref;
+  }
+  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
+  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.props.ref;
+  }
+  return element.props.ref || element.ref;
+}
+
+function createCollection(name) {
+  const PROVIDER_NAME = name + "CollectionProvider";
+  const [createCollectionContext, createCollectionScope] = createContextScope(PROVIDER_NAME);
+  const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(
+    PROVIDER_NAME,
+    { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map() }
+  );
+  const CollectionProvider = (props) => {
+    const { scope, children } = props;
+    const ref = React__default.useRef(null);
+    const itemMap = React__default.useRef(/* @__PURE__ */ new Map()).current;
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
+  };
+  CollectionProvider.displayName = PROVIDER_NAME;
+  const COLLECTION_SLOT_NAME = name + "CollectionSlot";
+  const CollectionSlotImpl = createSlot(COLLECTION_SLOT_NAME);
+  const CollectionSlot = React__default.forwardRef(
+    (props, forwardedRef) => {
+      const { scope, children } = props;
+      const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
+      const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionSlotImpl, { ref: composedRefs, children });
+    }
+  );
+  CollectionSlot.displayName = COLLECTION_SLOT_NAME;
+  const ITEM_SLOT_NAME = name + "CollectionItemSlot";
+  const ITEM_DATA_ATTR = "data-radix-collection-item";
+  const CollectionItemSlotImpl = createSlot(ITEM_SLOT_NAME);
+  const CollectionItemSlot = React__default.forwardRef(
+    (props, forwardedRef) => {
+      const { scope, children, ...itemData } = props;
+      const ref = React__default.useRef(null);
+      const composedRefs = useComposedRefs(forwardedRef, ref);
+      const context = useCollectionContext(ITEM_SLOT_NAME, scope);
+      React__default.useEffect(() => {
+        context.itemMap.set(ref, { ref, ...itemData });
+        return () => void context.itemMap.delete(ref);
+      });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
+    }
+  );
+  CollectionItemSlot.displayName = ITEM_SLOT_NAME;
+  function useCollection(scope) {
+    const context = useCollectionContext(name + "CollectionConsumer", scope);
+    const getItems = React__default.useCallback(() => {
+      const collectionNode = context.collectionRef.current;
+      if (!collectionNode) return [];
+      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`));
+      const items = Array.from(context.itemMap.values());
+      const orderedItems = items.sort(
+        (a, b) => orderedNodes.indexOf(a.ref.current) - orderedNodes.indexOf(b.ref.current)
+      );
+      return orderedItems;
+    }, [context.collectionRef, context.itemMap]);
+    return getItems;
+  }
+  return [
+    { Provider: CollectionProvider, Slot: CollectionSlot, ItemSlot: CollectionItemSlot },
+    useCollection,
+    createCollectionScope
+  ];
+}
+
+// packages/react/direction/src/direction.tsx
+var DirectionContext = React.createContext(void 0);
+function useDirection(localDir) {
+  const globalDir = React.useContext(DirectionContext);
+  return localDir || globalDir || "ltr";
+}
+
+// src/primitive.tsx
+var NODES$1 = [
+  "a",
+  "button",
+  "div",
+  "form",
+  "h2",
+  "h3",
+  "img",
+  "input",
+  "label",
+  "li",
+  "nav",
+  "ol",
+  "p",
+  "select",
+  "span",
+  "svg",
+  "ul"
+];
+var Primitive$1 = NODES$1.reduce((primitive, node) => {
+  const Slot = createSlot(`Primitive.${node}`);
+  const Node = React.forwardRef((props, forwardedRef) => {
+    const { asChild, ...primitiveProps } = props;
+    const Comp = asChild ? Slot : node;
+    if (typeof window !== "undefined") {
+      window[Symbol.for("radix-ui")] = true;
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Comp, { ...primitiveProps, ref: forwardedRef });
+  });
+  Node.displayName = `Primitive.${node}`;
+  return { ...primitive, [node]: Node };
+}, {});
+function dispatchDiscreteCustomEvent(target, event) {
+  if (target) ReactDOM.flushSync(() => target.dispatchEvent(event));
+}
+
+// packages/react/use-callback-ref/src/use-callback-ref.tsx
+function useCallbackRef$1(callback) {
+  const callbackRef = React.useRef(callback);
+  React.useEffect(() => {
+    callbackRef.current = callback;
+  });
+  return React.useMemo(() => (...args) => callbackRef.current?.(...args), []);
+}
+
+// packages/react/use-escape-keydown/src/use-escape-keydown.tsx
+function useEscapeKeydown(onEscapeKeyDownProp, ownerDocument = globalThis?.document) {
+  const onEscapeKeyDown = useCallbackRef$1(onEscapeKeyDownProp);
+  React.useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onEscapeKeyDown(event);
+      }
+    };
+    ownerDocument.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => ownerDocument.removeEventListener("keydown", handleKeyDown, { capture: true });
+  }, [onEscapeKeyDown, ownerDocument]);
+}
+
+var DISMISSABLE_LAYER_NAME = "DismissableLayer";
+var CONTEXT_UPDATE = "dismissableLayer.update";
+var POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside";
+var FOCUS_OUTSIDE = "dismissableLayer.focusOutside";
+var originalBodyPointerEvents;
+var DismissableLayerContext = React.createContext({
+  layers: /* @__PURE__ */ new Set(),
+  layersWithOutsidePointerEventsDisabled: /* @__PURE__ */ new Set(),
+  branches: /* @__PURE__ */ new Set()
+});
+var DismissableLayer = React.forwardRef(
+  (props, forwardedRef) => {
+    const {
+      disableOutsidePointerEvents = false,
+      onEscapeKeyDown,
+      onPointerDownOutside,
+      onFocusOutside,
+      onInteractOutside,
+      onDismiss,
+      ...layerProps
+    } = props;
+    const context = React.useContext(DismissableLayerContext);
+    const [node, setNode] = React.useState(null);
+    const ownerDocument = node?.ownerDocument ?? globalThis?.document;
+    const [, force] = React.useState({});
+    const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
+    const layers = Array.from(context.layers);
+    const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
+    const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(highestLayerWithOutsidePointerEventsDisabled);
+    const index = node ? layers.indexOf(node) : -1;
+    const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0;
+    const isPointerEventsEnabled = index >= highestLayerWithOutsidePointerEventsDisabledIndex;
+    const pointerDownOutside = usePointerDownOutside((event) => {
+      const target = event.target;
+      const isPointerDownOnBranch = [...context.branches].some((branch) => branch.contains(target));
+      if (!isPointerEventsEnabled || isPointerDownOnBranch) return;
+      onPointerDownOutside?.(event);
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented) onDismiss?.();
+    }, ownerDocument);
+    const focusOutside = useFocusOutside((event) => {
+      const target = event.target;
+      const isFocusInBranch = [...context.branches].some((branch) => branch.contains(target));
+      if (isFocusInBranch) return;
+      onFocusOutside?.(event);
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented) onDismiss?.();
+    }, ownerDocument);
+    useEscapeKeydown((event) => {
+      const isHighestLayer = index === context.layers.size - 1;
+      if (!isHighestLayer) return;
+      onEscapeKeyDown?.(event);
+      if (!event.defaultPrevented && onDismiss) {
+        event.preventDefault();
+        onDismiss();
+      }
+    }, ownerDocument);
+    React.useEffect(() => {
+      if (!node) return;
+      if (disableOutsidePointerEvents) {
+        if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
+          originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
+          ownerDocument.body.style.pointerEvents = "none";
+        }
+        context.layersWithOutsidePointerEventsDisabled.add(node);
+      }
+      context.layers.add(node);
+      dispatchUpdate();
+      return () => {
+        if (disableOutsidePointerEvents && context.layersWithOutsidePointerEventsDisabled.size === 1) {
+          ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
+        }
+      };
+    }, [node, ownerDocument, disableOutsidePointerEvents, context]);
+    React.useEffect(() => {
+      return () => {
+        if (!node) return;
+        context.layers.delete(node);
+        context.layersWithOutsidePointerEventsDisabled.delete(node);
+        dispatchUpdate();
+      };
+    }, [node, context]);
+    React.useEffect(() => {
+      const handleUpdate = () => force({});
+      document.addEventListener(CONTEXT_UPDATE, handleUpdate);
+      return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
+    }, []);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive$1.div,
+      {
+        ...layerProps,
+        ref: composedRefs,
+        style: {
+          pointerEvents: isBodyPointerEventsDisabled ? isPointerEventsEnabled ? "auto" : "none" : void 0,
+          ...props.style
+        },
+        onFocusCapture: composeEventHandlers(props.onFocusCapture, focusOutside.onFocusCapture),
+        onBlurCapture: composeEventHandlers(props.onBlurCapture, focusOutside.onBlurCapture),
+        onPointerDownCapture: composeEventHandlers(
+          props.onPointerDownCapture,
+          pointerDownOutside.onPointerDownCapture
+        )
+      }
+    );
+  }
+);
+DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
+var BRANCH_NAME = "DismissableLayerBranch";
+var DismissableLayerBranch = React.forwardRef((props, forwardedRef) => {
+  const context = React.useContext(DismissableLayerContext);
+  const ref = React.useRef(null);
+  const composedRefs = useComposedRefs(forwardedRef, ref);
+  React.useEffect(() => {
+    const node = ref.current;
+    if (node) {
+      context.branches.add(node);
+      return () => {
+        context.branches.delete(node);
+      };
+    }
+  }, [context.branches]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { ...props, ref: composedRefs });
+});
+DismissableLayerBranch.displayName = BRANCH_NAME;
+function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis?.document) {
+  const handlePointerDownOutside = useCallbackRef$1(onPointerDownOutside);
+  const isPointerInsideReactTreeRef = React.useRef(false);
+  const handleClickRef = React.useRef(() => {
+  });
+  React.useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (event.target && !isPointerInsideReactTreeRef.current) {
+        let handleAndDispatchPointerDownOutsideEvent2 = function() {
+          handleAndDispatchCustomEvent(
+            POINTER_DOWN_OUTSIDE,
+            handlePointerDownOutside,
+            eventDetail,
+            { discrete: true }
+          );
+        };
+        const eventDetail = { originalEvent: event };
+        if (event.pointerType === "touch") {
+          ownerDocument.removeEventListener("click", handleClickRef.current);
+          handleClickRef.current = handleAndDispatchPointerDownOutsideEvent2;
+          ownerDocument.addEventListener("click", handleClickRef.current, { once: true });
+        } else {
+          handleAndDispatchPointerDownOutsideEvent2();
+        }
+      } else {
+        ownerDocument.removeEventListener("click", handleClickRef.current);
+      }
+      isPointerInsideReactTreeRef.current = false;
+    };
+    const timerId = window.setTimeout(() => {
+      ownerDocument.addEventListener("pointerdown", handlePointerDown);
+    }, 0);
+    return () => {
+      window.clearTimeout(timerId);
+      ownerDocument.removeEventListener("pointerdown", handlePointerDown);
+      ownerDocument.removeEventListener("click", handleClickRef.current);
+    };
+  }, [ownerDocument, handlePointerDownOutside]);
+  return {
+    // ensures we check React component tree (not just DOM tree)
+    onPointerDownCapture: () => isPointerInsideReactTreeRef.current = true
+  };
+}
+function useFocusOutside(onFocusOutside, ownerDocument = globalThis?.document) {
+  const handleFocusOutside = useCallbackRef$1(onFocusOutside);
+  const isFocusInsideReactTreeRef = React.useRef(false);
+  React.useEffect(() => {
+    const handleFocus = (event) => {
+      if (event.target && !isFocusInsideReactTreeRef.current) {
+        const eventDetail = { originalEvent: event };
+        handleAndDispatchCustomEvent(FOCUS_OUTSIDE, handleFocusOutside, eventDetail, {
+          discrete: false
+        });
+      }
+    };
+    ownerDocument.addEventListener("focusin", handleFocus);
+    return () => ownerDocument.removeEventListener("focusin", handleFocus);
+  }, [ownerDocument, handleFocusOutside]);
+  return {
+    onFocusCapture: () => isFocusInsideReactTreeRef.current = true,
+    onBlurCapture: () => isFocusInsideReactTreeRef.current = false
+  };
+}
+function dispatchUpdate() {
+  const event = new CustomEvent(CONTEXT_UPDATE);
+  document.dispatchEvent(event);
+}
+function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
+  const target = detail.originalEvent.target;
+  const event = new CustomEvent(name, { bubbles: false, cancelable: true, detail });
+  if (handler) target.addEventListener(name, handler, { once: true });
+  if (discrete) {
+    dispatchDiscreteCustomEvent(target, event);
+  } else {
+    target.dispatchEvent(event);
+  }
+}
+
+var count$1 = 0;
+function useFocusGuards() {
+  React.useEffect(() => {
+    const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
+    document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
+    document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
+    count$1++;
+    return () => {
+      if (count$1 === 1) {
+        document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
+      }
+      count$1--;
+    };
+  }, []);
+}
+function createFocusGuard() {
+  const element = document.createElement("span");
+  element.setAttribute("data-radix-focus-guard", "");
+  element.tabIndex = 0;
+  element.style.outline = "none";
+  element.style.opacity = "0";
+  element.style.position = "fixed";
+  element.style.pointerEvents = "none";
+  return element;
+}
+
+var AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount";
+var AUTOFOCUS_ON_UNMOUNT = "focusScope.autoFocusOnUnmount";
+var EVENT_OPTIONS = { bubbles: false, cancelable: true };
+var FOCUS_SCOPE_NAME = "FocusScope";
+var FocusScope = React.forwardRef((props, forwardedRef) => {
+  const {
+    loop = false,
+    trapped = false,
+    onMountAutoFocus: onMountAutoFocusProp,
+    onUnmountAutoFocus: onUnmountAutoFocusProp,
+    ...scopeProps
+  } = props;
+  const [container, setContainer] = React.useState(null);
+  const onMountAutoFocus = useCallbackRef$1(onMountAutoFocusProp);
+  const onUnmountAutoFocus = useCallbackRef$1(onUnmountAutoFocusProp);
+  const lastFocusedElementRef = React.useRef(null);
+  const composedRefs = useComposedRefs(forwardedRef, (node) => setContainer(node));
+  const focusScope = React.useRef({
+    paused: false,
+    pause() {
+      this.paused = true;
+    },
+    resume() {
+      this.paused = false;
+    }
+  }).current;
+  React.useEffect(() => {
+    if (trapped) {
+      let handleFocusIn2 = function(event) {
+        if (focusScope.paused || !container) return;
+        const target = event.target;
+        if (container.contains(target)) {
+          lastFocusedElementRef.current = target;
+        } else {
+          focus(lastFocusedElementRef.current, { select: true });
+        }
+      }, handleFocusOut2 = function(event) {
+        if (focusScope.paused || !container) return;
+        const relatedTarget = event.relatedTarget;
+        if (relatedTarget === null) return;
+        if (!container.contains(relatedTarget)) {
+          focus(lastFocusedElementRef.current, { select: true });
+        }
+      }, handleMutations2 = function(mutations) {
+        const focusedElement = document.activeElement;
+        if (focusedElement !== document.body) return;
+        for (const mutation of mutations) {
+          if (mutation.removedNodes.length > 0) focus(container);
+        }
+      };
+      document.addEventListener("focusin", handleFocusIn2);
+      document.addEventListener("focusout", handleFocusOut2);
+      const mutationObserver = new MutationObserver(handleMutations2);
+      if (container) mutationObserver.observe(container, { childList: true, subtree: true });
+      return () => {
+        document.removeEventListener("focusin", handleFocusIn2);
+        document.removeEventListener("focusout", handleFocusOut2);
+        mutationObserver.disconnect();
+      };
+    }
+  }, [trapped, container, focusScope.paused]);
+  React.useEffect(() => {
+    if (container) {
+      focusScopesStack.add(focusScope);
+      const previouslyFocusedElement = document.activeElement;
+      const hasFocusedCandidate = container.contains(previouslyFocusedElement);
+      if (!hasFocusedCandidate) {
+        const mountEvent = new CustomEvent(AUTOFOCUS_ON_MOUNT, EVENT_OPTIONS);
+        container.addEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
+        container.dispatchEvent(mountEvent);
+        if (!mountEvent.defaultPrevented) {
+          focusFirst(removeLinks(getTabbableCandidates(container)), { select: true });
+          if (document.activeElement === previouslyFocusedElement) {
+            focus(container);
+          }
+        }
+      }
+      return () => {
+        container.removeEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
+        setTimeout(() => {
+          const unmountEvent = new CustomEvent(AUTOFOCUS_ON_UNMOUNT, EVENT_OPTIONS);
+          container.addEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
+          container.dispatchEvent(unmountEvent);
+          if (!unmountEvent.defaultPrevented) {
+            focus(previouslyFocusedElement ?? document.body, { select: true });
+          }
+          container.removeEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
+          focusScopesStack.remove(focusScope);
+        }, 0);
+      };
+    }
+  }, [container, onMountAutoFocus, onUnmountAutoFocus, focusScope]);
+  const handleKeyDown = React.useCallback(
+    (event) => {
+      if (!loop && !trapped) return;
+      if (focusScope.paused) return;
+      const isTabKey = event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey;
+      const focusedElement = document.activeElement;
+      if (isTabKey && focusedElement) {
+        const container2 = event.currentTarget;
+        const [first, last] = getTabbableEdges(container2);
+        const hasTabbableElementsInside = first && last;
+        if (!hasTabbableElementsInside) {
+          if (focusedElement === container2) event.preventDefault();
+        } else {
+          if (!event.shiftKey && focusedElement === last) {
+            event.preventDefault();
+            if (loop) focus(first, { select: true });
+          } else if (event.shiftKey && focusedElement === first) {
+            event.preventDefault();
+            if (loop) focus(last, { select: true });
+          }
+        }
+      }
+    },
+    [loop, trapped, focusScope.paused]
+  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { tabIndex: -1, ...scopeProps, ref: composedRefs, onKeyDown: handleKeyDown });
+});
+FocusScope.displayName = FOCUS_SCOPE_NAME;
+function focusFirst(candidates, { select = false } = {}) {
+  const previouslyFocusedElement = document.activeElement;
+  for (const candidate of candidates) {
+    focus(candidate, { select });
+    if (document.activeElement !== previouslyFocusedElement) return;
+  }
+}
+function getTabbableEdges(container) {
+  const candidates = getTabbableCandidates(container);
+  const first = findVisible(candidates, container);
+  const last = findVisible(candidates.reverse(), container);
+  return [first, last];
+}
+function getTabbableCandidates(container) {
+  const nodes = [];
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => {
+      const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
+      if (node.disabled || node.hidden || isHiddenInput) return NodeFilter.FILTER_SKIP;
+      return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+    }
+  });
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  return nodes;
+}
+function findVisible(elements, container) {
+  for (const element of elements) {
+    if (!isHidden(element, { upTo: container })) return element;
+  }
+}
+function isHidden(node, { upTo }) {
+  if (getComputedStyle(node).visibility === "hidden") return true;
+  while (node) {
+    if (upTo !== void 0 && node === upTo) return false;
+    if (getComputedStyle(node).display === "none") return true;
+    node = node.parentElement;
+  }
+  return false;
+}
+function isSelectableInput(element) {
+  return element instanceof HTMLInputElement && "select" in element;
+}
+function focus(element, { select = false } = {}) {
+  if (element && element.focus) {
+    const previouslyFocusedElement = document.activeElement;
+    element.focus({ preventScroll: true });
+    if (element !== previouslyFocusedElement && isSelectableInput(element) && select)
+      element.select();
+  }
+}
+var focusScopesStack = createFocusScopesStack();
+function createFocusScopesStack() {
+  let stack = [];
+  return {
+    add(focusScope) {
+      const activeFocusScope = stack[0];
+      if (focusScope !== activeFocusScope) {
+        activeFocusScope?.pause();
+      }
+      stack = arrayRemove(stack, focusScope);
+      stack.unshift(focusScope);
+    },
+    remove(focusScope) {
+      stack = arrayRemove(stack, focusScope);
+      stack[0]?.resume();
+    }
+  };
+}
+function arrayRemove(array, item) {
+  const updatedArray = [...array];
+  const index = updatedArray.indexOf(item);
+  if (index !== -1) {
+    updatedArray.splice(index, 1);
+  }
+  return updatedArray;
+}
+function removeLinks(items) {
+  return items.filter((item) => item.tagName !== "A");
+}
+
+// packages/react/use-layout-effect/src/use-layout-effect.tsx
+var useLayoutEffect2 = globalThis?.document ? React.useLayoutEffect : () => {
+};
+
+// packages/react/id/src/id.tsx
+var useReactId = React[" useId ".trim().toString()] || (() => void 0);
+var count = 0;
+function useId(deterministicId) {
+  const [id, setId] = React.useState(useReactId());
+  useLayoutEffect2(() => {
+    setId((reactId) => reactId ?? String(count++));
+  }, [deterministicId]);
+  return deterministicId || (id ? `radix-${id}` : "");
+}
+
+/**
+ * Custom positioning reference element.
+ * @see https://floating-ui.com/docs/virtual-elements
+ */
+
+const sides = ['top', 'right', 'bottom', 'left'];
+const min = Math.min;
+const max = Math.max;
+const round = Math.round;
+const floor = Math.floor;
+const createCoords = v => ({
+  x: v,
+  y: v
+});
+const oppositeSideMap = {
+  left: 'right',
+  right: 'left',
+  bottom: 'top',
+  top: 'bottom'
+};
+const oppositeAlignmentMap = {
+  start: 'end',
+  end: 'start'
+};
+function clamp(start, value, end) {
+  return max(start, min(value, end));
+}
+function evaluate(value, param) {
+  return typeof value === 'function' ? value(param) : value;
+}
+function getSide(placement) {
+  return placement.split('-')[0];
+}
+function getAlignment(placement) {
+  return placement.split('-')[1];
+}
+function getOppositeAxis(axis) {
+  return axis === 'x' ? 'y' : 'x';
+}
+function getAxisLength(axis) {
+  return axis === 'y' ? 'height' : 'width';
+}
+const yAxisSides = /*#__PURE__*/new Set(['top', 'bottom']);
+function getSideAxis(placement) {
+  return yAxisSides.has(getSide(placement)) ? 'y' : 'x';
+}
+function getAlignmentAxis(placement) {
+  return getOppositeAxis(getSideAxis(placement));
+}
+function getAlignmentSides(placement, rects, rtl) {
+  if (rtl === void 0) {
+    rtl = false;
+  }
+  const alignment = getAlignment(placement);
+  const alignmentAxis = getAlignmentAxis(placement);
+  const length = getAxisLength(alignmentAxis);
+  let mainAlignmentSide = alignmentAxis === 'x' ? alignment === (rtl ? 'end' : 'start') ? 'right' : 'left' : alignment === 'start' ? 'bottom' : 'top';
+  if (rects.reference[length] > rects.floating[length]) {
+    mainAlignmentSide = getOppositePlacement(mainAlignmentSide);
+  }
+  return [mainAlignmentSide, getOppositePlacement(mainAlignmentSide)];
+}
+function getExpandedPlacements(placement) {
+  const oppositePlacement = getOppositePlacement(placement);
+  return [getOppositeAlignmentPlacement(placement), oppositePlacement, getOppositeAlignmentPlacement(oppositePlacement)];
+}
+function getOppositeAlignmentPlacement(placement) {
+  return placement.replace(/start|end/g, alignment => oppositeAlignmentMap[alignment]);
+}
+const lrPlacement = ['left', 'right'];
+const rlPlacement = ['right', 'left'];
+const tbPlacement = ['top', 'bottom'];
+const btPlacement = ['bottom', 'top'];
+function getSideList(side, isStart, rtl) {
+  switch (side) {
+    case 'top':
+    case 'bottom':
+      if (rtl) return isStart ? rlPlacement : lrPlacement;
+      return isStart ? lrPlacement : rlPlacement;
+    case 'left':
+    case 'right':
+      return isStart ? tbPlacement : btPlacement;
+    default:
+      return [];
+  }
+}
+function getOppositeAxisPlacements(placement, flipAlignment, direction, rtl) {
+  const alignment = getAlignment(placement);
+  let list = getSideList(getSide(placement), direction === 'start', rtl);
+  if (alignment) {
+    list = list.map(side => side + "-" + alignment);
+    if (flipAlignment) {
+      list = list.concat(list.map(getOppositeAlignmentPlacement));
+    }
+  }
+  return list;
+}
+function getOppositePlacement(placement) {
+  return placement.replace(/left|right|bottom|top/g, side => oppositeSideMap[side]);
+}
+function expandPaddingObject(padding) {
+  return {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    ...padding
+  };
+}
+function getPaddingObject(padding) {
+  return typeof padding !== 'number' ? expandPaddingObject(padding) : {
+    top: padding,
+    right: padding,
+    bottom: padding,
+    left: padding
+  };
+}
+function rectToClientRect(rect) {
+  const {
+    x,
+    y,
+    width,
+    height
+  } = rect;
+  return {
+    width,
+    height,
+    top: y,
+    left: x,
+    right: x + width,
+    bottom: y + height,
+    x,
+    y
+  };
+}
+
+function computeCoordsFromPlacement(_ref, placement, rtl) {
+  let {
+    reference,
+    floating
+  } = _ref;
+  const sideAxis = getSideAxis(placement);
+  const alignmentAxis = getAlignmentAxis(placement);
+  const alignLength = getAxisLength(alignmentAxis);
+  const side = getSide(placement);
+  const isVertical = sideAxis === 'y';
+  const commonX = reference.x + reference.width / 2 - floating.width / 2;
+  const commonY = reference.y + reference.height / 2 - floating.height / 2;
+  const commonAlign = reference[alignLength] / 2 - floating[alignLength] / 2;
+  let coords;
+  switch (side) {
+    case 'top':
+      coords = {
+        x: commonX,
+        y: reference.y - floating.height
+      };
+      break;
+    case 'bottom':
+      coords = {
+        x: commonX,
+        y: reference.y + reference.height
+      };
+      break;
+    case 'right':
+      coords = {
+        x: reference.x + reference.width,
+        y: commonY
+      };
+      break;
+    case 'left':
+      coords = {
+        x: reference.x - floating.width,
+        y: commonY
+      };
+      break;
+    default:
+      coords = {
+        x: reference.x,
+        y: reference.y
+      };
+  }
+  switch (getAlignment(placement)) {
+    case 'start':
+      coords[alignmentAxis] -= commonAlign * (rtl && isVertical ? -1 : 1);
+      break;
+    case 'end':
+      coords[alignmentAxis] += commonAlign * (rtl && isVertical ? -1 : 1);
+      break;
+  }
+  return coords;
+}
+
+/**
+ * Computes the `x` and `y` coordinates that will place the floating element
+ * next to a given reference element.
+ *
+ * This export does not have any `platform` interface logic. You will need to
+ * write one for the platform you are using Floating UI with.
+ */
+const computePosition$1 = async (reference, floating, config) => {
+  const {
+    placement = 'bottom',
+    strategy = 'absolute',
+    middleware = [],
+    platform
+  } = config;
+  const validMiddleware = middleware.filter(Boolean);
+  const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(floating));
+  let rects = await platform.getElementRects({
+    reference,
+    floating,
+    strategy
+  });
+  let {
+    x,
+    y
+  } = computeCoordsFromPlacement(rects, placement, rtl);
+  let statefulPlacement = placement;
+  let middlewareData = {};
+  let resetCount = 0;
+  for (let i = 0; i < validMiddleware.length; i++) {
+    const {
+      name,
+      fn
+    } = validMiddleware[i];
+    const {
+      x: nextX,
+      y: nextY,
+      data,
+      reset
+    } = await fn({
+      x,
+      y,
+      initialPlacement: placement,
+      placement: statefulPlacement,
+      strategy,
+      middlewareData,
+      rects,
+      platform,
+      elements: {
+        reference,
+        floating
+      }
+    });
+    x = nextX != null ? nextX : x;
+    y = nextY != null ? nextY : y;
+    middlewareData = {
+      ...middlewareData,
+      [name]: {
+        ...middlewareData[name],
+        ...data
+      }
+    };
+    if (reset && resetCount <= 50) {
+      resetCount++;
+      if (typeof reset === 'object') {
+        if (reset.placement) {
+          statefulPlacement = reset.placement;
+        }
+        if (reset.rects) {
+          rects = reset.rects === true ? await platform.getElementRects({
+            reference,
+            floating,
+            strategy
+          }) : reset.rects;
+        }
+        ({
+          x,
+          y
+        } = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
+      }
+      i = -1;
+    }
+  }
+  return {
+    x,
+    y,
+    placement: statefulPlacement,
+    strategy,
+    middlewareData
+  };
+};
+
+/**
+ * Resolves with an object of overflow side offsets that determine how much the
+ * element is overflowing a given clipping boundary on each side.
+ * - positive = overflowing the boundary by that number of pixels
+ * - negative = how many pixels left before it will overflow
+ * - 0 = lies flush with the boundary
+ * @see https://floating-ui.com/docs/detectOverflow
+ */
+async function detectOverflow(state, options) {
+  var _await$platform$isEle;
+  if (options === void 0) {
+    options = {};
+  }
+  const {
+    x,
+    y,
+    platform,
+    rects,
+    elements,
+    strategy
+  } = state;
+  const {
+    boundary = 'clippingAncestors',
+    rootBoundary = 'viewport',
+    elementContext = 'floating',
+    altBoundary = false,
+    padding = 0
+  } = evaluate(options, state);
+  const paddingObject = getPaddingObject(padding);
+  const altContext = elementContext === 'floating' ? 'reference' : 'floating';
+  const element = elements[altBoundary ? altContext : elementContext];
+  const clippingClientRect = rectToClientRect(await platform.getClippingRect({
+    element: ((_await$platform$isEle = await (platform.isElement == null ? void 0 : platform.isElement(element))) != null ? _await$platform$isEle : true) ? element : element.contextElement || (await (platform.getDocumentElement == null ? void 0 : platform.getDocumentElement(elements.floating))),
+    boundary,
+    rootBoundary,
+    strategy
+  }));
+  const rect = elementContext === 'floating' ? {
+    x,
+    y,
+    width: rects.floating.width,
+    height: rects.floating.height
+  } : rects.reference;
+  const offsetParent = await (platform.getOffsetParent == null ? void 0 : platform.getOffsetParent(elements.floating));
+  const offsetScale = (await (platform.isElement == null ? void 0 : platform.isElement(offsetParent))) ? (await (platform.getScale == null ? void 0 : platform.getScale(offsetParent))) || {
+    x: 1,
+    y: 1
+  } : {
+    x: 1,
+    y: 1
+  };
+  const elementClientRect = rectToClientRect(platform.convertOffsetParentRelativeRectToViewportRelativeRect ? await platform.convertOffsetParentRelativeRectToViewportRelativeRect({
+    elements,
+    rect,
+    offsetParent,
+    strategy
+  }) : rect);
+  return {
+    top: (clippingClientRect.top - elementClientRect.top + paddingObject.top) / offsetScale.y,
+    bottom: (elementClientRect.bottom - clippingClientRect.bottom + paddingObject.bottom) / offsetScale.y,
+    left: (clippingClientRect.left - elementClientRect.left + paddingObject.left) / offsetScale.x,
+    right: (elementClientRect.right - clippingClientRect.right + paddingObject.right) / offsetScale.x
+  };
+}
+
+/**
+ * Provides data to position an inner element of the floating element so that it
+ * appears centered to the reference element.
+ * @see https://floating-ui.com/docs/arrow
+ */
+const arrow$3 = options => ({
+  name: 'arrow',
+  options,
+  async fn(state) {
+    const {
+      x,
+      y,
+      placement,
+      rects,
+      platform,
+      elements,
+      middlewareData
+    } = state;
+    // Since `element` is required, we don't Partial<> the type.
+    const {
+      element,
+      padding = 0
+    } = evaluate(options, state) || {};
+    if (element == null) {
+      return {};
+    }
+    const paddingObject = getPaddingObject(padding);
+    const coords = {
+      x,
+      y
+    };
+    const axis = getAlignmentAxis(placement);
+    const length = getAxisLength(axis);
+    const arrowDimensions = await platform.getDimensions(element);
+    const isYAxis = axis === 'y';
+    const minProp = isYAxis ? 'top' : 'left';
+    const maxProp = isYAxis ? 'bottom' : 'right';
+    const clientProp = isYAxis ? 'clientHeight' : 'clientWidth';
+    const endDiff = rects.reference[length] + rects.reference[axis] - coords[axis] - rects.floating[length];
+    const startDiff = coords[axis] - rects.reference[axis];
+    const arrowOffsetParent = await (platform.getOffsetParent == null ? void 0 : platform.getOffsetParent(element));
+    let clientSize = arrowOffsetParent ? arrowOffsetParent[clientProp] : 0;
+
+    // DOM platform can return `window` as the `offsetParent`.
+    if (!clientSize || !(await (platform.isElement == null ? void 0 : platform.isElement(arrowOffsetParent)))) {
+      clientSize = elements.floating[clientProp] || rects.floating[length];
+    }
+    const centerToReference = endDiff / 2 - startDiff / 2;
+
+    // If the padding is large enough that it causes the arrow to no longer be
+    // centered, modify the padding so that it is centered.
+    const largestPossiblePadding = clientSize / 2 - arrowDimensions[length] / 2 - 1;
+    const minPadding = min(paddingObject[minProp], largestPossiblePadding);
+    const maxPadding = min(paddingObject[maxProp], largestPossiblePadding);
+
+    // Make sure the arrow doesn't overflow the floating element if the center
+    // point is outside the floating element's bounds.
+    const min$1 = minPadding;
+    const max = clientSize - arrowDimensions[length] - maxPadding;
+    const center = clientSize / 2 - arrowDimensions[length] / 2 + centerToReference;
+    const offset = clamp(min$1, center, max);
+
+    // If the reference is small enough that the arrow's padding causes it to
+    // to point to nothing for an aligned placement, adjust the offset of the
+    // floating element itself. To ensure `shift()` continues to take action,
+    // a single reset is performed when this is true.
+    const shouldAddOffset = !middlewareData.arrow && getAlignment(placement) != null && center !== offset && rects.reference[length] / 2 - (center < min$1 ? minPadding : maxPadding) - arrowDimensions[length] / 2 < 0;
+    const alignmentOffset = shouldAddOffset ? center < min$1 ? center - min$1 : center - max : 0;
+    return {
+      [axis]: coords[axis] + alignmentOffset,
+      data: {
+        [axis]: offset,
+        centerOffset: center - offset - alignmentOffset,
+        ...(shouldAddOffset && {
+          alignmentOffset
+        })
+      },
+      reset: shouldAddOffset
+    };
+  }
+});
+
+/**
+ * Optimizes the visibility of the floating element by flipping the `placement`
+ * in order to keep it in view when the preferred placement(s) will overflow the
+ * clipping boundary. Alternative to `autoPlacement`.
+ * @see https://floating-ui.com/docs/flip
+ */
+const flip$2 = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'flip',
+    options,
+    async fn(state) {
+      var _middlewareData$arrow, _middlewareData$flip;
+      const {
+        placement,
+        middlewareData,
+        rects,
+        initialPlacement,
+        platform,
+        elements
+      } = state;
+      const {
+        mainAxis: checkMainAxis = true,
+        crossAxis: checkCrossAxis = true,
+        fallbackPlacements: specifiedFallbackPlacements,
+        fallbackStrategy = 'bestFit',
+        fallbackAxisSideDirection = 'none',
+        flipAlignment = true,
+        ...detectOverflowOptions
+      } = evaluate(options, state);
+
+      // If a reset by the arrow was caused due to an alignment offset being
+      // added, we should skip any logic now since `flip()` has already done its
+      // work.
+      // https://github.com/floating-ui/floating-ui/issues/2549#issuecomment-1719601643
+      if ((_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
+        return {};
+      }
+      const side = getSide(placement);
+      const initialSideAxis = getSideAxis(initialPlacement);
+      const isBasePlacement = getSide(initialPlacement) === initialPlacement;
+      const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating));
+      const fallbackPlacements = specifiedFallbackPlacements || (isBasePlacement || !flipAlignment ? [getOppositePlacement(initialPlacement)] : getExpandedPlacements(initialPlacement));
+      const hasFallbackAxisSideDirection = fallbackAxisSideDirection !== 'none';
+      if (!specifiedFallbackPlacements && hasFallbackAxisSideDirection) {
+        fallbackPlacements.push(...getOppositeAxisPlacements(initialPlacement, flipAlignment, fallbackAxisSideDirection, rtl));
+      }
+      const placements = [initialPlacement, ...fallbackPlacements];
+      const overflow = await detectOverflow(state, detectOverflowOptions);
+      const overflows = [];
+      let overflowsData = ((_middlewareData$flip = middlewareData.flip) == null ? void 0 : _middlewareData$flip.overflows) || [];
+      if (checkMainAxis) {
+        overflows.push(overflow[side]);
+      }
+      if (checkCrossAxis) {
+        const sides = getAlignmentSides(placement, rects, rtl);
+        overflows.push(overflow[sides[0]], overflow[sides[1]]);
+      }
+      overflowsData = [...overflowsData, {
+        placement,
+        overflows
+      }];
+
+      // One or more sides is overflowing.
+      if (!overflows.every(side => side <= 0)) {
+        var _middlewareData$flip2, _overflowsData$filter;
+        const nextIndex = (((_middlewareData$flip2 = middlewareData.flip) == null ? void 0 : _middlewareData$flip2.index) || 0) + 1;
+        const nextPlacement = placements[nextIndex];
+        if (nextPlacement) {
+          const ignoreCrossAxisOverflow = checkCrossAxis === 'alignment' ? initialSideAxis !== getSideAxis(nextPlacement) : false;
+          if (!ignoreCrossAxisOverflow ||
+          // We leave the current main axis only if every placement on that axis
+          // overflows the main axis.
+          overflowsData.every(d => getSideAxis(d.placement) === initialSideAxis ? d.overflows[0] > 0 : true)) {
+            // Try next placement and re-run the lifecycle.
+            return {
+              data: {
+                index: nextIndex,
+                overflows: overflowsData
+              },
+              reset: {
+                placement: nextPlacement
+              }
+            };
+          }
+        }
+
+        // First, find the candidates that fit on the mainAxis side of overflow,
+        // then find the placement that fits the best on the main crossAxis side.
+        let resetPlacement = (_overflowsData$filter = overflowsData.filter(d => d.overflows[0] <= 0).sort((a, b) => a.overflows[1] - b.overflows[1])[0]) == null ? void 0 : _overflowsData$filter.placement;
+
+        // Otherwise fallback.
+        if (!resetPlacement) {
+          switch (fallbackStrategy) {
+            case 'bestFit':
+              {
+                var _overflowsData$filter2;
+                const placement = (_overflowsData$filter2 = overflowsData.filter(d => {
+                  if (hasFallbackAxisSideDirection) {
+                    const currentSideAxis = getSideAxis(d.placement);
+                    return currentSideAxis === initialSideAxis ||
+                    // Create a bias to the `y` side axis due to horizontal
+                    // reading directions favoring greater width.
+                    currentSideAxis === 'y';
+                  }
+                  return true;
+                }).map(d => [d.placement, d.overflows.filter(overflow => overflow > 0).reduce((acc, overflow) => acc + overflow, 0)]).sort((a, b) => a[1] - b[1])[0]) == null ? void 0 : _overflowsData$filter2[0];
+                if (placement) {
+                  resetPlacement = placement;
+                }
+                break;
+              }
+            case 'initialPlacement':
+              resetPlacement = initialPlacement;
+              break;
+          }
+        }
+        if (placement !== resetPlacement) {
+          return {
+            reset: {
+              placement: resetPlacement
+            }
+          };
+        }
+      }
+      return {};
+    }
+  };
+};
+
+function getSideOffsets(overflow, rect) {
+  return {
+    top: overflow.top - rect.height,
+    right: overflow.right - rect.width,
+    bottom: overflow.bottom - rect.height,
+    left: overflow.left - rect.width
+  };
+}
+function isAnySideFullyClipped(overflow) {
+  return sides.some(side => overflow[side] >= 0);
+}
+/**
+ * Provides data to hide the floating element in applicable situations, such as
+ * when it is not in the same clipping context as the reference element.
+ * @see https://floating-ui.com/docs/hide
+ */
+const hide$2 = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'hide',
+    options,
+    async fn(state) {
+      const {
+        rects
+      } = state;
+      const {
+        strategy = 'referenceHidden',
+        ...detectOverflowOptions
+      } = evaluate(options, state);
+      switch (strategy) {
+        case 'referenceHidden':
+          {
+            const overflow = await detectOverflow(state, {
+              ...detectOverflowOptions,
+              elementContext: 'reference'
+            });
+            const offsets = getSideOffsets(overflow, rects.reference);
+            return {
+              data: {
+                referenceHiddenOffsets: offsets,
+                referenceHidden: isAnySideFullyClipped(offsets)
+              }
+            };
+          }
+        case 'escaped':
+          {
+            const overflow = await detectOverflow(state, {
+              ...detectOverflowOptions,
+              altBoundary: true
+            });
+            const offsets = getSideOffsets(overflow, rects.floating);
+            return {
+              data: {
+                escapedOffsets: offsets,
+                escaped: isAnySideFullyClipped(offsets)
+              }
+            };
+          }
+        default:
+          {
+            return {};
+          }
+      }
+    }
+  };
+};
+
+const originSides = /*#__PURE__*/new Set(['left', 'top']);
+
+// For type backwards-compatibility, the `OffsetOptions` type was also
+// Derivable.
+
+async function convertValueToCoords(state, options) {
+  const {
+    placement,
+    platform,
+    elements
+  } = state;
+  const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating));
+  const side = getSide(placement);
+  const alignment = getAlignment(placement);
+  const isVertical = getSideAxis(placement) === 'y';
+  const mainAxisMulti = originSides.has(side) ? -1 : 1;
+  const crossAxisMulti = rtl && isVertical ? -1 : 1;
+  const rawValue = evaluate(options, state);
+
+  // eslint-disable-next-line prefer-const
+  let {
+    mainAxis,
+    crossAxis,
+    alignmentAxis
+  } = typeof rawValue === 'number' ? {
+    mainAxis: rawValue,
+    crossAxis: 0,
+    alignmentAxis: null
+  } : {
+    mainAxis: rawValue.mainAxis || 0,
+    crossAxis: rawValue.crossAxis || 0,
+    alignmentAxis: rawValue.alignmentAxis
+  };
+  if (alignment && typeof alignmentAxis === 'number') {
+    crossAxis = alignment === 'end' ? alignmentAxis * -1 : alignmentAxis;
+  }
+  return isVertical ? {
+    x: crossAxis * crossAxisMulti,
+    y: mainAxis * mainAxisMulti
+  } : {
+    x: mainAxis * mainAxisMulti,
+    y: crossAxis * crossAxisMulti
+  };
+}
+
+/**
+ * Modifies the placement by translating the floating element along the
+ * specified axes.
+ * A number (shorthand for `mainAxis` or distance), or an axes configuration
+ * object may be passed.
+ * @see https://floating-ui.com/docs/offset
+ */
+const offset$2 = function (options) {
+  if (options === void 0) {
+    options = 0;
+  }
+  return {
+    name: 'offset',
+    options,
+    async fn(state) {
+      var _middlewareData$offse, _middlewareData$arrow;
+      const {
+        x,
+        y,
+        placement,
+        middlewareData
+      } = state;
+      const diffCoords = await convertValueToCoords(state, options);
+
+      // If the placement is the same and the arrow caused an alignment offset
+      // then we don't need to change the positioning coordinates.
+      if (placement === ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse.placement) && (_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
+        return {};
+      }
+      return {
+        x: x + diffCoords.x,
+        y: y + diffCoords.y,
+        data: {
+          ...diffCoords,
+          placement
+        }
+      };
+    }
+  };
+};
+
+/**
+ * Optimizes the visibility of the floating element by shifting it in order to
+ * keep it in view when it will overflow the clipping boundary.
+ * @see https://floating-ui.com/docs/shift
+ */
+const shift$2 = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'shift',
+    options,
+    async fn(state) {
+      const {
+        x,
+        y,
+        placement
+      } = state;
+      const {
+        mainAxis: checkMainAxis = true,
+        crossAxis: checkCrossAxis = false,
+        limiter = {
+          fn: _ref => {
+            let {
+              x,
+              y
+            } = _ref;
+            return {
+              x,
+              y
+            };
+          }
+        },
+        ...detectOverflowOptions
+      } = evaluate(options, state);
+      const coords = {
+        x,
+        y
+      };
+      const overflow = await detectOverflow(state, detectOverflowOptions);
+      const crossAxis = getSideAxis(getSide(placement));
+      const mainAxis = getOppositeAxis(crossAxis);
+      let mainAxisCoord = coords[mainAxis];
+      let crossAxisCoord = coords[crossAxis];
+      if (checkMainAxis) {
+        const minSide = mainAxis === 'y' ? 'top' : 'left';
+        const maxSide = mainAxis === 'y' ? 'bottom' : 'right';
+        const min = mainAxisCoord + overflow[minSide];
+        const max = mainAxisCoord - overflow[maxSide];
+        mainAxisCoord = clamp(min, mainAxisCoord, max);
+      }
+      if (checkCrossAxis) {
+        const minSide = crossAxis === 'y' ? 'top' : 'left';
+        const maxSide = crossAxis === 'y' ? 'bottom' : 'right';
+        const min = crossAxisCoord + overflow[minSide];
+        const max = crossAxisCoord - overflow[maxSide];
+        crossAxisCoord = clamp(min, crossAxisCoord, max);
+      }
+      const limitedCoords = limiter.fn({
+        ...state,
+        [mainAxis]: mainAxisCoord,
+        [crossAxis]: crossAxisCoord
+      });
+      return {
+        ...limitedCoords,
+        data: {
+          x: limitedCoords.x - x,
+          y: limitedCoords.y - y,
+          enabled: {
+            [mainAxis]: checkMainAxis,
+            [crossAxis]: checkCrossAxis
+          }
+        }
+      };
+    }
+  };
+};
+/**
+ * Built-in `limiter` that will stop `shift()` at a certain point.
+ */
+const limitShift$2 = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    options,
+    fn(state) {
+      const {
+        x,
+        y,
+        placement,
+        rects,
+        middlewareData
+      } = state;
+      const {
+        offset = 0,
+        mainAxis: checkMainAxis = true,
+        crossAxis: checkCrossAxis = true
+      } = evaluate(options, state);
+      const coords = {
+        x,
+        y
+      };
+      const crossAxis = getSideAxis(placement);
+      const mainAxis = getOppositeAxis(crossAxis);
+      let mainAxisCoord = coords[mainAxis];
+      let crossAxisCoord = coords[crossAxis];
+      const rawOffset = evaluate(offset, state);
+      const computedOffset = typeof rawOffset === 'number' ? {
+        mainAxis: rawOffset,
+        crossAxis: 0
+      } : {
+        mainAxis: 0,
+        crossAxis: 0,
+        ...rawOffset
+      };
+      if (checkMainAxis) {
+        const len = mainAxis === 'y' ? 'height' : 'width';
+        const limitMin = rects.reference[mainAxis] - rects.floating[len] + computedOffset.mainAxis;
+        const limitMax = rects.reference[mainAxis] + rects.reference[len] - computedOffset.mainAxis;
+        if (mainAxisCoord < limitMin) {
+          mainAxisCoord = limitMin;
+        } else if (mainAxisCoord > limitMax) {
+          mainAxisCoord = limitMax;
+        }
+      }
+      if (checkCrossAxis) {
+        var _middlewareData$offse, _middlewareData$offse2;
+        const len = mainAxis === 'y' ? 'width' : 'height';
+        const isOriginSide = originSides.has(getSide(placement));
+        const limitMin = rects.reference[crossAxis] - rects.floating[len] + (isOriginSide ? ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse[crossAxis]) || 0 : 0) + (isOriginSide ? 0 : computedOffset.crossAxis);
+        const limitMax = rects.reference[crossAxis] + rects.reference[len] + (isOriginSide ? 0 : ((_middlewareData$offse2 = middlewareData.offset) == null ? void 0 : _middlewareData$offse2[crossAxis]) || 0) - (isOriginSide ? computedOffset.crossAxis : 0);
+        if (crossAxisCoord < limitMin) {
+          crossAxisCoord = limitMin;
+        } else if (crossAxisCoord > limitMax) {
+          crossAxisCoord = limitMax;
+        }
+      }
+      return {
+        [mainAxis]: mainAxisCoord,
+        [crossAxis]: crossAxisCoord
+      };
+    }
+  };
+};
+
+/**
+ * Provides data that allows you to change the size of the floating element —
+ * for instance, prevent it from overflowing the clipping boundary or match the
+ * width of the reference element.
+ * @see https://floating-ui.com/docs/size
+ */
+const size$2 = function (options) {
+  if (options === void 0) {
+    options = {};
+  }
+  return {
+    name: 'size',
+    options,
+    async fn(state) {
+      var _state$middlewareData, _state$middlewareData2;
+      const {
+        placement,
+        rects,
+        platform,
+        elements
+      } = state;
+      const {
+        apply = () => {},
+        ...detectOverflowOptions
+      } = evaluate(options, state);
+      const overflow = await detectOverflow(state, detectOverflowOptions);
+      const side = getSide(placement);
+      const alignment = getAlignment(placement);
+      const isYAxis = getSideAxis(placement) === 'y';
+      const {
+        width,
+        height
+      } = rects.floating;
+      let heightSide;
+      let widthSide;
+      if (side === 'top' || side === 'bottom') {
+        heightSide = side;
+        widthSide = alignment === ((await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating))) ? 'start' : 'end') ? 'left' : 'right';
+      } else {
+        widthSide = side;
+        heightSide = alignment === 'end' ? 'top' : 'bottom';
+      }
+      const maximumClippingHeight = height - overflow.top - overflow.bottom;
+      const maximumClippingWidth = width - overflow.left - overflow.right;
+      const overflowAvailableHeight = min(height - overflow[heightSide], maximumClippingHeight);
+      const overflowAvailableWidth = min(width - overflow[widthSide], maximumClippingWidth);
+      const noShift = !state.middlewareData.shift;
+      let availableHeight = overflowAvailableHeight;
+      let availableWidth = overflowAvailableWidth;
+      if ((_state$middlewareData = state.middlewareData.shift) != null && _state$middlewareData.enabled.x) {
+        availableWidth = maximumClippingWidth;
+      }
+      if ((_state$middlewareData2 = state.middlewareData.shift) != null && _state$middlewareData2.enabled.y) {
+        availableHeight = maximumClippingHeight;
+      }
+      if (noShift && !alignment) {
+        const xMin = max(overflow.left, 0);
+        const xMax = max(overflow.right, 0);
+        const yMin = max(overflow.top, 0);
+        const yMax = max(overflow.bottom, 0);
+        if (isYAxis) {
+          availableWidth = width - 2 * (xMin !== 0 || xMax !== 0 ? xMin + xMax : max(overflow.left, overflow.right));
+        } else {
+          availableHeight = height - 2 * (yMin !== 0 || yMax !== 0 ? yMin + yMax : max(overflow.top, overflow.bottom));
+        }
+      }
+      await apply({
+        ...state,
+        availableWidth,
+        availableHeight
+      });
+      const nextDimensions = await platform.getDimensions(elements.floating);
+      if (width !== nextDimensions.width || height !== nextDimensions.height) {
+        return {
+          reset: {
+            rects: true
+          }
+        };
+      }
+      return {};
+    }
+  };
+};
+
+function hasWindow() {
+  return typeof window !== 'undefined';
+}
+function getNodeName(node) {
+  if (isNode(node)) {
+    return (node.nodeName || '').toLowerCase();
+  }
+  // Mocked nodes in testing environments may not be instances of Node. By
+  // returning `#document` an infinite loop won't occur.
+  // https://github.com/floating-ui/floating-ui/issues/2317
+  return '#document';
+}
+function getWindow(node) {
+  var _node$ownerDocument;
+  return (node == null || (_node$ownerDocument = node.ownerDocument) == null ? void 0 : _node$ownerDocument.defaultView) || window;
+}
+function getDocumentElement(node) {
+  var _ref;
+  return (_ref = (isNode(node) ? node.ownerDocument : node.document) || window.document) == null ? void 0 : _ref.documentElement;
+}
+function isNode(value) {
+  if (!hasWindow()) {
+    return false;
+  }
+  return value instanceof Node || value instanceof getWindow(value).Node;
+}
+function isElement(value) {
+  if (!hasWindow()) {
+    return false;
+  }
+  return value instanceof Element || value instanceof getWindow(value).Element;
+}
+function isHTMLElement(value) {
+  if (!hasWindow()) {
+    return false;
+  }
+  return value instanceof HTMLElement || value instanceof getWindow(value).HTMLElement;
+}
+function isShadowRoot(value) {
+  if (!hasWindow() || typeof ShadowRoot === 'undefined') {
+    return false;
+  }
+  return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
+}
+const invalidOverflowDisplayValues = /*#__PURE__*/new Set(['inline', 'contents']);
+function isOverflowElement(element) {
+  const {
+    overflow,
+    overflowX,
+    overflowY,
+    display
+  } = getComputedStyle$1(element);
+  return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && !invalidOverflowDisplayValues.has(display);
+}
+const tableElements = /*#__PURE__*/new Set(['table', 'td', 'th']);
+function isTableElement(element) {
+  return tableElements.has(getNodeName(element));
+}
+const topLayerSelectors = [':popover-open', ':modal'];
+function isTopLayer(element) {
+  return topLayerSelectors.some(selector => {
+    try {
+      return element.matches(selector);
+    } catch (_e) {
+      return false;
+    }
+  });
+}
+const transformProperties = ['transform', 'translate', 'scale', 'rotate', 'perspective'];
+const willChangeValues = ['transform', 'translate', 'scale', 'rotate', 'perspective', 'filter'];
+const containValues = ['paint', 'layout', 'strict', 'content'];
+function isContainingBlock(elementOrCss) {
+  const webkit = isWebKit();
+  const css = isElement(elementOrCss) ? getComputedStyle$1(elementOrCss) : elementOrCss;
+
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
+  // https://drafts.csswg.org/css-transforms-2/#individual-transforms
+  return transformProperties.some(value => css[value] ? css[value] !== 'none' : false) || (css.containerType ? css.containerType !== 'normal' : false) || !webkit && (css.backdropFilter ? css.backdropFilter !== 'none' : false) || !webkit && (css.filter ? css.filter !== 'none' : false) || willChangeValues.some(value => (css.willChange || '').includes(value)) || containValues.some(value => (css.contain || '').includes(value));
+}
+function getContainingBlock(element) {
+  let currentNode = getParentNode(element);
+  while (isHTMLElement(currentNode) && !isLastTraversableNode(currentNode)) {
+    if (isContainingBlock(currentNode)) {
+      return currentNode;
+    } else if (isTopLayer(currentNode)) {
+      return null;
+    }
+    currentNode = getParentNode(currentNode);
+  }
+  return null;
+}
+function isWebKit() {
+  if (typeof CSS === 'undefined' || !CSS.supports) return false;
+  return CSS.supports('-webkit-backdrop-filter', 'none');
+}
+const lastTraversableNodeNames = /*#__PURE__*/new Set(['html', 'body', '#document']);
+function isLastTraversableNode(node) {
+  return lastTraversableNodeNames.has(getNodeName(node));
+}
+function getComputedStyle$1(element) {
+  return getWindow(element).getComputedStyle(element);
+}
+function getNodeScroll(element) {
+  if (isElement(element)) {
+    return {
+      scrollLeft: element.scrollLeft,
+      scrollTop: element.scrollTop
+    };
+  }
+  return {
+    scrollLeft: element.scrollX,
+    scrollTop: element.scrollY
+  };
+}
+function getParentNode(node) {
+  if (getNodeName(node) === 'html') {
+    return node;
+  }
+  const result =
+  // Step into the shadow DOM of the parent of a slotted node.
+  node.assignedSlot ||
+  // DOM Element detected.
+  node.parentNode ||
+  // ShadowRoot detected.
+  isShadowRoot(node) && node.host ||
+  // Fallback.
+  getDocumentElement(node);
+  return isShadowRoot(result) ? result.host : result;
+}
+function getNearestOverflowAncestor(node) {
+  const parentNode = getParentNode(node);
+  if (isLastTraversableNode(parentNode)) {
+    return node.ownerDocument ? node.ownerDocument.body : node.body;
+  }
+  if (isHTMLElement(parentNode) && isOverflowElement(parentNode)) {
+    return parentNode;
+  }
+  return getNearestOverflowAncestor(parentNode);
+}
+function getOverflowAncestors(node, list, traverseIframes) {
+  var _node$ownerDocument2;
+  if (list === void 0) {
+    list = [];
+  }
+  if (traverseIframes === void 0) {
+    traverseIframes = true;
+  }
+  const scrollableAncestor = getNearestOverflowAncestor(node);
+  const isBody = scrollableAncestor === ((_node$ownerDocument2 = node.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
+  const win = getWindow(scrollableAncestor);
+  if (isBody) {
+    const frameElement = getFrameElement(win);
+    return list.concat(win, win.visualViewport || [], isOverflowElement(scrollableAncestor) ? scrollableAncestor : [], frameElement && traverseIframes ? getOverflowAncestors(frameElement) : []);
+  }
+  return list.concat(scrollableAncestor, getOverflowAncestors(scrollableAncestor, [], traverseIframes));
+}
+function getFrameElement(win) {
+  return win.parent && Object.getPrototypeOf(win.parent) ? win.frameElement : null;
+}
+
+function getCssDimensions(element) {
+  const css = getComputedStyle$1(element);
+  // In testing environments, the `width` and `height` properties are empty
+  // strings for SVG elements, returning NaN. Fallback to `0` in this case.
+  let width = parseFloat(css.width) || 0;
+  let height = parseFloat(css.height) || 0;
+  const hasOffset = isHTMLElement(element);
+  const offsetWidth = hasOffset ? element.offsetWidth : width;
+  const offsetHeight = hasOffset ? element.offsetHeight : height;
+  const shouldFallback = round(width) !== offsetWidth || round(height) !== offsetHeight;
+  if (shouldFallback) {
+    width = offsetWidth;
+    height = offsetHeight;
+  }
+  return {
+    width,
+    height,
+    $: shouldFallback
+  };
+}
+
+function unwrapElement(element) {
+  return !isElement(element) ? element.contextElement : element;
+}
+
+function getScale(element) {
+  const domElement = unwrapElement(element);
+  if (!isHTMLElement(domElement)) {
+    return createCoords(1);
+  }
+  const rect = domElement.getBoundingClientRect();
+  const {
+    width,
+    height,
+    $
+  } = getCssDimensions(domElement);
+  let x = ($ ? round(rect.width) : rect.width) / width;
+  let y = ($ ? round(rect.height) : rect.height) / height;
+
+  // 0, NaN, or Infinity should always fallback to 1.
+
+  if (!x || !Number.isFinite(x)) {
+    x = 1;
+  }
+  if (!y || !Number.isFinite(y)) {
+    y = 1;
+  }
+  return {
+    x,
+    y
+  };
+}
+
+const noOffsets = /*#__PURE__*/createCoords(0);
+function getVisualOffsets(element) {
+  const win = getWindow(element);
+  if (!isWebKit() || !win.visualViewport) {
+    return noOffsets;
+  }
+  return {
+    x: win.visualViewport.offsetLeft,
+    y: win.visualViewport.offsetTop
+  };
+}
+function shouldAddVisualOffsets(element, isFixed, floatingOffsetParent) {
+  if (isFixed === void 0) {
+    isFixed = false;
+  }
+  if (!floatingOffsetParent || isFixed && floatingOffsetParent !== getWindow(element)) {
+    return false;
+  }
+  return isFixed;
+}
+
+function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetParent) {
+  if (includeScale === void 0) {
+    includeScale = false;
+  }
+  if (isFixedStrategy === void 0) {
+    isFixedStrategy = false;
+  }
+  const clientRect = element.getBoundingClientRect();
+  const domElement = unwrapElement(element);
+  let scale = createCoords(1);
+  if (includeScale) {
+    if (offsetParent) {
+      if (isElement(offsetParent)) {
+        scale = getScale(offsetParent);
+      }
+    } else {
+      scale = getScale(element);
+    }
+  }
+  const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : createCoords(0);
+  let x = (clientRect.left + visualOffsets.x) / scale.x;
+  let y = (clientRect.top + visualOffsets.y) / scale.y;
+  let width = clientRect.width / scale.x;
+  let height = clientRect.height / scale.y;
+  if (domElement) {
+    const win = getWindow(domElement);
+    const offsetWin = offsetParent && isElement(offsetParent) ? getWindow(offsetParent) : offsetParent;
+    let currentWin = win;
+    let currentIFrame = getFrameElement(currentWin);
+    while (currentIFrame && offsetParent && offsetWin !== currentWin) {
+      const iframeScale = getScale(currentIFrame);
+      const iframeRect = currentIFrame.getBoundingClientRect();
+      const css = getComputedStyle$1(currentIFrame);
+      const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css.paddingLeft)) * iframeScale.x;
+      const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css.paddingTop)) * iframeScale.y;
+      x *= iframeScale.x;
+      y *= iframeScale.y;
+      width *= iframeScale.x;
+      height *= iframeScale.y;
+      x += left;
+      y += top;
+      currentWin = getWindow(currentIFrame);
+      currentIFrame = getFrameElement(currentWin);
+    }
+  }
+  return rectToClientRect({
+    width,
+    height,
+    x,
+    y
+  });
+}
+
+// If <html> has a CSS width greater than the viewport, then this will be
+// incorrect for RTL.
+function getWindowScrollBarX(element, rect) {
+  const leftScroll = getNodeScroll(element).scrollLeft;
+  if (!rect) {
+    return getBoundingClientRect(getDocumentElement(element)).left + leftScroll;
+  }
+  return rect.left + leftScroll;
+}
+
+function getHTMLOffset(documentElement, scroll) {
+  const htmlRect = documentElement.getBoundingClientRect();
+  const x = htmlRect.left + scroll.scrollLeft - getWindowScrollBarX(documentElement, htmlRect);
+  const y = htmlRect.top + scroll.scrollTop;
+  return {
+    x,
+    y
+  };
+}
+
+function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
+  let {
+    elements,
+    rect,
+    offsetParent,
+    strategy
+  } = _ref;
+  const isFixed = strategy === 'fixed';
+  const documentElement = getDocumentElement(offsetParent);
+  const topLayer = elements ? isTopLayer(elements.floating) : false;
+  if (offsetParent === documentElement || topLayer && isFixed) {
+    return rect;
+  }
+  let scroll = {
+    scrollLeft: 0,
+    scrollTop: 0
+  };
+  let scale = createCoords(1);
+  const offsets = createCoords(0);
+  const isOffsetParentAnElement = isHTMLElement(offsetParent);
+  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+    if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
+      scroll = getNodeScroll(offsetParent);
+    }
+    if (isHTMLElement(offsetParent)) {
+      const offsetRect = getBoundingClientRect(offsetParent);
+      scale = getScale(offsetParent);
+      offsets.x = offsetRect.x + offsetParent.clientLeft;
+      offsets.y = offsetRect.y + offsetParent.clientTop;
+    }
+  }
+  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
+  return {
+    width: rect.width * scale.x,
+    height: rect.height * scale.y,
+    x: rect.x * scale.x - scroll.scrollLeft * scale.x + offsets.x + htmlOffset.x,
+    y: rect.y * scale.y - scroll.scrollTop * scale.y + offsets.y + htmlOffset.y
+  };
+}
+
+function getClientRects(element) {
+  return Array.from(element.getClientRects());
+}
+
+// Gets the entire size of the scrollable document area, even extending outside
+// of the `<html>` and `<body>` rect bounds if horizontally scrollable.
+function getDocumentRect(element) {
+  const html = getDocumentElement(element);
+  const scroll = getNodeScroll(element);
+  const body = element.ownerDocument.body;
+  const width = max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
+  const height = max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
+  let x = -scroll.scrollLeft + getWindowScrollBarX(element);
+  const y = -scroll.scrollTop;
+  if (getComputedStyle$1(body).direction === 'rtl') {
+    x += max(html.clientWidth, body.clientWidth) - width;
+  }
+  return {
+    width,
+    height,
+    x,
+    y
+  };
+}
+
+// Safety check: ensure the scrollbar space is reasonable in case this
+// calculation is affected by unusual styles.
+// Most scrollbars leave 15-18px of space.
+const SCROLLBAR_MAX = 25;
+function getViewportRect(element, strategy) {
+  const win = getWindow(element);
+  const html = getDocumentElement(element);
+  const visualViewport = win.visualViewport;
+  let width = html.clientWidth;
+  let height = html.clientHeight;
+  let x = 0;
+  let y = 0;
+  if (visualViewport) {
+    width = visualViewport.width;
+    height = visualViewport.height;
+    const visualViewportBased = isWebKit();
+    if (!visualViewportBased || visualViewportBased && strategy === 'fixed') {
+      x = visualViewport.offsetLeft;
+      y = visualViewport.offsetTop;
+    }
+  }
+  const windowScrollbarX = getWindowScrollBarX(html);
+  // <html> `overflow: hidden` + `scrollbar-gutter: stable` reduces the
+  // visual width of the <html> but this is not considered in the size
+  // of `html.clientWidth`.
+  if (windowScrollbarX <= 0) {
+    const doc = html.ownerDocument;
+    const body = doc.body;
+    const bodyStyles = getComputedStyle(body);
+    const bodyMarginInline = doc.compatMode === 'CSS1Compat' ? parseFloat(bodyStyles.marginLeft) + parseFloat(bodyStyles.marginRight) || 0 : 0;
+    const clippingStableScrollbarWidth = Math.abs(html.clientWidth - body.clientWidth - bodyMarginInline);
+    if (clippingStableScrollbarWidth <= SCROLLBAR_MAX) {
+      width -= clippingStableScrollbarWidth;
+    }
+  } else if (windowScrollbarX <= SCROLLBAR_MAX) {
+    // If the <body> scrollbar is on the left, the width needs to be extended
+    // by the scrollbar amount so there isn't extra space on the right.
+    width += windowScrollbarX;
+  }
+  return {
+    width,
+    height,
+    x,
+    y
+  };
+}
+
+const absoluteOrFixed = /*#__PURE__*/new Set(['absolute', 'fixed']);
+// Returns the inner client rect, subtracting scrollbars if present.
+function getInnerBoundingClientRect(element, strategy) {
+  const clientRect = getBoundingClientRect(element, true, strategy === 'fixed');
+  const top = clientRect.top + element.clientTop;
+  const left = clientRect.left + element.clientLeft;
+  const scale = isHTMLElement(element) ? getScale(element) : createCoords(1);
+  const width = element.clientWidth * scale.x;
+  const height = element.clientHeight * scale.y;
+  const x = left * scale.x;
+  const y = top * scale.y;
+  return {
+    width,
+    height,
+    x,
+    y
+  };
+}
+function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) {
+  let rect;
+  if (clippingAncestor === 'viewport') {
+    rect = getViewportRect(element, strategy);
+  } else if (clippingAncestor === 'document') {
+    rect = getDocumentRect(getDocumentElement(element));
+  } else if (isElement(clippingAncestor)) {
+    rect = getInnerBoundingClientRect(clippingAncestor, strategy);
+  } else {
+    const visualOffsets = getVisualOffsets(element);
+    rect = {
+      x: clippingAncestor.x - visualOffsets.x,
+      y: clippingAncestor.y - visualOffsets.y,
+      width: clippingAncestor.width,
+      height: clippingAncestor.height
+    };
+  }
+  return rectToClientRect(rect);
+}
+function hasFixedPositionAncestor(element, stopNode) {
+  const parentNode = getParentNode(element);
+  if (parentNode === stopNode || !isElement(parentNode) || isLastTraversableNode(parentNode)) {
+    return false;
+  }
+  return getComputedStyle$1(parentNode).position === 'fixed' || hasFixedPositionAncestor(parentNode, stopNode);
+}
+
+// A "clipping ancestor" is an `overflow` element with the characteristic of
+// clipping (or hiding) child elements. This returns all clipping ancestors
+// of the given element up the tree.
+function getClippingElementAncestors(element, cache) {
+  const cachedResult = cache.get(element);
+  if (cachedResult) {
+    return cachedResult;
+  }
+  let result = getOverflowAncestors(element, [], false).filter(el => isElement(el) && getNodeName(el) !== 'body');
+  let currentContainingBlockComputedStyle = null;
+  const elementIsFixed = getComputedStyle$1(element).position === 'fixed';
+  let currentNode = elementIsFixed ? getParentNode(element) : element;
+
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
+  while (isElement(currentNode) && !isLastTraversableNode(currentNode)) {
+    const computedStyle = getComputedStyle$1(currentNode);
+    const currentNodeIsContaining = isContainingBlock(currentNode);
+    if (!currentNodeIsContaining && computedStyle.position === 'fixed') {
+      currentContainingBlockComputedStyle = null;
+    }
+    const shouldDropCurrentNode = elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === 'static' && !!currentContainingBlockComputedStyle && absoluteOrFixed.has(currentContainingBlockComputedStyle.position) || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode);
+    if (shouldDropCurrentNode) {
+      // Drop non-containing blocks.
+      result = result.filter(ancestor => ancestor !== currentNode);
+    } else {
+      // Record last containing block for next iteration.
+      currentContainingBlockComputedStyle = computedStyle;
+    }
+    currentNode = getParentNode(currentNode);
+  }
+  cache.set(element, result);
+  return result;
+}
+
+// Gets the maximum area that the element is visible in due to any number of
+// clipping ancestors.
+function getClippingRect(_ref) {
+  let {
+    element,
+    boundary,
+    rootBoundary,
+    strategy
+  } = _ref;
+  const elementClippingAncestors = boundary === 'clippingAncestors' ? isTopLayer(element) ? [] : getClippingElementAncestors(element, this._c) : [].concat(boundary);
+  const clippingAncestors = [...elementClippingAncestors, rootBoundary];
+  const firstClippingAncestor = clippingAncestors[0];
+  const clippingRect = clippingAncestors.reduce((accRect, clippingAncestor) => {
+    const rect = getClientRectFromClippingAncestor(element, clippingAncestor, strategy);
+    accRect.top = max(rect.top, accRect.top);
+    accRect.right = min(rect.right, accRect.right);
+    accRect.bottom = min(rect.bottom, accRect.bottom);
+    accRect.left = max(rect.left, accRect.left);
+    return accRect;
+  }, getClientRectFromClippingAncestor(element, firstClippingAncestor, strategy));
+  return {
+    width: clippingRect.right - clippingRect.left,
+    height: clippingRect.bottom - clippingRect.top,
+    x: clippingRect.left,
+    y: clippingRect.top
+  };
+}
+
+function getDimensions(element) {
+  const {
+    width,
+    height
+  } = getCssDimensions(element);
+  return {
+    width,
+    height
+  };
+}
+
+function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
+  const isOffsetParentAnElement = isHTMLElement(offsetParent);
+  const documentElement = getDocumentElement(offsetParent);
+  const isFixed = strategy === 'fixed';
+  const rect = getBoundingClientRect(element, true, isFixed, offsetParent);
+  let scroll = {
+    scrollLeft: 0,
+    scrollTop: 0
+  };
+  const offsets = createCoords(0);
+
+  // If the <body> scrollbar appears on the left (e.g. RTL systems). Use
+  // Firefox with layout.scrollbar.side = 3 in about:config to test this.
+  function setLeftRTLScrollbarOffset() {
+    offsets.x = getWindowScrollBarX(documentElement);
+  }
+  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
+    if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
+      scroll = getNodeScroll(offsetParent);
+    }
+    if (isOffsetParentAnElement) {
+      const offsetRect = getBoundingClientRect(offsetParent, true, isFixed, offsetParent);
+      offsets.x = offsetRect.x + offsetParent.clientLeft;
+      offsets.y = offsetRect.y + offsetParent.clientTop;
+    } else if (documentElement) {
+      setLeftRTLScrollbarOffset();
+    }
+  }
+  if (isFixed && !isOffsetParentAnElement && documentElement) {
+    setLeftRTLScrollbarOffset();
+  }
+  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
+  const x = rect.left + scroll.scrollLeft - offsets.x - htmlOffset.x;
+  const y = rect.top + scroll.scrollTop - offsets.y - htmlOffset.y;
+  return {
+    x,
+    y,
+    width: rect.width,
+    height: rect.height
+  };
+}
+
+function isStaticPositioned(element) {
+  return getComputedStyle$1(element).position === 'static';
+}
+
+function getTrueOffsetParent(element, polyfill) {
+  if (!isHTMLElement(element) || getComputedStyle$1(element).position === 'fixed') {
+    return null;
+  }
+  if (polyfill) {
+    return polyfill(element);
+  }
+  let rawOffsetParent = element.offsetParent;
+
+  // Firefox returns the <html> element as the offsetParent if it's non-static,
+  // while Chrome and Safari return the <body> element. The <body> element must
+  // be used to perform the correct calculations even if the <html> element is
+  // non-static.
+  if (getDocumentElement(element) === rawOffsetParent) {
+    rawOffsetParent = rawOffsetParent.ownerDocument.body;
+  }
+  return rawOffsetParent;
+}
+
+// Gets the closest ancestor positioned element. Handles some edge cases,
+// such as table ancestors and cross browser bugs.
+function getOffsetParent(element, polyfill) {
+  const win = getWindow(element);
+  if (isTopLayer(element)) {
+    return win;
+  }
+  if (!isHTMLElement(element)) {
+    let svgOffsetParent = getParentNode(element);
+    while (svgOffsetParent && !isLastTraversableNode(svgOffsetParent)) {
+      if (isElement(svgOffsetParent) && !isStaticPositioned(svgOffsetParent)) {
+        return svgOffsetParent;
+      }
+      svgOffsetParent = getParentNode(svgOffsetParent);
+    }
+    return win;
+  }
+  let offsetParent = getTrueOffsetParent(element, polyfill);
+  while (offsetParent && isTableElement(offsetParent) && isStaticPositioned(offsetParent)) {
+    offsetParent = getTrueOffsetParent(offsetParent, polyfill);
+  }
+  if (offsetParent && isLastTraversableNode(offsetParent) && isStaticPositioned(offsetParent) && !isContainingBlock(offsetParent)) {
+    return win;
+  }
+  return offsetParent || getContainingBlock(element) || win;
+}
+
+const getElementRects = async function (data) {
+  const getOffsetParentFn = this.getOffsetParent || getOffsetParent;
+  const getDimensionsFn = this.getDimensions;
+  const floatingDimensions = await getDimensionsFn(data.floating);
+  return {
+    reference: getRectRelativeToOffsetParent(data.reference, await getOffsetParentFn(data.floating), data.strategy),
+    floating: {
+      x: 0,
+      y: 0,
+      width: floatingDimensions.width,
+      height: floatingDimensions.height
+    }
+  };
+};
+
+function isRTL(element) {
+  return getComputedStyle$1(element).direction === 'rtl';
+}
+
+const platform = {
+  convertOffsetParentRelativeRectToViewportRelativeRect,
+  getDocumentElement,
+  getClippingRect,
+  getOffsetParent,
+  getElementRects,
+  getClientRects,
+  getDimensions,
+  getScale,
+  isElement,
+  isRTL
+};
+
+function rectsAreEqual(a, b) {
+  return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+}
+
+// https://samthor.au/2021/observing-dom/
+function observeMove(element, onMove) {
+  let io = null;
+  let timeoutId;
+  const root = getDocumentElement(element);
+  function cleanup() {
+    var _io;
+    clearTimeout(timeoutId);
+    (_io = io) == null || _io.disconnect();
+    io = null;
+  }
+  function refresh(skip, threshold) {
+    if (skip === void 0) {
+      skip = false;
+    }
+    if (threshold === void 0) {
+      threshold = 1;
+    }
+    cleanup();
+    const elementRectForRootMargin = element.getBoundingClientRect();
+    const {
+      left,
+      top,
+      width,
+      height
+    } = elementRectForRootMargin;
+    if (!skip) {
+      onMove();
+    }
+    if (!width || !height) {
+      return;
+    }
+    const insetTop = floor(top);
+    const insetRight = floor(root.clientWidth - (left + width));
+    const insetBottom = floor(root.clientHeight - (top + height));
+    const insetLeft = floor(left);
+    const rootMargin = -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px";
+    const options = {
+      rootMargin,
+      threshold: max(0, min(1, threshold)) || 1
+    };
+    let isFirstUpdate = true;
+    function handleObserve(entries) {
+      const ratio = entries[0].intersectionRatio;
+      if (ratio !== threshold) {
+        if (!isFirstUpdate) {
+          return refresh();
+        }
+        if (!ratio) {
+          // If the reference is clipped, the ratio is 0. Throttle the refresh
+          // to prevent an infinite loop of updates.
+          timeoutId = setTimeout(() => {
+            refresh(false, 1e-7);
+          }, 1000);
+        } else {
+          refresh(false, ratio);
+        }
+      }
+      if (ratio === 1 && !rectsAreEqual(elementRectForRootMargin, element.getBoundingClientRect())) {
+        // It's possible that even though the ratio is reported as 1, the
+        // element is not actually fully within the IntersectionObserver's root
+        // area anymore. This can happen under performance constraints. This may
+        // be a bug in the browser's IntersectionObserver implementation. To
+        // work around this, we compare the element's bounding rect now with
+        // what it was at the time we created the IntersectionObserver. If they
+        // are not equal then the element moved, so we refresh.
+        refresh();
+      }
+      isFirstUpdate = false;
+    }
+
+    // Older browsers don't support a `document` as the root and will throw an
+    // error.
+    try {
+      io = new IntersectionObserver(handleObserve, {
+        ...options,
+        // Handle <iframe>s
+        root: root.ownerDocument
+      });
+    } catch (_e) {
+      io = new IntersectionObserver(handleObserve, options);
+    }
+    io.observe(element);
+  }
+  refresh(true);
+  return cleanup;
+}
+
+/**
+ * Automatically updates the position of the floating element when necessary.
+ * Should only be called when the floating element is mounted on the DOM or
+ * visible on the screen.
+ * @returns cleanup function that should be invoked when the floating element is
+ * removed from the DOM or hidden from the screen.
+ * @see https://floating-ui.com/docs/autoUpdate
+ */
+function autoUpdate(reference, floating, update, options) {
+  if (options === void 0) {
+    options = {};
+  }
+  const {
+    ancestorScroll = true,
+    ancestorResize = true,
+    elementResize = typeof ResizeObserver === 'function',
+    layoutShift = typeof IntersectionObserver === 'function',
+    animationFrame = false
+  } = options;
+  const referenceEl = unwrapElement(reference);
+  const ancestors = ancestorScroll || ancestorResize ? [...(referenceEl ? getOverflowAncestors(referenceEl) : []), ...getOverflowAncestors(floating)] : [];
+  ancestors.forEach(ancestor => {
+    ancestorScroll && ancestor.addEventListener('scroll', update, {
+      passive: true
+    });
+    ancestorResize && ancestor.addEventListener('resize', update);
+  });
+  const cleanupIo = referenceEl && layoutShift ? observeMove(referenceEl, update) : null;
+  let reobserveFrame = -1;
+  let resizeObserver = null;
+  if (elementResize) {
+    resizeObserver = new ResizeObserver(_ref => {
+      let [firstEntry] = _ref;
+      if (firstEntry && firstEntry.target === referenceEl && resizeObserver) {
+        // Prevent update loops when using the `size` middleware.
+        // https://github.com/floating-ui/floating-ui/issues/1740
+        resizeObserver.unobserve(floating);
+        cancelAnimationFrame(reobserveFrame);
+        reobserveFrame = requestAnimationFrame(() => {
+          var _resizeObserver;
+          (_resizeObserver = resizeObserver) == null || _resizeObserver.observe(floating);
+        });
+      }
+      update();
+    });
+    if (referenceEl && !animationFrame) {
+      resizeObserver.observe(referenceEl);
+    }
+    resizeObserver.observe(floating);
+  }
+  let frameId;
+  let prevRefRect = animationFrame ? getBoundingClientRect(reference) : null;
+  if (animationFrame) {
+    frameLoop();
+  }
+  function frameLoop() {
+    const nextRefRect = getBoundingClientRect(reference);
+    if (prevRefRect && !rectsAreEqual(prevRefRect, nextRefRect)) {
+      update();
+    }
+    prevRefRect = nextRefRect;
+    frameId = requestAnimationFrame(frameLoop);
+  }
+  update();
+  return () => {
+    var _resizeObserver2;
+    ancestors.forEach(ancestor => {
+      ancestorScroll && ancestor.removeEventListener('scroll', update);
+      ancestorResize && ancestor.removeEventListener('resize', update);
+    });
+    cleanupIo == null || cleanupIo();
+    (_resizeObserver2 = resizeObserver) == null || _resizeObserver2.disconnect();
+    resizeObserver = null;
+    if (animationFrame) {
+      cancelAnimationFrame(frameId);
+    }
+  };
+}
+
+/**
+ * Modifies the placement by translating the floating element along the
+ * specified axes.
+ * A number (shorthand for `mainAxis` or distance), or an axes configuration
+ * object may be passed.
+ * @see https://floating-ui.com/docs/offset
+ */
+const offset$1 = offset$2;
+
+/**
+ * Optimizes the visibility of the floating element by shifting it in order to
+ * keep it in view when it will overflow the clipping boundary.
+ * @see https://floating-ui.com/docs/shift
+ */
+const shift$1 = shift$2;
+
+/**
+ * Optimizes the visibility of the floating element by flipping the `placement`
+ * in order to keep it in view when the preferred placement(s) will overflow the
+ * clipping boundary. Alternative to `autoPlacement`.
+ * @see https://floating-ui.com/docs/flip
+ */
+const flip$1 = flip$2;
+
+/**
+ * Provides data that allows you to change the size of the floating element —
+ * for instance, prevent it from overflowing the clipping boundary or match the
+ * width of the reference element.
+ * @see https://floating-ui.com/docs/size
+ */
+const size$1 = size$2;
+
+/**
+ * Provides data to hide the floating element in applicable situations, such as
+ * when it is not in the same clipping context as the reference element.
+ * @see https://floating-ui.com/docs/hide
+ */
+const hide$1 = hide$2;
+
+/**
+ * Provides data to position an inner element of the floating element so that it
+ * appears centered to the reference element.
+ * @see https://floating-ui.com/docs/arrow
+ */
+const arrow$2 = arrow$3;
+
+/**
+ * Built-in `limiter` that will stop `shift()` at a certain point.
+ */
+const limitShift$1 = limitShift$2;
+
+/**
+ * Computes the `x` and `y` coordinates that will place the floating element
+ * next to a given reference element.
+ */
+const computePosition = (reference, floating, options) => {
+  // This caches the expensive `getClippingElementAncestors` function so that
+  // multiple lifecycle resets re-use the same result. It only lives for a
+  // single call. If other functions become expensive, we can add them as well.
+  const cache = new Map();
+  const mergedOptions = {
+    platform,
+    ...options
+  };
+  const platformWithCache = {
+    ...mergedOptions.platform,
+    _c: cache
+  };
+  return computePosition$1(reference, floating, {
+    ...mergedOptions,
+    platform: platformWithCache
+  });
+};
+
+var isClient = typeof document !== 'undefined';
+
+var noop = function noop() {};
+var index$2 = isClient ? useLayoutEffect : noop;
+
+// Fork of `fast-deep-equal` that only does the comparisons we need and compares
+// functions
+function deepEqual(a, b) {
+  if (a === b) {
+    return true;
+  }
+  if (typeof a !== typeof b) {
+    return false;
+  }
+  if (typeof a === 'function' && a.toString() === b.toString()) {
+    return true;
+  }
+  let length;
+  let i;
+  let keys;
+  if (a && b && typeof a === 'object') {
+    if (Array.isArray(a)) {
+      length = a.length;
+      if (length !== b.length) return false;
+      for (i = length; i-- !== 0;) {
+        if (!deepEqual(a[i], b[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    keys = Object.keys(a);
+    length = keys.length;
+    if (length !== Object.keys(b).length) {
+      return false;
+    }
+    for (i = length; i-- !== 0;) {
+      if (!{}.hasOwnProperty.call(b, keys[i])) {
+        return false;
+      }
+    }
+    for (i = length; i-- !== 0;) {
+      const key = keys[i];
+      if (key === '_owner' && a.$$typeof) {
+        continue;
+      }
+      if (!deepEqual(a[key], b[key])) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return a !== a && b !== b;
+}
+
+function getDPR(element) {
+  if (typeof window === 'undefined') {
+    return 1;
+  }
+  const win = element.ownerDocument.defaultView || window;
+  return win.devicePixelRatio || 1;
+}
+
+function roundByDPR(element, value) {
+  const dpr = getDPR(element);
+  return Math.round(value * dpr) / dpr;
+}
+
+function useLatestRef(value) {
+  const ref = React.useRef(value);
+  index$2(() => {
+    ref.current = value;
+  });
+  return ref;
+}
+
+/**
+ * Provides data to position a floating element.
+ * @see https://floating-ui.com/docs/useFloating
+ */
+function useFloating(options) {
+  if (options === void 0) {
+    options = {};
+  }
+  const {
+    placement = 'bottom',
+    strategy = 'absolute',
+    middleware = [],
+    platform,
+    elements: {
+      reference: externalReference,
+      floating: externalFloating
+    } = {},
+    transform = true,
+    whileElementsMounted,
+    open
+  } = options;
+  const [data, setData] = React.useState({
+    x: 0,
+    y: 0,
+    strategy,
+    placement,
+    middlewareData: {},
+    isPositioned: false
+  });
+  const [latestMiddleware, setLatestMiddleware] = React.useState(middleware);
+  if (!deepEqual(latestMiddleware, middleware)) {
+    setLatestMiddleware(middleware);
+  }
+  const [_reference, _setReference] = React.useState(null);
+  const [_floating, _setFloating] = React.useState(null);
+  const setReference = React.useCallback(node => {
+    if (node !== referenceRef.current) {
+      referenceRef.current = node;
+      _setReference(node);
+    }
+  }, []);
+  const setFloating = React.useCallback(node => {
+    if (node !== floatingRef.current) {
+      floatingRef.current = node;
+      _setFloating(node);
+    }
+  }, []);
+  const referenceEl = externalReference || _reference;
+  const floatingEl = externalFloating || _floating;
+  const referenceRef = React.useRef(null);
+  const floatingRef = React.useRef(null);
+  const dataRef = React.useRef(data);
+  const hasWhileElementsMounted = whileElementsMounted != null;
+  const whileElementsMountedRef = useLatestRef(whileElementsMounted);
+  const platformRef = useLatestRef(platform);
+  const openRef = useLatestRef(open);
+  const update = React.useCallback(() => {
+    if (!referenceRef.current || !floatingRef.current) {
+      return;
+    }
+    const config = {
+      placement,
+      strategy,
+      middleware: latestMiddleware
+    };
+    if (platformRef.current) {
+      config.platform = platformRef.current;
+    }
+    computePosition(referenceRef.current, floatingRef.current, config).then(data => {
+      const fullData = {
+        ...data,
+        // The floating element's position may be recomputed while it's closed
+        // but still mounted (such as when transitioning out). To ensure
+        // `isPositioned` will be `false` initially on the next open, avoid
+        // setting it to `true` when `open === false` (must be specified).
+        isPositioned: openRef.current !== false
+      };
+      if (isMountedRef.current && !deepEqual(dataRef.current, fullData)) {
+        dataRef.current = fullData;
+        ReactDOM.flushSync(() => {
+          setData(fullData);
+        });
+      }
+    });
+  }, [latestMiddleware, placement, strategy, platformRef, openRef]);
+  index$2(() => {
+    if (open === false && dataRef.current.isPositioned) {
+      dataRef.current.isPositioned = false;
+      setData(data => ({
+        ...data,
+        isPositioned: false
+      }));
+    }
+  }, [open]);
+  const isMountedRef = React.useRef(false);
+  index$2(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+  index$2(() => {
+    if (referenceEl) referenceRef.current = referenceEl;
+    if (floatingEl) floatingRef.current = floatingEl;
+    if (referenceEl && floatingEl) {
+      if (whileElementsMountedRef.current) {
+        return whileElementsMountedRef.current(referenceEl, floatingEl, update);
+      }
+      update();
+    }
+  }, [referenceEl, floatingEl, update, whileElementsMountedRef, hasWhileElementsMounted]);
+  const refs = React.useMemo(() => ({
+    reference: referenceRef,
+    floating: floatingRef,
+    setReference,
+    setFloating
+  }), [setReference, setFloating]);
+  const elements = React.useMemo(() => ({
+    reference: referenceEl,
+    floating: floatingEl
+  }), [referenceEl, floatingEl]);
+  const floatingStyles = React.useMemo(() => {
+    const initialStyles = {
+      position: strategy,
+      left: 0,
+      top: 0
+    };
+    if (!elements.floating) {
+      return initialStyles;
+    }
+    const x = roundByDPR(elements.floating, data.x);
+    const y = roundByDPR(elements.floating, data.y);
+    if (transform) {
+      return {
+        ...initialStyles,
+        transform: "translate(" + x + "px, " + y + "px)",
+        ...(getDPR(elements.floating) >= 1.5 && {
+          willChange: 'transform'
+        })
+      };
+    }
+    return {
+      position: strategy,
+      left: x,
+      top: y
+    };
+  }, [strategy, transform, elements.floating, data.x, data.y]);
+  return React.useMemo(() => ({
+    ...data,
+    update,
+    refs,
+    elements,
+    floatingStyles
+  }), [data, update, refs, elements, floatingStyles]);
+}
+
+/**
+ * Provides data to position an inner element of the floating element so that it
+ * appears centered to the reference element.
+ * This wraps the core `arrow` middleware to allow React refs as the element.
+ * @see https://floating-ui.com/docs/arrow
+ */
+const arrow$1 = options => {
+  function isRef(value) {
+    return {}.hasOwnProperty.call(value, 'current');
+  }
+  return {
+    name: 'arrow',
+    options,
+    fn(state) {
+      const {
+        element,
+        padding
+      } = typeof options === 'function' ? options(state) : options;
+      if (element && isRef(element)) {
+        if (element.current != null) {
+          return arrow$2({
+            element: element.current,
+            padding
+          }).fn(state);
+        }
+        return {};
+      }
+      if (element) {
+        return arrow$2({
+          element,
+          padding
+        }).fn(state);
+      }
+      return {};
+    }
+  };
+};
+
+/**
+ * Modifies the placement by translating the floating element along the
+ * specified axes.
+ * A number (shorthand for `mainAxis` or distance), or an axes configuration
+ * object may be passed.
+ * @see https://floating-ui.com/docs/offset
+ */
+const offset = (options, deps) => ({
+  ...offset$1(options),
+  options: [options, deps]
+});
+
+/**
+ * Optimizes the visibility of the floating element by shifting it in order to
+ * keep it in view when it will overflow the clipping boundary.
+ * @see https://floating-ui.com/docs/shift
+ */
+const shift = (options, deps) => ({
+  ...shift$1(options),
+  options: [options, deps]
+});
+
+/**
+ * Built-in `limiter` that will stop `shift()` at a certain point.
+ */
+const limitShift = (options, deps) => ({
+  ...limitShift$1(options),
+  options: [options, deps]
+});
+
+/**
+ * Optimizes the visibility of the floating element by flipping the `placement`
+ * in order to keep it in view when the preferred placement(s) will overflow the
+ * clipping boundary. Alternative to `autoPlacement`.
+ * @see https://floating-ui.com/docs/flip
+ */
+const flip = (options, deps) => ({
+  ...flip$1(options),
+  options: [options, deps]
+});
+
+/**
+ * Provides data that allows you to change the size of the floating element —
+ * for instance, prevent it from overflowing the clipping boundary or match the
+ * width of the reference element.
+ * @see https://floating-ui.com/docs/size
+ */
+const size = (options, deps) => ({
+  ...size$1(options),
+  options: [options, deps]
+});
+
+/**
+ * Provides data to hide the floating element in applicable situations, such as
+ * when it is not in the same clipping context as the reference element.
+ * @see https://floating-ui.com/docs/hide
+ */
+const hide = (options, deps) => ({
+  ...hide$1(options),
+  options: [options, deps]
+});
+
+/**
+ * Provides data to position an inner element of the floating element so that it
+ * appears centered to the reference element.
+ * This wraps the core `arrow` middleware to allow React refs as the element.
+ * @see https://floating-ui.com/docs/arrow
+ */
+const arrow = (options, deps) => ({
+  ...arrow$1(options),
+  options: [options, deps]
+});
+
+// src/arrow.tsx
+var NAME$2 = "Arrow";
+var Arrow$1 = React.forwardRef((props, forwardedRef) => {
+  const { children, width = 10, height = 5, ...arrowProps } = props;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    Primitive$1.svg,
+    {
+      ...arrowProps,
+      ref: forwardedRef,
+      width,
+      height,
+      viewBox: "0 0 30 10",
+      preserveAspectRatio: "none",
+      children: props.asChild ? children : /* @__PURE__ */ jsxRuntimeExports.jsx("polygon", { points: "0,0 30,0 15,10" })
+    }
+  );
+});
+Arrow$1.displayName = NAME$2;
+var Root$2 = Arrow$1;
+
+// packages/react/use-size/src/use-size.tsx
+function useSize(element) {
+  const [size, setSize] = React.useState(void 0);
+  useLayoutEffect2(() => {
+    if (element) {
+      setSize({ width: element.offsetWidth, height: element.offsetHeight });
+      const resizeObserver = new ResizeObserver((entries) => {
+        if (!Array.isArray(entries)) {
+          return;
+        }
+        if (!entries.length) {
+          return;
+        }
+        const entry = entries[0];
+        let width;
+        let height;
+        if ("borderBoxSize" in entry) {
+          const borderSizeEntry = entry["borderBoxSize"];
+          const borderSize = Array.isArray(borderSizeEntry) ? borderSizeEntry[0] : borderSizeEntry;
+          width = borderSize["inlineSize"];
+          height = borderSize["blockSize"];
+        } else {
+          width = element.offsetWidth;
+          height = element.offsetHeight;
+        }
+        setSize({ width, height });
+      });
+      resizeObserver.observe(element, { box: "border-box" });
+      return () => resizeObserver.unobserve(element);
+    } else {
+      setSize(void 0);
+    }
+  }, [element]);
+  return size;
+}
+
+var POPPER_NAME = "Popper";
+var [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
+var [PopperProvider, usePopperContext] = createPopperContext(POPPER_NAME);
+var Popper = (props) => {
+  const { __scopePopper, children } = props;
+  const [anchor, setAnchor] = React.useState(null);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
+};
+Popper.displayName = POPPER_NAME;
+var ANCHOR_NAME = "PopperAnchor";
+var PopperAnchor = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopePopper, virtualRef, ...anchorProps } = props;
+    const context = usePopperContext(ANCHOR_NAME, __scopePopper);
+    const ref = React.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref);
+    const anchorRef = React.useRef(null);
+    React.useEffect(() => {
+      const previousAnchor = anchorRef.current;
+      anchorRef.current = virtualRef?.current || ref.current;
+      if (previousAnchor !== anchorRef.current) {
+        context.onAnchorChange(anchorRef.current);
+      }
+    });
+    return virtualRef ? null : /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { ...anchorProps, ref: composedRefs });
+  }
+);
+PopperAnchor.displayName = ANCHOR_NAME;
+var CONTENT_NAME$1 = "PopperContent";
+var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$1);
+var PopperContent = React.forwardRef(
+  (props, forwardedRef) => {
+    const {
+      __scopePopper,
+      side = "bottom",
+      sideOffset = 0,
+      align = "center",
+      alignOffset = 0,
+      arrowPadding = 0,
+      avoidCollisions = true,
+      collisionBoundary = [],
+      collisionPadding: collisionPaddingProp = 0,
+      sticky = "partial",
+      hideWhenDetached = false,
+      updatePositionStrategy = "optimized",
+      onPlaced,
+      ...contentProps
+    } = props;
+    const context = usePopperContext(CONTENT_NAME$1, __scopePopper);
+    const [content, setContent] = React.useState(null);
+    const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
+    const [arrow$1, setArrow] = React.useState(null);
+    const arrowSize = useSize(arrow$1);
+    const arrowWidth = arrowSize?.width ?? 0;
+    const arrowHeight = arrowSize?.height ?? 0;
+    const desiredPlacement = side + (align !== "center" ? "-" + align : "");
+    const collisionPadding = typeof collisionPaddingProp === "number" ? collisionPaddingProp : { top: 0, right: 0, bottom: 0, left: 0, ...collisionPaddingProp };
+    const boundary = Array.isArray(collisionBoundary) ? collisionBoundary : [collisionBoundary];
+    const hasExplicitBoundaries = boundary.length > 0;
+    const detectOverflowOptions = {
+      padding: collisionPadding,
+      boundary: boundary.filter(isNotNull),
+      // with `strategy: 'fixed'`, this is the only way to get it to respect boundaries
+      altBoundary: hasExplicitBoundaries
+    };
+    const { refs, floatingStyles, placement, isPositioned, middlewareData } = useFloating({
+      // default to `fixed` strategy so users don't have to pick and we also avoid focus scroll issues
+      strategy: "fixed",
+      placement: desiredPlacement,
+      whileElementsMounted: (...args) => {
+        const cleanup = autoUpdate(...args, {
+          animationFrame: updatePositionStrategy === "always"
+        });
+        return cleanup;
+      },
+      elements: {
+        reference: context.anchor
+      },
+      middleware: [
+        offset({ mainAxis: sideOffset + arrowHeight, alignmentAxis: alignOffset }),
+        avoidCollisions && shift({
+          mainAxis: true,
+          crossAxis: false,
+          limiter: sticky === "partial" ? limitShift() : void 0,
+          ...detectOverflowOptions
+        }),
+        avoidCollisions && flip({ ...detectOverflowOptions }),
+        size({
+          ...detectOverflowOptions,
+          apply: ({ elements, rects, availableWidth, availableHeight }) => {
+            const { width: anchorWidth, height: anchorHeight } = rects.reference;
+            const contentStyle = elements.floating.style;
+            contentStyle.setProperty("--radix-popper-available-width", `${availableWidth}px`);
+            contentStyle.setProperty("--radix-popper-available-height", `${availableHeight}px`);
+            contentStyle.setProperty("--radix-popper-anchor-width", `${anchorWidth}px`);
+            contentStyle.setProperty("--radix-popper-anchor-height", `${anchorHeight}px`);
+          }
+        }),
+        arrow$1 && arrow({ element: arrow$1, padding: arrowPadding }),
+        transformOrigin({ arrowWidth, arrowHeight }),
+        hideWhenDetached && hide({ strategy: "referenceHidden", ...detectOverflowOptions })
+      ]
+    });
+    const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
+    const handlePlaced = useCallbackRef$1(onPlaced);
+    useLayoutEffect2(() => {
+      if (isPositioned) {
+        handlePlaced?.();
+      }
+    }, [isPositioned, handlePlaced]);
+    const arrowX = middlewareData.arrow?.x;
+    const arrowY = middlewareData.arrow?.y;
+    const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
+    const [contentZIndex, setContentZIndex] = React.useState();
+    useLayoutEffect2(() => {
+      if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
+    }, [content]);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        ref: refs.setFloating,
+        "data-radix-popper-content-wrapper": "",
+        style: {
+          ...floatingStyles,
+          transform: isPositioned ? floatingStyles.transform : "translate(0, -200%)",
+          // keep off the page when measuring
+          minWidth: "max-content",
+          zIndex: contentZIndex,
+          ["--radix-popper-transform-origin"]: [
+            middlewareData.transformOrigin?.x,
+            middlewareData.transformOrigin?.y
+          ].join(" "),
+          // hide the content if using the hide middleware and should be hidden
+          // set visibility to hidden and disable pointer events so the UI behaves
+          // as if the PopperContent isn't there at all
+          ...middlewareData.hide?.referenceHidden && {
+            visibility: "hidden",
+            pointerEvents: "none"
+          }
+        },
+        dir: props.dir,
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          PopperContentProvider,
+          {
+            scope: __scopePopper,
+            placedSide,
+            onArrowChange: setArrow,
+            arrowX,
+            arrowY,
+            shouldHideArrow: cannotCenterArrow,
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Primitive$1.div,
+              {
+                "data-side": placedSide,
+                "data-align": placedAlign,
+                ...contentProps,
+                ref: composedRefs,
+                style: {
+                  ...contentProps.style,
+                  // if the PopperContent hasn't been placed yet (not all measurements done)
+                  // we prevent animations so that users's animation don't kick in too early referring wrong sides
+                  animation: !isPositioned ? "none" : void 0
+                }
+              }
+            )
+          }
+        )
+      }
+    );
+  }
+);
+PopperContent.displayName = CONTENT_NAME$1;
+var ARROW_NAME$1 = "PopperArrow";
+var OPPOSITE_SIDE = {
+  top: "bottom",
+  right: "left",
+  bottom: "top",
+  left: "right"
+};
+var PopperArrow = React.forwardRef(function PopperArrow2(props, forwardedRef) {
+  const { __scopePopper, ...arrowProps } = props;
+  const contentContext = useContentContext(ARROW_NAME$1, __scopePopper);
+  const baseSide = OPPOSITE_SIDE[contentContext.placedSide];
+  return (
+    // we have to use an extra wrapper because `ResizeObserver` (used by `useSize`)
+    // doesn't report size as we'd expect on SVG elements.
+    // it reports their bounding box which is effectively the largest path inside the SVG.
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "span",
+      {
+        ref: contentContext.onArrowChange,
+        style: {
+          position: "absolute",
+          left: contentContext.arrowX,
+          top: contentContext.arrowY,
+          [baseSide]: 0,
+          transformOrigin: {
+            top: "",
+            right: "0 0",
+            bottom: "center 0",
+            left: "100% 0"
+          }[contentContext.placedSide],
+          transform: {
+            top: "translateY(100%)",
+            right: "translateY(50%) rotate(90deg) translateX(-50%)",
+            bottom: `rotate(180deg)`,
+            left: "translateY(50%) rotate(-90deg) translateX(50%)"
+          }[contentContext.placedSide],
+          visibility: contentContext.shouldHideArrow ? "hidden" : void 0
+        },
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Root$2,
+          {
+            ...arrowProps,
+            ref: forwardedRef,
+            style: {
+              ...arrowProps.style,
+              // ensures the element can be measured correctly (mostly for if SVG)
+              display: "block"
+            }
+          }
+        )
+      }
+    )
+  );
+});
+PopperArrow.displayName = ARROW_NAME$1;
+function isNotNull(value) {
+  return value !== null;
+}
+var transformOrigin = (options) => ({
+  name: "transformOrigin",
+  options,
+  fn(data) {
+    const { placement, rects, middlewareData } = data;
+    const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
+    const isArrowHidden = cannotCenterArrow;
+    const arrowWidth = isArrowHidden ? 0 : options.arrowWidth;
+    const arrowHeight = isArrowHidden ? 0 : options.arrowHeight;
+    const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
+    const noArrowAlign = { start: "0%", center: "50%", end: "100%" }[placedAlign];
+    const arrowXCenter = (middlewareData.arrow?.x ?? 0) + arrowWidth / 2;
+    const arrowYCenter = (middlewareData.arrow?.y ?? 0) + arrowHeight / 2;
+    let x = "";
+    let y = "";
+    if (placedSide === "bottom") {
+      x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
+      y = `${-arrowHeight}px`;
+    } else if (placedSide === "top") {
+      x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
+      y = `${rects.floating.height + arrowHeight}px`;
+    } else if (placedSide === "right") {
+      x = `${-arrowHeight}px`;
+      y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
+    } else if (placedSide === "left") {
+      x = `${rects.floating.width + arrowHeight}px`;
+      y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
+    }
+    return { data: { x, y } };
+  }
+});
+function getSideAndAlignFromPlacement(placement) {
+  const [side, align = "center"] = placement.split("-");
+  return [side, align];
+}
+var Root2$1 = Popper;
+var Anchor = PopperAnchor;
+var Content = PopperContent;
+var Arrow = PopperArrow;
+
+var PORTAL_NAME$1 = "Portal";
+var Portal$1 = React.forwardRef((props, forwardedRef) => {
+  const { container: containerProp, ...portalProps } = props;
+  const [mounted, setMounted] = React.useState(false);
+  useLayoutEffect2(() => setMounted(true), []);
+  const container = containerProp || mounted && globalThis?.document?.body;
+  return container ? ReactDOM__default.createPortal(/* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { ...portalProps, ref: forwardedRef }), container) : null;
+});
+Portal$1.displayName = PORTAL_NAME$1;
+
+// src/use-controllable-state.tsx
+var useInsertionEffect = React[" useInsertionEffect ".trim().toString()] || useLayoutEffect2;
+function useControllableState({
+  prop,
+  defaultProp,
+  onChange = () => {
+  },
+  caller
+}) {
+  const [uncontrolledProp, setUncontrolledProp, onChangeRef] = useUncontrolledState({
+    defaultProp,
+    onChange
+  });
+  const isControlled = prop !== void 0;
+  const value = isControlled ? prop : uncontrolledProp;
+  {
+    const isControlledRef = React.useRef(prop !== void 0);
+    React.useEffect(() => {
+      const wasControlled = isControlledRef.current;
+      if (wasControlled !== isControlled) {
+        const from = wasControlled ? "controlled" : "uncontrolled";
+        const to = isControlled ? "controlled" : "uncontrolled";
+        console.warn(
+          `${caller} is changing from ${from} to ${to}. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.`
+        );
+      }
+      isControlledRef.current = isControlled;
+    }, [isControlled, caller]);
+  }
+  const setValue = React.useCallback(
+    (nextValue) => {
+      if (isControlled) {
+        const value2 = isFunction(nextValue) ? nextValue(prop) : nextValue;
+        if (value2 !== prop) {
+          onChangeRef.current?.(value2);
+        }
+      } else {
+        setUncontrolledProp(nextValue);
+      }
+    },
+    [isControlled, prop, setUncontrolledProp, onChangeRef]
+  );
+  return [value, setValue];
+}
+function useUncontrolledState({
+  defaultProp,
+  onChange
+}) {
+  const [value, setValue] = React.useState(defaultProp);
+  const prevValueRef = React.useRef(value);
+  const onChangeRef = React.useRef(onChange);
+  useInsertionEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+  React.useEffect(() => {
+    if (prevValueRef.current !== value) {
+      onChangeRef.current?.(value);
+      prevValueRef.current = value;
+    }
+  }, [value, prevValueRef]);
+  return [value, setValue, onChangeRef];
+}
+function isFunction(value) {
+  return typeof value === "function";
+}
+
+// packages/react/use-previous/src/use-previous.tsx
+function usePrevious(value) {
+  const ref = React.useRef({ value, previous: value });
+  return React.useMemo(() => {
+    if (ref.current.value !== value) {
+      ref.current.previous = ref.current.value;
+      ref.current.value = value;
+    }
+    return ref.current.previous;
+  }, [value]);
+}
+
+// src/visually-hidden.tsx
+var VISUALLY_HIDDEN_STYLES = Object.freeze({
+  // See: https://github.com/twbs/bootstrap/blob/main/scss/mixins/_visually-hidden.scss
+  position: "absolute",
+  border: 0,
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  wordWrap: "normal"
+});
+var NAME$1 = "VisuallyHidden";
+var VisuallyHidden = React.forwardRef(
+  (props, forwardedRef) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive$1.span,
+      {
+        ...props,
+        ref: forwardedRef,
+        style: { ...VISUALLY_HIDDEN_STYLES, ...props.style }
+      }
+    );
+  }
+);
+VisuallyHidden.displayName = NAME$1;
+
+var getDefaultParent = function (originalTarget) {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+    var sampleTarget = Array.isArray(originalTarget) ? originalTarget[0] : originalTarget;
+    return sampleTarget.ownerDocument.body;
+};
+var counterMap = new WeakMap();
+var uncontrolledNodes = new WeakMap();
+var markerMap = {};
+var lockCount = 0;
+var unwrapHost = function (node) {
+    return node && (node.host || unwrapHost(node.parentNode));
+};
+var correctTargets = function (parent, targets) {
+    return targets
+        .map(function (target) {
+        if (parent.contains(target)) {
+            return target;
+        }
+        var correctedTarget = unwrapHost(target);
+        if (correctedTarget && parent.contains(correctedTarget)) {
+            return correctedTarget;
+        }
+        console.error('aria-hidden', target, 'in not contained inside', parent, '. Doing nothing');
+        return null;
+    })
+        .filter(function (x) { return Boolean(x); });
+};
+/**
+ * Marks everything except given node(or nodes) as aria-hidden
+ * @param {Element | Element[]} originalTarget - elements to keep on the page
+ * @param [parentNode] - top element, defaults to document.body
+ * @param {String} [markerName] - a special attribute to mark every node
+ * @param {String} [controlAttribute] - html Attribute to control
+ * @return {Undo} undo command
+ */
+var applyAttributeToOthers = function (originalTarget, parentNode, markerName, controlAttribute) {
+    var targets = correctTargets(parentNode, Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
+    if (!markerMap[markerName]) {
+        markerMap[markerName] = new WeakMap();
+    }
+    var markerCounter = markerMap[markerName];
+    var hiddenNodes = [];
+    var elementsToKeep = new Set();
+    var elementsToStop = new Set(targets);
+    var keep = function (el) {
+        if (!el || elementsToKeep.has(el)) {
+            return;
+        }
+        elementsToKeep.add(el);
+        keep(el.parentNode);
+    };
+    targets.forEach(keep);
+    var deep = function (parent) {
+        if (!parent || elementsToStop.has(parent)) {
+            return;
+        }
+        Array.prototype.forEach.call(parent.children, function (node) {
+            if (elementsToKeep.has(node)) {
+                deep(node);
+            }
+            else {
+                try {
+                    var attr = node.getAttribute(controlAttribute);
+                    var alreadyHidden = attr !== null && attr !== 'false';
+                    var counterValue = (counterMap.get(node) || 0) + 1;
+                    var markerValue = (markerCounter.get(node) || 0) + 1;
+                    counterMap.set(node, counterValue);
+                    markerCounter.set(node, markerValue);
+                    hiddenNodes.push(node);
+                    if (counterValue === 1 && alreadyHidden) {
+                        uncontrolledNodes.set(node, true);
+                    }
+                    if (markerValue === 1) {
+                        node.setAttribute(markerName, 'true');
+                    }
+                    if (!alreadyHidden) {
+                        node.setAttribute(controlAttribute, 'true');
+                    }
+                }
+                catch (e) {
+                    console.error('aria-hidden: cannot operate on ', node, e);
+                }
+            }
+        });
+    };
+    deep(parentNode);
+    elementsToKeep.clear();
+    lockCount++;
+    return function () {
+        hiddenNodes.forEach(function (node) {
+            var counterValue = counterMap.get(node) - 1;
+            var markerValue = markerCounter.get(node) - 1;
+            counterMap.set(node, counterValue);
+            markerCounter.set(node, markerValue);
+            if (!counterValue) {
+                if (!uncontrolledNodes.has(node)) {
+                    node.removeAttribute(controlAttribute);
+                }
+                uncontrolledNodes.delete(node);
+            }
+            if (!markerValue) {
+                node.removeAttribute(markerName);
+            }
+        });
+        lockCount--;
+        if (!lockCount) {
+            // clear
+            counterMap = new WeakMap();
+            counterMap = new WeakMap();
+            uncontrolledNodes = new WeakMap();
+            markerMap = {};
+        }
+    };
+};
+/**
+ * Marks everything except given node(or nodes) as aria-hidden
+ * @param {Element | Element[]} originalTarget - elements to keep on the page
+ * @param [parentNode] - top element, defaults to document.body
+ * @param {String} [markerName] - a special attribute to mark every node
+ * @return {Undo} undo command
+ */
+var hideOthers = function (originalTarget, parentNode, markerName) {
+    if (markerName === void 0) { markerName = 'data-aria-hidden'; }
+    var targets = Array.from(Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
+    var activeParentNode = getDefaultParent(originalTarget);
+    if (!activeParentNode) {
+        return function () { return null; };
+    }
+    // we should not hide aria-live elements - https://github.com/theKashey/aria-hidden/issues/10
+    // and script elements, as they have no impact on accessibility.
+    targets.push.apply(targets, Array.from(activeParentNode.querySelectorAll('[aria-live], script')));
+    return applyAttributeToOthers(targets, activeParentNode, markerName, 'aria-hidden');
+};
+
+var zeroRightClassName = 'right-scroll-bar-position';
+var fullWidthClassName = 'width-before-scroll-bar';
+var noScrollbarsClassName = 'with-scroll-bars-hidden';
+/**
+ * Name of a CSS variable containing the amount of "hidden" scrollbar
+ * ! might be undefined ! use will fallback!
+ */
+var removedBarSizeVariable = '--removed-body-scroll-bar-size';
+
+/**
+ * Assigns a value for a given ref, no matter of the ref format
+ * @param {RefObject} ref - a callback function or ref object
+ * @param value - a new value
+ *
+ * @see https://github.com/theKashey/use-callback-ref#assignref
+ * @example
+ * const refObject = useRef();
+ * const refFn = (ref) => {....}
+ *
+ * assignRef(refObject, "refValue");
+ * assignRef(refFn, "refValue");
+ */
+function assignRef(ref, value) {
+    if (typeof ref === 'function') {
+        ref(value);
+    }
+    else if (ref) {
+        ref.current = value;
+    }
+    return ref;
+}
+
+/**
+ * creates a MutableRef with ref change callback
+ * @param initialValue - initial ref value
+ * @param {Function} callback - a callback to run when value changes
+ *
+ * @example
+ * const ref = useCallbackRef(0, (newValue, oldValue) => console.log(oldValue, '->', newValue);
+ * ref.current = 1;
+ * // prints 0 -> 1
+ *
+ * @see https://reactjs.org/docs/hooks-reference.html#useref
+ * @see https://github.com/theKashey/use-callback-ref#usecallbackref---to-replace-reactuseref
+ * @returns {MutableRefObject}
+ */
+function useCallbackRef(initialValue, callback) {
+    var ref = useState(function () { return ({
+        // value
+        value: initialValue,
+        // last callback
+        callback: callback,
+        // "memoized" public interface
+        facade: {
+            get current() {
+                return ref.value;
+            },
+            set current(value) {
+                var last = ref.value;
+                if (last !== value) {
+                    ref.value = value;
+                    ref.callback(value, last);
+                }
+            },
+        },
+    }); })[0];
+    // update callback
+    ref.callback = callback;
+    return ref.facade;
+}
+
+var useIsomorphicLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
+var currentValues = new WeakMap();
+/**
+ * Merges two or more refs together providing a single interface to set their value
+ * @param {RefObject|Ref} refs
+ * @returns {MutableRefObject} - a new ref, which translates all changes to {refs}
+ *
+ * @see {@link mergeRefs} a version without buit-in memoization
+ * @see https://github.com/theKashey/use-callback-ref#usemergerefs
+ * @example
+ * const Component = React.forwardRef((props, ref) => {
+ *   const ownRef = useRef();
+ *   const domRef = useMergeRefs([ref, ownRef]); // 👈 merge together
+ *   return <div ref={domRef}>...</div>
+ * }
+ */
+function useMergeRefs(refs, defaultValue) {
+    var callbackRef = useCallbackRef(null, function (newValue) {
+        return refs.forEach(function (ref) { return assignRef(ref, newValue); });
+    });
+    // handle refs changes - added or removed
+    useIsomorphicLayoutEffect(function () {
+        var oldValue = currentValues.get(callbackRef);
+        if (oldValue) {
+            var prevRefs_1 = new Set(oldValue);
+            var nextRefs_1 = new Set(refs);
+            var current_1 = callbackRef.current;
+            prevRefs_1.forEach(function (ref) {
+                if (!nextRefs_1.has(ref)) {
+                    assignRef(ref, null);
+                }
+            });
+            nextRefs_1.forEach(function (ref) {
+                if (!prevRefs_1.has(ref)) {
+                    assignRef(ref, current_1);
+                }
+            });
+        }
+        currentValues.set(callbackRef, refs);
+    }, [refs]);
+    return callbackRef;
+}
+
+function ItoI(a) {
+    return a;
+}
+function innerCreateMedium(defaults, middleware) {
+    if (middleware === void 0) { middleware = ItoI; }
+    var buffer = [];
+    var assigned = false;
+    var medium = {
+        read: function () {
+            if (assigned) {
+                throw new Error('Sidecar: could not `read` from an `assigned` medium. `read` could be used only with `useMedium`.');
+            }
+            if (buffer.length) {
+                return buffer[buffer.length - 1];
+            }
+            return defaults;
+        },
+        useMedium: function (data) {
+            var item = middleware(data, assigned);
+            buffer.push(item);
+            return function () {
+                buffer = buffer.filter(function (x) { return x !== item; });
+            };
+        },
+        assignSyncMedium: function (cb) {
+            assigned = true;
+            while (buffer.length) {
+                var cbs = buffer;
+                buffer = [];
+                cbs.forEach(cb);
+            }
+            buffer = {
+                push: function (x) { return cb(x); },
+                filter: function () { return buffer; },
+            };
+        },
+        assignMedium: function (cb) {
+            assigned = true;
+            var pendingQueue = [];
+            if (buffer.length) {
+                var cbs = buffer;
+                buffer = [];
+                cbs.forEach(cb);
+                pendingQueue = buffer;
+            }
+            var executeQueue = function () {
+                var cbs = pendingQueue;
+                pendingQueue = [];
+                cbs.forEach(cb);
+            };
+            var cycle = function () { return Promise.resolve().then(executeQueue); };
+            cycle();
+            buffer = {
+                push: function (x) {
+                    pendingQueue.push(x);
+                    cycle();
+                },
+                filter: function (filter) {
+                    pendingQueue = pendingQueue.filter(filter);
+                    return buffer;
+                },
+            };
+        },
+    };
+    return medium;
+}
+// eslint-disable-next-line @typescript-eslint/ban-types
+function createSidecarMedium(options) {
+    if (options === void 0) { options = {}; }
+    var medium = innerCreateMedium(null);
+    medium.options = __assign({ async: true, ssr: false }, options);
+    return medium;
+}
+
+var SideCar$1 = function (_a) {
+    var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
+    if (!sideCar) {
+        throw new Error('Sidecar: please provide `sideCar` property to import the right car');
+    }
+    var Target = sideCar.read();
+    if (!Target) {
+        throw new Error('Sidecar medium not found');
+    }
+    return React.createElement(Target, __assign({}, rest));
+};
+SideCar$1.isSideCarExport = true;
+function exportSidecar(medium, exported) {
+    medium.useMedium(exported);
+    return SideCar$1;
+}
+
+var effectCar = createSidecarMedium();
+
+var nothing = function () {
+    return;
+};
+/**
+ * Removes scrollbar from the page and contain the scroll within the Lock
+ */
+var RemoveScroll = React.forwardRef(function (props, parentRef) {
+    var ref = React.useRef(null);
+    var _a = React.useState({
+        onScrollCapture: nothing,
+        onWheelCapture: nothing,
+        onTouchMoveCapture: nothing,
+    }), callbacks = _a[0], setCallbacks = _a[1];
+    var forwardProps = props.forwardProps, children = props.children, className = props.className, removeScrollBar = props.removeScrollBar, enabled = props.enabled, shards = props.shards, sideCar = props.sideCar, noRelative = props.noRelative, noIsolation = props.noIsolation, inert = props.inert, allowPinchZoom = props.allowPinchZoom, _b = props.as, Container = _b === void 0 ? 'div' : _b, gapMode = props.gapMode, rest = __rest(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
+    var SideCar = sideCar;
+    var containerRef = useMergeRefs([ref, parentRef]);
+    var containerProps = __assign(__assign({}, rest), callbacks);
+    return (React.createElement(React.Fragment, null,
+        enabled && (React.createElement(SideCar, { sideCar: effectCar, removeScrollBar: removeScrollBar, shards: shards, noRelative: noRelative, noIsolation: noIsolation, inert: inert, setCallbacks: setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode: gapMode })),
+        forwardProps ? (React.cloneElement(React.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef }))) : (React.createElement(Container, __assign({}, containerProps, { className: className, ref: containerRef }), children))));
+});
+RemoveScroll.defaultProps = {
+    enabled: true,
+    removeScrollBar: true,
+    inert: false,
+};
+RemoveScroll.classNames = {
+    fullWidth: fullWidthClassName,
+    zeroRight: zeroRightClassName,
+};
+
+var getNonce = function () {
+    if (typeof __webpack_nonce__ !== 'undefined') {
+        return __webpack_nonce__;
+    }
+    return undefined;
+};
+
+function makeStyleTag() {
+    if (!document)
+        return null;
+    var tag = document.createElement('style');
+    tag.type = 'text/css';
+    var nonce = getNonce();
+    if (nonce) {
+        tag.setAttribute('nonce', nonce);
+    }
+    return tag;
+}
+function injectStyles(tag, css) {
+    // @ts-ignore
+    if (tag.styleSheet) {
+        // @ts-ignore
+        tag.styleSheet.cssText = css;
+    }
+    else {
+        tag.appendChild(document.createTextNode(css));
+    }
+}
+function insertStyleTag(tag) {
+    var head = document.head || document.getElementsByTagName('head')[0];
+    head.appendChild(tag);
+}
+var stylesheetSingleton = function () {
+    var counter = 0;
+    var stylesheet = null;
+    return {
+        add: function (style) {
+            if (counter == 0) {
+                if ((stylesheet = makeStyleTag())) {
+                    injectStyles(stylesheet, style);
+                    insertStyleTag(stylesheet);
+                }
+            }
+            counter++;
+        },
+        remove: function () {
+            counter--;
+            if (!counter && stylesheet) {
+                stylesheet.parentNode && stylesheet.parentNode.removeChild(stylesheet);
+                stylesheet = null;
+            }
+        },
+    };
+};
+
+/**
+ * creates a hook to control style singleton
+ * @see {@link styleSingleton} for a safer component version
+ * @example
+ * ```tsx
+ * const useStyle = styleHookSingleton();
+ * ///
+ * useStyle('body { overflow: hidden}');
+ */
+var styleHookSingleton = function () {
+    var sheet = stylesheetSingleton();
+    return function (styles, isDynamic) {
+        React.useEffect(function () {
+            sheet.add(styles);
+            return function () {
+                sheet.remove();
+            };
+        }, [styles && isDynamic]);
+    };
+};
+
+/**
+ * create a Component to add styles on demand
+ * - styles are added when first instance is mounted
+ * - styles are removed when the last instance is unmounted
+ * - changing styles in runtime does nothing unless dynamic is set. But with multiple components that can lead to the undefined behavior
+ */
+var styleSingleton = function () {
+    var useStyle = styleHookSingleton();
+    var Sheet = function (_a) {
+        var styles = _a.styles, dynamic = _a.dynamic;
+        useStyle(styles, dynamic);
+        return null;
+    };
+    return Sheet;
+};
+
+var zeroGap = {
+    left: 0,
+    top: 0,
+    right: 0,
+    gap: 0,
+};
+var parse$2 = function (x) { return parseInt(x || '', 10) || 0; };
+var getOffset = function (gapMode) {
+    var cs = window.getComputedStyle(document.body);
+    var left = cs[gapMode === 'padding' ? 'paddingLeft' : 'marginLeft'];
+    var top = cs[gapMode === 'padding' ? 'paddingTop' : 'marginTop'];
+    var right = cs[gapMode === 'padding' ? 'paddingRight' : 'marginRight'];
+    return [parse$2(left), parse$2(top), parse$2(right)];
+};
+var getGapWidth = function (gapMode) {
+    if (gapMode === void 0) { gapMode = 'margin'; }
+    if (typeof window === 'undefined') {
+        return zeroGap;
+    }
+    var offsets = getOffset(gapMode);
+    var documentWidth = document.documentElement.clientWidth;
+    var windowWidth = window.innerWidth;
+    return {
+        left: offsets[0],
+        top: offsets[1],
+        right: offsets[2],
+        gap: Math.max(0, windowWidth - documentWidth + offsets[2] - offsets[0]),
+    };
+};
+
+var Style = styleSingleton();
+var lockAttribute = 'data-scroll-locked';
+// important tip - once we measure scrollBar width and remove them
+// we could not repeat this operation
+// thus we are using style-singleton - only the first "yet correct" style will be applied.
+var getStyles = function (_a, allowRelative, gapMode, important) {
+    var left = _a.left, top = _a.top, right = _a.right, gap = _a.gap;
+    if (gapMode === void 0) { gapMode = 'margin'; }
+    return "\n  .".concat(noScrollbarsClassName, " {\n   overflow: hidden ").concat(important, ";\n   padding-right: ").concat(gap, "px ").concat(important, ";\n  }\n  body[").concat(lockAttribute, "] {\n    overflow: hidden ").concat(important, ";\n    overscroll-behavior: contain;\n    ").concat([
+        allowRelative && "position: relative ".concat(important, ";"),
+        gapMode === 'margin' &&
+            "\n    padding-left: ".concat(left, "px;\n    padding-top: ").concat(top, "px;\n    padding-right: ").concat(right, "px;\n    margin-left:0;\n    margin-top:0;\n    margin-right: ").concat(gap, "px ").concat(important, ";\n    "),
+        gapMode === 'padding' && "padding-right: ".concat(gap, "px ").concat(important, ";"),
+    ]
+        .filter(Boolean)
+        .join(''), "\n  }\n  \n  .").concat(zeroRightClassName, " {\n    right: ").concat(gap, "px ").concat(important, ";\n  }\n  \n  .").concat(fullWidthClassName, " {\n    margin-right: ").concat(gap, "px ").concat(important, ";\n  }\n  \n  .").concat(zeroRightClassName, " .").concat(zeroRightClassName, " {\n    right: 0 ").concat(important, ";\n  }\n  \n  .").concat(fullWidthClassName, " .").concat(fullWidthClassName, " {\n    margin-right: 0 ").concat(important, ";\n  }\n  \n  body[").concat(lockAttribute, "] {\n    ").concat(removedBarSizeVariable, ": ").concat(gap, "px;\n  }\n");
+};
+var getCurrentUseCounter = function () {
+    var counter = parseInt(document.body.getAttribute(lockAttribute) || '0', 10);
+    return isFinite(counter) ? counter : 0;
+};
+var useLockAttribute = function () {
+    React.useEffect(function () {
+        document.body.setAttribute(lockAttribute, (getCurrentUseCounter() + 1).toString());
+        return function () {
+            var newCounter = getCurrentUseCounter() - 1;
+            if (newCounter <= 0) {
+                document.body.removeAttribute(lockAttribute);
+            }
+            else {
+                document.body.setAttribute(lockAttribute, newCounter.toString());
+            }
+        };
+    }, []);
+};
+/**
+ * Removes page scrollbar and blocks page scroll when mounted
+ */
+var RemoveScrollBar = function (_a) {
+    var noRelative = _a.noRelative, noImportant = _a.noImportant, _b = _a.gapMode, gapMode = _b === void 0 ? 'margin' : _b;
+    useLockAttribute();
+    /*
+     gap will be measured on every component mount
+     however it will be used only by the "first" invocation
+     due to singleton nature of <Style
+     */
+    var gap = React.useMemo(function () { return getGapWidth(gapMode); }, [gapMode]);
+    return React.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? '!important' : '') });
+};
+
+var passiveSupported = false;
+if (typeof window !== 'undefined') {
+    try {
+        var options = Object.defineProperty({}, 'passive', {
+            get: function () {
+                passiveSupported = true;
+                return true;
+            },
+        });
+        // @ts-ignore
+        window.addEventListener('test', options, options);
+        // @ts-ignore
+        window.removeEventListener('test', options, options);
+    }
+    catch (err) {
+        passiveSupported = false;
+    }
+}
+var nonPassive = passiveSupported ? { passive: false } : false;
+
+var alwaysContainsScroll = function (node) {
+    // textarea will always _contain_ scroll inside self. It only can be hidden
+    return node.tagName === 'TEXTAREA';
+};
+var elementCanBeScrolled = function (node, overflow) {
+    if (!(node instanceof Element)) {
+        return false;
+    }
+    var styles = window.getComputedStyle(node);
+    return (
+    // not-not-scrollable
+    styles[overflow] !== 'hidden' &&
+        // contains scroll inside self
+        !(styles.overflowY === styles.overflowX && !alwaysContainsScroll(node) && styles[overflow] === 'visible'));
+};
+var elementCouldBeVScrolled = function (node) { return elementCanBeScrolled(node, 'overflowY'); };
+var elementCouldBeHScrolled = function (node) { return elementCanBeScrolled(node, 'overflowX'); };
+var locationCouldBeScrolled = function (axis, node) {
+    var ownerDocument = node.ownerDocument;
+    var current = node;
+    do {
+        // Skip over shadow root
+        if (typeof ShadowRoot !== 'undefined' && current instanceof ShadowRoot) {
+            current = current.host;
+        }
+        var isScrollable = elementCouldBeScrolled(axis, current);
+        if (isScrollable) {
+            var _a = getScrollVariables(axis, current), scrollHeight = _a[1], clientHeight = _a[2];
+            if (scrollHeight > clientHeight) {
+                return true;
+            }
+        }
+        current = current.parentNode;
+    } while (current && current !== ownerDocument.body);
+    return false;
+};
+var getVScrollVariables = function (_a) {
+    var scrollTop = _a.scrollTop, scrollHeight = _a.scrollHeight, clientHeight = _a.clientHeight;
+    return [
+        scrollTop,
+        scrollHeight,
+        clientHeight,
+    ];
+};
+var getHScrollVariables = function (_a) {
+    var scrollLeft = _a.scrollLeft, scrollWidth = _a.scrollWidth, clientWidth = _a.clientWidth;
+    return [
+        scrollLeft,
+        scrollWidth,
+        clientWidth,
+    ];
+};
+var elementCouldBeScrolled = function (axis, node) {
+    return axis === 'v' ? elementCouldBeVScrolled(node) : elementCouldBeHScrolled(node);
+};
+var getScrollVariables = function (axis, node) {
+    return axis === 'v' ? getVScrollVariables(node) : getHScrollVariables(node);
+};
+var getDirectionFactor = function (axis, direction) {
+    /**
+     * If the element's direction is rtl (right-to-left), then scrollLeft is 0 when the scrollbar is at its rightmost position,
+     * and then increasingly negative as you scroll towards the end of the content.
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollLeft
+     */
+    return axis === 'h' && direction === 'rtl' ? -1 : 1;
+};
+var handleScroll = function (axis, endTarget, event, sourceDelta, noOverscroll) {
+    var directionFactor = getDirectionFactor(axis, window.getComputedStyle(endTarget).direction);
+    var delta = directionFactor * sourceDelta;
+    // find scrollable target
+    var target = event.target;
+    var targetInLock = endTarget.contains(target);
+    var shouldCancelScroll = false;
+    var isDeltaPositive = delta > 0;
+    var availableScroll = 0;
+    var availableScrollTop = 0;
+    do {
+        if (!target) {
+            break;
+        }
+        var _a = getScrollVariables(axis, target), position = _a[0], scroll_1 = _a[1], capacity = _a[2];
+        var elementScroll = scroll_1 - capacity - directionFactor * position;
+        if (position || elementScroll) {
+            if (elementCouldBeScrolled(axis, target)) {
+                availableScroll += elementScroll;
+                availableScrollTop += position;
+            }
+        }
+        var parent_1 = target.parentNode;
+        // we will "bubble" from ShadowDom in case we are, or just to the parent in normal case
+        // this is the same logic used in focus-lock
+        target = (parent_1 && parent_1.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? parent_1.host : parent_1);
+    } while (
+    // portaled content
+    (!targetInLock && target !== document.body) ||
+        // self content
+        (targetInLock && (endTarget.contains(target) || endTarget === target)));
+    // handle epsilon around 0 (non standard zoom levels)
+    if (isDeltaPositive &&
+        ((Math.abs(availableScroll) < 1) || (false))) {
+        shouldCancelScroll = true;
+    }
+    else if (!isDeltaPositive &&
+        ((Math.abs(availableScrollTop) < 1) || (false))) {
+        shouldCancelScroll = true;
+    }
+    return shouldCancelScroll;
+};
+
+var getTouchXY = function (event) {
+    return 'changedTouches' in event ? [event.changedTouches[0].clientX, event.changedTouches[0].clientY] : [0, 0];
+};
+var getDeltaXY = function (event) { return [event.deltaX, event.deltaY]; };
+var extractRef = function (ref) {
+    return ref && 'current' in ref ? ref.current : ref;
+};
+var deltaCompare = function (x, y) { return x[0] === y[0] && x[1] === y[1]; };
+var generateStyle = function (id) { return "\n  .block-interactivity-".concat(id, " {pointer-events: none;}\n  .allow-interactivity-").concat(id, " {pointer-events: all;}\n"); };
+var idCounter = 0;
+var lockStack = [];
+function RemoveScrollSideCar(props) {
+    var shouldPreventQueue = React.useRef([]);
+    var touchStartRef = React.useRef([0, 0]);
+    var activeAxis = React.useRef();
+    var id = React.useState(idCounter++)[0];
+    var Style = React.useState(styleSingleton)[0];
+    var lastProps = React.useRef(props);
+    React.useEffect(function () {
+        lastProps.current = props;
+    }, [props]);
+    React.useEffect(function () {
+        if (props.inert) {
+            document.body.classList.add("block-interactivity-".concat(id));
+            var allow_1 = __spreadArray([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
+            allow_1.forEach(function (el) { return el.classList.add("allow-interactivity-".concat(id)); });
+            return function () {
+                document.body.classList.remove("block-interactivity-".concat(id));
+                allow_1.forEach(function (el) { return el.classList.remove("allow-interactivity-".concat(id)); });
+            };
+        }
+        return;
+    }, [props.inert, props.lockRef.current, props.shards]);
+    var shouldCancelEvent = React.useCallback(function (event, parent) {
+        if (('touches' in event && event.touches.length === 2) || (event.type === 'wheel' && event.ctrlKey)) {
+            return !lastProps.current.allowPinchZoom;
+        }
+        var touch = getTouchXY(event);
+        var touchStart = touchStartRef.current;
+        var deltaX = 'deltaX' in event ? event.deltaX : touchStart[0] - touch[0];
+        var deltaY = 'deltaY' in event ? event.deltaY : touchStart[1] - touch[1];
+        var currentAxis;
+        var target = event.target;
+        var moveDirection = Math.abs(deltaX) > Math.abs(deltaY) ? 'h' : 'v';
+        // allow horizontal touch move on Range inputs. They will not cause any scroll
+        if ('touches' in event && moveDirection === 'h' && target.type === 'range') {
+            return false;
+        }
+        // allow drag selection (iOS); check if selection's anchorNode is the same as target or contains target
+        var selection = window.getSelection();
+        var anchorNode = selection && selection.anchorNode;
+        var isTouchingSelection = anchorNode ? anchorNode === target || anchorNode.contains(target) : false;
+        if (isTouchingSelection) {
+            return false;
+        }
+        var canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
+        if (!canBeScrolledInMainDirection) {
+            return true;
+        }
+        if (canBeScrolledInMainDirection) {
+            currentAxis = moveDirection;
+        }
+        else {
+            currentAxis = moveDirection === 'v' ? 'h' : 'v';
+            canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
+            // other axis might be not scrollable
+        }
+        if (!canBeScrolledInMainDirection) {
+            return false;
+        }
+        if (!activeAxis.current && 'changedTouches' in event && (deltaX || deltaY)) {
+            activeAxis.current = currentAxis;
+        }
+        if (!currentAxis) {
+            return true;
+        }
+        var cancelingAxis = activeAxis.current || currentAxis;
+        return handleScroll(cancelingAxis, parent, event, cancelingAxis === 'h' ? deltaX : deltaY);
+    }, []);
+    var shouldPrevent = React.useCallback(function (_event) {
+        var event = _event;
+        if (!lockStack.length || lockStack[lockStack.length - 1] !== Style) {
+            // not the last active
+            return;
+        }
+        var delta = 'deltaY' in event ? getDeltaXY(event) : getTouchXY(event);
+        var sourceEvent = shouldPreventQueue.current.filter(function (e) { return e.name === event.type && (e.target === event.target || event.target === e.shadowParent) && deltaCompare(e.delta, delta); })[0];
+        // self event, and should be canceled
+        if (sourceEvent && sourceEvent.should) {
+            if (event.cancelable) {
+                event.preventDefault();
+            }
+            return;
+        }
+        // outside or shard event
+        if (!sourceEvent) {
+            var shardNodes = (lastProps.current.shards || [])
+                .map(extractRef)
+                .filter(Boolean)
+                .filter(function (node) { return node.contains(event.target); });
+            var shouldStop = shardNodes.length > 0 ? shouldCancelEvent(event, shardNodes[0]) : !lastProps.current.noIsolation;
+            if (shouldStop) {
+                if (event.cancelable) {
+                    event.preventDefault();
+                }
+            }
+        }
+    }, []);
+    var shouldCancel = React.useCallback(function (name, delta, target, should) {
+        var event = { name: name, delta: delta, target: target, should: should, shadowParent: getOutermostShadowParent(target) };
+        shouldPreventQueue.current.push(event);
+        setTimeout(function () {
+            shouldPreventQueue.current = shouldPreventQueue.current.filter(function (e) { return e !== event; });
+        }, 1);
+    }, []);
+    var scrollTouchStart = React.useCallback(function (event) {
+        touchStartRef.current = getTouchXY(event);
+        activeAxis.current = undefined;
+    }, []);
+    var scrollWheel = React.useCallback(function (event) {
+        shouldCancel(event.type, getDeltaXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
+    }, []);
+    var scrollTouchMove = React.useCallback(function (event) {
+        shouldCancel(event.type, getTouchXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
+    }, []);
+    React.useEffect(function () {
+        lockStack.push(Style);
+        props.setCallbacks({
+            onScrollCapture: scrollWheel,
+            onWheelCapture: scrollWheel,
+            onTouchMoveCapture: scrollTouchMove,
+        });
+        document.addEventListener('wheel', shouldPrevent, nonPassive);
+        document.addEventListener('touchmove', shouldPrevent, nonPassive);
+        document.addEventListener('touchstart', scrollTouchStart, nonPassive);
+        return function () {
+            lockStack = lockStack.filter(function (inst) { return inst !== Style; });
+            document.removeEventListener('wheel', shouldPrevent, nonPassive);
+            document.removeEventListener('touchmove', shouldPrevent, nonPassive);
+            document.removeEventListener('touchstart', scrollTouchStart, nonPassive);
+        };
+    }, []);
+    var removeScrollBar = props.removeScrollBar, inert = props.inert;
+    return (React.createElement(React.Fragment, null,
+        inert ? React.createElement(Style, { styles: generateStyle(id) }) : null,
+        removeScrollBar ? React.createElement(RemoveScrollBar, { noRelative: props.noRelative, gapMode: props.gapMode }) : null));
+}
+function getOutermostShadowParent(node) {
+    var shadowParent = null;
+    while (node !== null) {
+        if (node instanceof ShadowRoot) {
+            shadowParent = node.host;
+            node = node.host;
+        }
+        node = node.parentNode;
+    }
+    return shadowParent;
+}
+
+var SideCar = exportSidecar(effectCar, RemoveScrollSideCar);
+
+var ReactRemoveScroll = React.forwardRef(function (props, ref) { return (React.createElement(RemoveScroll, __assign({}, props, { ref: ref, sideCar: SideCar }))); });
+ReactRemoveScroll.classNames = RemoveScroll.classNames;
+
+var OPEN_KEYS = [" ", "Enter", "ArrowUp", "ArrowDown"];
+var SELECTION_KEYS = [" ", "Enter"];
+var SELECT_NAME = "Select";
+var [Collection, useCollection, createCollectionScope] = createCollection(SELECT_NAME);
+var [createSelectContext] = createContextScope(SELECT_NAME, [
+  createCollectionScope,
+  createPopperScope
+]);
+var usePopperScope = createPopperScope();
+var [SelectProvider, useSelectContext] = createSelectContext(SELECT_NAME);
+var [SelectNativeOptionsProvider, useSelectNativeOptionsContext] = createSelectContext(SELECT_NAME);
+var Select = (props) => {
+  const {
+    __scopeSelect,
+    children,
+    open: openProp,
+    defaultOpen,
+    onOpenChange,
+    value: valueProp,
+    defaultValue,
+    onValueChange,
+    dir,
+    name,
+    autoComplete,
+    disabled,
+    required,
+    form
+  } = props;
+  const popperScope = usePopperScope(__scopeSelect);
+  const [trigger, setTrigger] = React.useState(null);
+  const [valueNode, setValueNode] = React.useState(null);
+  const [valueNodeHasChildren, setValueNodeHasChildren] = React.useState(false);
+  const direction = useDirection(dir);
+  const [open, setOpen] = useControllableState({
+    prop: openProp,
+    defaultProp: defaultOpen ?? false,
+    onChange: onOpenChange,
+    caller: SELECT_NAME
+  });
+  const [value, setValue] = useControllableState({
+    prop: valueProp,
+    defaultProp: defaultValue,
+    onChange: onValueChange,
+    caller: SELECT_NAME
+  });
+  const triggerPointerDownPosRef = React.useRef(null);
+  const isFormControl = trigger ? form || !!trigger.closest("form") : true;
+  const [nativeOptionsSet, setNativeOptionsSet] = React.useState(/* @__PURE__ */ new Set());
+  const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Root2$1, { ...popperScope, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+    SelectProvider,
+    {
+      required,
+      scope: __scopeSelect,
+      trigger,
+      onTriggerChange: setTrigger,
+      valueNode,
+      onValueNodeChange: setValueNode,
+      valueNodeHasChildren,
+      onValueNodeHasChildrenChange: setValueNodeHasChildren,
+      contentId: useId(),
+      value,
+      onValueChange: setValue,
+      open,
+      onOpenChange: setOpen,
+      dir: direction,
+      triggerPointerDownPosRef,
+      disabled,
+      children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Provider, { scope: __scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          SelectNativeOptionsProvider,
+          {
+            scope: props.__scopeSelect,
+            onNativeOptionAdd: React.useCallback((option) => {
+              setNativeOptionsSet((prev) => new Set(prev).add(option));
+            }, []),
+            onNativeOptionRemove: React.useCallback((option) => {
+              setNativeOptionsSet((prev) => {
+                const optionsSet = new Set(prev);
+                optionsSet.delete(option);
+                return optionsSet;
+              });
+            }, []),
+            children
+          }
+        ) }),
+        isFormControl ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          SelectBubbleInput,
+          {
+            "aria-hidden": true,
+            required,
+            tabIndex: -1,
+            name,
+            autoComplete,
+            value,
+            onChange: (event) => setValue(event.target.value),
+            disabled,
+            form,
+            children: [
+              value === void 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "" }) : null,
+              Array.from(nativeOptionsSet)
+            ]
+          },
+          nativeSelectKey
+        ) : null
+      ]
+    }
+  ) });
+};
+Select.displayName = SELECT_NAME;
+var TRIGGER_NAME = "SelectTrigger";
+var SelectTrigger = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, disabled = false, ...triggerProps } = props;
+    const popperScope = usePopperScope(__scopeSelect);
+    const context = useSelectContext(TRIGGER_NAME, __scopeSelect);
+    const isDisabled = context.disabled || disabled;
+    const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
+    const getItems = useCollection(__scopeSelect);
+    const pointerTypeRef = React.useRef("touch");
+    const [searchRef, handleTypeaheadSearch, resetTypeahead] = useTypeaheadSearch((search) => {
+      const enabledItems = getItems().filter((item) => !item.disabled);
+      const currentItem = enabledItems.find((item) => item.value === context.value);
+      const nextItem = findNextItem(enabledItems, search, currentItem);
+      if (nextItem !== void 0) {
+        context.onValueChange(nextItem.value);
+      }
+    });
+    const handleOpen = (pointerEvent) => {
+      if (!isDisabled) {
+        context.onOpenChange(true);
+        resetTypeahead();
+      }
+      if (pointerEvent) {
+        context.triggerPointerDownPosRef.current = {
+          x: Math.round(pointerEvent.pageX),
+          y: Math.round(pointerEvent.pageY)
+        };
+      }
+    };
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Anchor, { asChild: true, ...popperScope, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive$1.button,
+      {
+        type: "button",
+        role: "combobox",
+        "aria-controls": context.contentId,
+        "aria-expanded": context.open,
+        "aria-required": context.required,
+        "aria-autocomplete": "none",
+        dir: context.dir,
+        "data-state": context.open ? "open" : "closed",
+        disabled: isDisabled,
+        "data-disabled": isDisabled ? "" : void 0,
+        "data-placeholder": shouldShowPlaceholder(context.value) ? "" : void 0,
+        ...triggerProps,
+        ref: composedRefs,
+        onClick: composeEventHandlers(triggerProps.onClick, (event) => {
+          event.currentTarget.focus();
+          if (pointerTypeRef.current !== "mouse") {
+            handleOpen(event);
+          }
+        }),
+        onPointerDown: composeEventHandlers(triggerProps.onPointerDown, (event) => {
+          pointerTypeRef.current = event.pointerType;
+          const target = event.target;
+          if (target.hasPointerCapture(event.pointerId)) {
+            target.releasePointerCapture(event.pointerId);
+          }
+          if (event.button === 0 && event.ctrlKey === false && event.pointerType === "mouse") {
+            handleOpen(event);
+            event.preventDefault();
+          }
+        }),
+        onKeyDown: composeEventHandlers(triggerProps.onKeyDown, (event) => {
+          const isTypingAhead = searchRef.current !== "";
+          const isModifierKey = event.ctrlKey || event.altKey || event.metaKey;
+          if (!isModifierKey && event.key.length === 1) handleTypeaheadSearch(event.key);
+          if (isTypingAhead && event.key === " ") return;
+          if (OPEN_KEYS.includes(event.key)) {
+            handleOpen();
+            event.preventDefault();
+          }
+        })
+      }
+    ) });
+  }
+);
+SelectTrigger.displayName = TRIGGER_NAME;
+var VALUE_NAME = "SelectValue";
+var SelectValue = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, className, style, children, placeholder = "", ...valueProps } = props;
+    const context = useSelectContext(VALUE_NAME, __scopeSelect);
+    const { onValueNodeHasChildrenChange } = context;
+    const hasChildren = children !== void 0;
+    const composedRefs = useComposedRefs(forwardedRef, context.onValueNodeChange);
+    useLayoutEffect2(() => {
+      onValueNodeHasChildrenChange(hasChildren);
+    }, [onValueNodeHasChildrenChange, hasChildren]);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive$1.span,
+      {
+        ...valueProps,
+        ref: composedRefs,
+        style: { pointerEvents: "none" },
+        children: shouldShowPlaceholder(context.value) ? /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: placeholder }) : children
+      }
+    );
+  }
+);
+SelectValue.displayName = VALUE_NAME;
+var ICON_NAME = "SelectIcon";
+var SelectIcon = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, children, ...iconProps } = props;
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.span, { "aria-hidden": true, ...iconProps, ref: forwardedRef, children: children || "\u25BC" });
+  }
+);
+SelectIcon.displayName = ICON_NAME;
+var PORTAL_NAME = "SelectPortal";
+var SelectPortal = (props) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Portal$1, { asChild: true, ...props });
+};
+SelectPortal.displayName = PORTAL_NAME;
+var CONTENT_NAME = "SelectContent";
+var SelectContent = React.forwardRef(
+  (props, forwardedRef) => {
+    const context = useSelectContext(CONTENT_NAME, props.__scopeSelect);
+    const [fragment, setFragment] = React.useState();
+    useLayoutEffect2(() => {
+      setFragment(new DocumentFragment());
+    }, []);
+    if (!context.open) {
+      const frag = fragment;
+      return frag ? ReactDOM.createPortal(
+        /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContentProvider, { scope: props.__scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Slot, { scope: props.__scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: props.children }) }) }),
+        frag
+      ) : null;
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContentImpl, { ...props, ref: forwardedRef });
+  }
+);
+SelectContent.displayName = CONTENT_NAME;
+var CONTENT_MARGIN = 10;
+var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME);
+var CONTENT_IMPL_NAME = "SelectContentImpl";
+var Slot = createSlot("SelectContent.RemoveScroll");
+var SelectContentImpl = React.forwardRef(
+  (props, forwardedRef) => {
+    const {
+      __scopeSelect,
+      position = "item-aligned",
+      onCloseAutoFocus,
+      onEscapeKeyDown,
+      onPointerDownOutside,
+      //
+      // PopperContent props
+      side,
+      sideOffset,
+      align,
+      alignOffset,
+      arrowPadding,
+      collisionBoundary,
+      collisionPadding,
+      sticky,
+      hideWhenDetached,
+      avoidCollisions,
+      //
+      ...contentProps
+    } = props;
+    const context = useSelectContext(CONTENT_NAME, __scopeSelect);
+    const [content, setContent] = React.useState(null);
+    const [viewport, setViewport] = React.useState(null);
+    const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
+    const [selectedItem, setSelectedItem] = React.useState(null);
+    const [selectedItemText, setSelectedItemText] = React.useState(
+      null
+    );
+    const getItems = useCollection(__scopeSelect);
+    const [isPositioned, setIsPositioned] = React.useState(false);
+    const firstValidItemFoundRef = React.useRef(false);
+    React.useEffect(() => {
+      if (content) return hideOthers(content);
+    }, [content]);
+    useFocusGuards();
+    const focusFirst = React.useCallback(
+      (candidates) => {
+        const [firstItem, ...restItems] = getItems().map((item) => item.ref.current);
+        const [lastItem] = restItems.slice(-1);
+        const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement;
+        for (const candidate of candidates) {
+          if (candidate === PREVIOUSLY_FOCUSED_ELEMENT) return;
+          candidate?.scrollIntoView({ block: "nearest" });
+          if (candidate === firstItem && viewport) viewport.scrollTop = 0;
+          if (candidate === lastItem && viewport) viewport.scrollTop = viewport.scrollHeight;
+          candidate?.focus();
+          if (document.activeElement !== PREVIOUSLY_FOCUSED_ELEMENT) return;
+        }
+      },
+      [getItems, viewport]
+    );
+    const focusSelectedItem = React.useCallback(
+      () => focusFirst([selectedItem, content]),
+      [focusFirst, selectedItem, content]
+    );
+    React.useEffect(() => {
+      if (isPositioned) {
+        focusSelectedItem();
+      }
+    }, [isPositioned, focusSelectedItem]);
+    const { onOpenChange, triggerPointerDownPosRef } = context;
+    React.useEffect(() => {
+      if (content) {
+        let pointerMoveDelta = { x: 0, y: 0 };
+        const handlePointerMove = (event) => {
+          pointerMoveDelta = {
+            x: Math.abs(Math.round(event.pageX) - (triggerPointerDownPosRef.current?.x ?? 0)),
+            y: Math.abs(Math.round(event.pageY) - (triggerPointerDownPosRef.current?.y ?? 0))
+          };
+        };
+        const handlePointerUp = (event) => {
+          if (pointerMoveDelta.x <= 10 && pointerMoveDelta.y <= 10) {
+            event.preventDefault();
+          } else {
+            if (!content.contains(event.target)) {
+              onOpenChange(false);
+            }
+          }
+          document.removeEventListener("pointermove", handlePointerMove);
+          triggerPointerDownPosRef.current = null;
+        };
+        if (triggerPointerDownPosRef.current !== null) {
+          document.addEventListener("pointermove", handlePointerMove);
+          document.addEventListener("pointerup", handlePointerUp, { capture: true, once: true });
+        }
+        return () => {
+          document.removeEventListener("pointermove", handlePointerMove);
+          document.removeEventListener("pointerup", handlePointerUp, { capture: true });
+        };
+      }
+    }, [content, onOpenChange, triggerPointerDownPosRef]);
+    React.useEffect(() => {
+      const close = () => onOpenChange(false);
+      window.addEventListener("blur", close);
+      window.addEventListener("resize", close);
+      return () => {
+        window.removeEventListener("blur", close);
+        window.removeEventListener("resize", close);
+      };
+    }, [onOpenChange]);
+    const [searchRef, handleTypeaheadSearch] = useTypeaheadSearch((search) => {
+      const enabledItems = getItems().filter((item) => !item.disabled);
+      const currentItem = enabledItems.find((item) => item.ref.current === document.activeElement);
+      const nextItem = findNextItem(enabledItems, search, currentItem);
+      if (nextItem) {
+        setTimeout(() => nextItem.ref.current.focus());
+      }
+    });
+    const itemRefCallback = React.useCallback(
+      (node, value, disabled) => {
+        const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
+        const isSelectedItem = context.value !== void 0 && context.value === value;
+        if (isSelectedItem || isFirstValidItem) {
+          setSelectedItem(node);
+          if (isFirstValidItem) firstValidItemFoundRef.current = true;
+        }
+      },
+      [context.value]
+    );
+    const handleItemLeave = React.useCallback(() => content?.focus(), [content]);
+    const itemTextRefCallback = React.useCallback(
+      (node, value, disabled) => {
+        const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
+        const isSelectedItem = context.value !== void 0 && context.value === value;
+        if (isSelectedItem || isFirstValidItem) {
+          setSelectedItemText(node);
+        }
+      },
+      [context.value]
+    );
+    const SelectPosition = position === "popper" ? SelectPopperPosition : SelectItemAlignedPosition;
+    const popperContentProps = SelectPosition === SelectPopperPosition ? {
+      side,
+      sideOffset,
+      align,
+      alignOffset,
+      arrowPadding,
+      collisionBoundary,
+      collisionPadding,
+      sticky,
+      hideWhenDetached,
+      avoidCollisions
+    } : {};
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      SelectContentProvider,
+      {
+        scope: __scopeSelect,
+        content,
+        viewport,
+        onViewportChange: setViewport,
+        itemRefCallback,
+        selectedItem,
+        onItemLeave: handleItemLeave,
+        itemTextRefCallback,
+        focusSelectedItem,
+        selectedItemText,
+        position,
+        isPositioned,
+        searchRef,
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(ReactRemoveScroll, { as: Slot, allowPinchZoom: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          FocusScope,
+          {
+            asChild: true,
+            trapped: context.open,
+            onMountAutoFocus: (event) => {
+              event.preventDefault();
+            },
+            onUnmountAutoFocus: composeEventHandlers(onCloseAutoFocus, (event) => {
+              context.trigger?.focus({ preventScroll: true });
+              event.preventDefault();
+            }),
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              DismissableLayer,
+              {
+                asChild: true,
+                disableOutsidePointerEvents: true,
+                onEscapeKeyDown,
+                onPointerDownOutside,
+                onFocusOutside: (event) => event.preventDefault(),
+                onDismiss: () => context.onOpenChange(false),
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  SelectPosition,
+                  {
+                    role: "listbox",
+                    id: context.contentId,
+                    "data-state": context.open ? "open" : "closed",
+                    dir: context.dir,
+                    onContextMenu: (event) => event.preventDefault(),
+                    ...contentProps,
+                    ...popperContentProps,
+                    onPlaced: () => setIsPositioned(true),
+                    ref: composedRefs,
+                    style: {
+                      // flex layout so we can place the scroll buttons properly
+                      display: "flex",
+                      flexDirection: "column",
+                      // reset the outline by default as the content MAY get focused
+                      outline: "none",
+                      ...contentProps.style
+                    },
+                    onKeyDown: composeEventHandlers(contentProps.onKeyDown, (event) => {
+                      const isModifierKey = event.ctrlKey || event.altKey || event.metaKey;
+                      if (event.key === "Tab") event.preventDefault();
+                      if (!isModifierKey && event.key.length === 1) handleTypeaheadSearch(event.key);
+                      if (["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
+                        const items = getItems().filter((item) => !item.disabled);
+                        let candidateNodes = items.map((item) => item.ref.current);
+                        if (["ArrowUp", "End"].includes(event.key)) {
+                          candidateNodes = candidateNodes.slice().reverse();
+                        }
+                        if (["ArrowUp", "ArrowDown"].includes(event.key)) {
+                          const currentElement = event.target;
+                          const currentIndex = candidateNodes.indexOf(currentElement);
+                          candidateNodes = candidateNodes.slice(currentIndex + 1);
+                        }
+                        setTimeout(() => focusFirst(candidateNodes));
+                        event.preventDefault();
+                      }
+                    })
+                  }
+                )
+              }
+            )
+          }
+        ) })
+      }
+    );
+  }
+);
+SelectContentImpl.displayName = CONTENT_IMPL_NAME;
+var ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition";
+var SelectItemAlignedPosition = React.forwardRef((props, forwardedRef) => {
+  const { __scopeSelect, onPlaced, ...popperProps } = props;
+  const context = useSelectContext(CONTENT_NAME, __scopeSelect);
+  const contentContext = useSelectContentContext(CONTENT_NAME, __scopeSelect);
+  const [contentWrapper, setContentWrapper] = React.useState(null);
+  const [content, setContent] = React.useState(null);
+  const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
+  const getItems = useCollection(__scopeSelect);
+  const shouldExpandOnScrollRef = React.useRef(false);
+  const shouldRepositionRef = React.useRef(true);
+  const { viewport, selectedItem, selectedItemText, focusSelectedItem } = contentContext;
+  const position = React.useCallback(() => {
+    if (context.trigger && context.valueNode && contentWrapper && content && viewport && selectedItem && selectedItemText) {
+      const triggerRect = context.trigger.getBoundingClientRect();
+      const contentRect = content.getBoundingClientRect();
+      const valueNodeRect = context.valueNode.getBoundingClientRect();
+      const itemTextRect = selectedItemText.getBoundingClientRect();
+      if (context.dir !== "rtl") {
+        const itemTextOffset = itemTextRect.left - contentRect.left;
+        const left = valueNodeRect.left - itemTextOffset;
+        const leftDelta = triggerRect.left - left;
+        const minContentWidth = triggerRect.width + leftDelta;
+        const contentWidth = Math.max(minContentWidth, contentRect.width);
+        const rightEdge = window.innerWidth - CONTENT_MARGIN;
+        const clampedLeft = clamp$1(left, [
+          CONTENT_MARGIN,
+          // Prevents the content from going off the starting edge of the
+          // viewport. It may still go off the ending edge, but this can be
+          // controlled by the user since they may want to manage overflow in a
+          // specific way.
+          // https://github.com/radix-ui/primitives/issues/2049
+          Math.max(CONTENT_MARGIN, rightEdge - contentWidth)
+        ]);
+        contentWrapper.style.minWidth = minContentWidth + "px";
+        contentWrapper.style.left = clampedLeft + "px";
+      } else {
+        const itemTextOffset = contentRect.right - itemTextRect.right;
+        const right = window.innerWidth - valueNodeRect.right - itemTextOffset;
+        const rightDelta = window.innerWidth - triggerRect.right - right;
+        const minContentWidth = triggerRect.width + rightDelta;
+        const contentWidth = Math.max(minContentWidth, contentRect.width);
+        const leftEdge = window.innerWidth - CONTENT_MARGIN;
+        const clampedRight = clamp$1(right, [
+          CONTENT_MARGIN,
+          Math.max(CONTENT_MARGIN, leftEdge - contentWidth)
+        ]);
+        contentWrapper.style.minWidth = minContentWidth + "px";
+        contentWrapper.style.right = clampedRight + "px";
+      }
+      const items = getItems();
+      const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
+      const itemsHeight = viewport.scrollHeight;
+      const contentStyles = window.getComputedStyle(content);
+      const contentBorderTopWidth = parseInt(contentStyles.borderTopWidth, 10);
+      const contentPaddingTop = parseInt(contentStyles.paddingTop, 10);
+      const contentBorderBottomWidth = parseInt(contentStyles.borderBottomWidth, 10);
+      const contentPaddingBottom = parseInt(contentStyles.paddingBottom, 10);
+      const fullContentHeight = contentBorderTopWidth + contentPaddingTop + itemsHeight + contentPaddingBottom + contentBorderBottomWidth;
+      const minContentHeight = Math.min(selectedItem.offsetHeight * 5, fullContentHeight);
+      const viewportStyles = window.getComputedStyle(viewport);
+      const viewportPaddingTop = parseInt(viewportStyles.paddingTop, 10);
+      const viewportPaddingBottom = parseInt(viewportStyles.paddingBottom, 10);
+      const topEdgeToTriggerMiddle = triggerRect.top + triggerRect.height / 2 - CONTENT_MARGIN;
+      const triggerMiddleToBottomEdge = availableHeight - topEdgeToTriggerMiddle;
+      const selectedItemHalfHeight = selectedItem.offsetHeight / 2;
+      const itemOffsetMiddle = selectedItem.offsetTop + selectedItemHalfHeight;
+      const contentTopToItemMiddle = contentBorderTopWidth + contentPaddingTop + itemOffsetMiddle;
+      const itemMiddleToContentBottom = fullContentHeight - contentTopToItemMiddle;
+      const willAlignWithoutTopOverflow = contentTopToItemMiddle <= topEdgeToTriggerMiddle;
+      if (willAlignWithoutTopOverflow) {
+        const isLastItem = items.length > 0 && selectedItem === items[items.length - 1].ref.current;
+        contentWrapper.style.bottom = "0px";
+        const viewportOffsetBottom = content.clientHeight - viewport.offsetTop - viewport.offsetHeight;
+        const clampedTriggerMiddleToBottomEdge = Math.max(
+          triggerMiddleToBottomEdge,
+          selectedItemHalfHeight + // viewport might have padding bottom, include it to avoid a scrollable viewport
+          (isLastItem ? viewportPaddingBottom : 0) + viewportOffsetBottom + contentBorderBottomWidth
+        );
+        const height = contentTopToItemMiddle + clampedTriggerMiddleToBottomEdge;
+        contentWrapper.style.height = height + "px";
+      } else {
+        const isFirstItem = items.length > 0 && selectedItem === items[0].ref.current;
+        contentWrapper.style.top = "0px";
+        const clampedTopEdgeToTriggerMiddle = Math.max(
+          topEdgeToTriggerMiddle,
+          contentBorderTopWidth + viewport.offsetTop + // viewport might have padding top, include it to avoid a scrollable viewport
+          (isFirstItem ? viewportPaddingTop : 0) + selectedItemHalfHeight
+        );
+        const height = clampedTopEdgeToTriggerMiddle + itemMiddleToContentBottom;
+        contentWrapper.style.height = height + "px";
+        viewport.scrollTop = contentTopToItemMiddle - topEdgeToTriggerMiddle + viewport.offsetTop;
+      }
+      contentWrapper.style.margin = `${CONTENT_MARGIN}px 0`;
+      contentWrapper.style.minHeight = minContentHeight + "px";
+      contentWrapper.style.maxHeight = availableHeight + "px";
+      onPlaced?.();
+      requestAnimationFrame(() => shouldExpandOnScrollRef.current = true);
+    }
+  }, [
+    getItems,
+    context.trigger,
+    context.valueNode,
+    contentWrapper,
+    content,
+    viewport,
+    selectedItem,
+    selectedItemText,
+    context.dir,
+    onPlaced
+  ]);
+  useLayoutEffect2(() => position(), [position]);
+  const [contentZIndex, setContentZIndex] = React.useState();
+  useLayoutEffect2(() => {
+    if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
+  }, [content]);
+  const handleScrollButtonChange = React.useCallback(
+    (node) => {
+      if (node && shouldRepositionRef.current === true) {
+        position();
+        focusSelectedItem?.();
+        shouldRepositionRef.current = false;
+      }
+    },
+    [position, focusSelectedItem]
+  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    SelectViewportProvider,
+    {
+      scope: __scopeSelect,
+      contentWrapper,
+      shouldExpandOnScrollRef,
+      onScrollButtonChange: handleScrollButtonChange,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          ref: setContentWrapper,
+          style: {
+            display: "flex",
+            flexDirection: "column",
+            position: "fixed",
+            zIndex: contentZIndex
+          },
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            Primitive$1.div,
+            {
+              ...popperProps,
+              ref: composedRefs,
+              style: {
+                // When we get the height of the content, it includes borders. If we were to set
+                // the height without having `boxSizing: 'border-box'` it would be too big.
+                boxSizing: "border-box",
+                // We need to ensure the content doesn't get taller than the wrapper
+                maxHeight: "100%",
+                ...popperProps.style
+              }
+            }
+          )
+        }
+      )
+    }
+  );
+});
+SelectItemAlignedPosition.displayName = ITEM_ALIGNED_POSITION_NAME;
+var POPPER_POSITION_NAME = "SelectPopperPosition";
+var SelectPopperPosition = React.forwardRef((props, forwardedRef) => {
+  const {
+    __scopeSelect,
+    align = "start",
+    collisionPadding = CONTENT_MARGIN,
+    ...popperProps
+  } = props;
+  const popperScope = usePopperScope(__scopeSelect);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    Content,
+    {
+      ...popperScope,
+      ...popperProps,
+      ref: forwardedRef,
+      align,
+      collisionPadding,
+      style: {
+        // Ensure border-box for floating-ui calculations
+        boxSizing: "border-box",
+        ...popperProps.style,
+        // re-namespace exposed content custom properties
+        ...{
+          "--radix-select-content-transform-origin": "var(--radix-popper-transform-origin)",
+          "--radix-select-content-available-width": "var(--radix-popper-available-width)",
+          "--radix-select-content-available-height": "var(--radix-popper-available-height)",
+          "--radix-select-trigger-width": "var(--radix-popper-anchor-width)",
+          "--radix-select-trigger-height": "var(--radix-popper-anchor-height)"
+        }
+      }
+    }
+  );
+});
+SelectPopperPosition.displayName = POPPER_POSITION_NAME;
+var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME, {});
+var VIEWPORT_NAME = "SelectViewport";
+var SelectViewport = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, nonce, ...viewportProps } = props;
+    const contentContext = useSelectContentContext(VIEWPORT_NAME, __scopeSelect);
+    const viewportContext = useSelectViewportContext(VIEWPORT_NAME, __scopeSelect);
+    const composedRefs = useComposedRefs(forwardedRef, contentContext.onViewportChange);
+    const prevScrollTopRef = React.useRef(0);
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "style",
+        {
+          dangerouslySetInnerHTML: {
+            __html: `[data-radix-select-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-select-viewport]::-webkit-scrollbar{display:none}`
+          },
+          nonce
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Slot, { scope: __scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Primitive$1.div,
+        {
+          "data-radix-select-viewport": "",
+          role: "presentation",
+          ...viewportProps,
+          ref: composedRefs,
+          style: {
+            // we use position: 'relative' here on the `viewport` so that when we call
+            // `selectedItem.offsetTop` in calculations, the offset is relative to the viewport
+            // (independent of the scrollUpButton).
+            position: "relative",
+            flex: 1,
+            // Viewport should only be scrollable in the vertical direction.
+            // This won't work in vertical writing modes, so we'll need to
+            // revisit this if/when that is supported
+            // https://developer.chrome.com/blog/vertical-form-controls
+            overflow: "hidden auto",
+            ...viewportProps.style
+          },
+          onScroll: composeEventHandlers(viewportProps.onScroll, (event) => {
+            const viewport = event.currentTarget;
+            const { contentWrapper, shouldExpandOnScrollRef } = viewportContext;
+            if (shouldExpandOnScrollRef?.current && contentWrapper) {
+              const scrolledBy = Math.abs(prevScrollTopRef.current - viewport.scrollTop);
+              if (scrolledBy > 0) {
+                const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
+                const cssMinHeight = parseFloat(contentWrapper.style.minHeight);
+                const cssHeight = parseFloat(contentWrapper.style.height);
+                const prevHeight = Math.max(cssMinHeight, cssHeight);
+                if (prevHeight < availableHeight) {
+                  const nextHeight = prevHeight + scrolledBy;
+                  const clampedNextHeight = Math.min(availableHeight, nextHeight);
+                  const heightDiff = nextHeight - clampedNextHeight;
+                  contentWrapper.style.height = clampedNextHeight + "px";
+                  if (contentWrapper.style.bottom === "0px") {
+                    viewport.scrollTop = heightDiff > 0 ? heightDiff : 0;
+                    contentWrapper.style.justifyContent = "flex-end";
+                  }
+                }
+              }
+            }
+            prevScrollTopRef.current = viewport.scrollTop;
+          })
+        }
+      ) })
+    ] });
+  }
+);
+SelectViewport.displayName = VIEWPORT_NAME;
+var GROUP_NAME = "SelectGroup";
+var [SelectGroupContextProvider, useSelectGroupContext] = createSelectContext(GROUP_NAME);
+var SelectGroup = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, ...groupProps } = props;
+    const groupId = useId();
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(SelectGroupContextProvider, { scope: __scopeSelect, id: groupId, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { role: "group", "aria-labelledby": groupId, ...groupProps, ref: forwardedRef }) });
+  }
+);
+SelectGroup.displayName = GROUP_NAME;
+var LABEL_NAME = "SelectLabel";
+var SelectLabel = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, ...labelProps } = props;
+    const groupContext = useSelectGroupContext(LABEL_NAME, __scopeSelect);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { id: groupContext.id, ...labelProps, ref: forwardedRef });
+  }
+);
+SelectLabel.displayName = LABEL_NAME;
+var ITEM_NAME = "SelectItem";
+var [SelectItemContextProvider, useSelectItemContext] = createSelectContext(ITEM_NAME);
+var SelectItem = React.forwardRef(
+  (props, forwardedRef) => {
+    const {
+      __scopeSelect,
+      value,
+      disabled = false,
+      textValue: textValueProp,
+      ...itemProps
+    } = props;
+    const context = useSelectContext(ITEM_NAME, __scopeSelect);
+    const contentContext = useSelectContentContext(ITEM_NAME, __scopeSelect);
+    const isSelected = context.value === value;
+    const [textValue, setTextValue] = React.useState(textValueProp ?? "");
+    const [isFocused, setIsFocused] = React.useState(false);
+    const composedRefs = useComposedRefs(
+      forwardedRef,
+      (node) => contentContext.itemRefCallback?.(node, value, disabled)
+    );
+    const textId = useId();
+    const pointerTypeRef = React.useRef("touch");
+    const handleSelect = () => {
+      if (!disabled) {
+        context.onValueChange(value);
+        context.onOpenChange(false);
+      }
+    };
+    if (value === "") {
+      throw new Error(
+        "A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder."
+      );
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      SelectItemContextProvider,
+      {
+        scope: __scopeSelect,
+        value,
+        disabled,
+        textId,
+        isSelected,
+        onItemTextChange: React.useCallback((node) => {
+          setTextValue((prevTextValue) => prevTextValue || (node?.textContent ?? "").trim());
+        }, []),
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Collection.ItemSlot,
+          {
+            scope: __scopeSelect,
+            value,
+            disabled,
+            textValue,
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Primitive$1.div,
+              {
+                role: "option",
+                "aria-labelledby": textId,
+                "data-highlighted": isFocused ? "" : void 0,
+                "aria-selected": isSelected && isFocused,
+                "data-state": isSelected ? "checked" : "unchecked",
+                "aria-disabled": disabled || void 0,
+                "data-disabled": disabled ? "" : void 0,
+                tabIndex: disabled ? void 0 : -1,
+                ...itemProps,
+                ref: composedRefs,
+                onFocus: composeEventHandlers(itemProps.onFocus, () => setIsFocused(true)),
+                onBlur: composeEventHandlers(itemProps.onBlur, () => setIsFocused(false)),
+                onClick: composeEventHandlers(itemProps.onClick, () => {
+                  if (pointerTypeRef.current !== "mouse") handleSelect();
+                }),
+                onPointerUp: composeEventHandlers(itemProps.onPointerUp, () => {
+                  if (pointerTypeRef.current === "mouse") handleSelect();
+                }),
+                onPointerDown: composeEventHandlers(itemProps.onPointerDown, (event) => {
+                  pointerTypeRef.current = event.pointerType;
+                }),
+                onPointerMove: composeEventHandlers(itemProps.onPointerMove, (event) => {
+                  pointerTypeRef.current = event.pointerType;
+                  if (disabled) {
+                    contentContext.onItemLeave?.();
+                  } else if (pointerTypeRef.current === "mouse") {
+                    event.currentTarget.focus({ preventScroll: true });
+                  }
+                }),
+                onPointerLeave: composeEventHandlers(itemProps.onPointerLeave, (event) => {
+                  if (event.currentTarget === document.activeElement) {
+                    contentContext.onItemLeave?.();
+                  }
+                }),
+                onKeyDown: composeEventHandlers(itemProps.onKeyDown, (event) => {
+                  const isTypingAhead = contentContext.searchRef?.current !== "";
+                  if (isTypingAhead && event.key === " ") return;
+                  if (SELECTION_KEYS.includes(event.key)) handleSelect();
+                  if (event.key === " ") event.preventDefault();
+                })
+              }
+            )
+          }
+        )
+      }
+    );
+  }
+);
+SelectItem.displayName = ITEM_NAME;
+var ITEM_TEXT_NAME = "SelectItemText";
+var SelectItemText = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, className, style, ...itemTextProps } = props;
+    const context = useSelectContext(ITEM_TEXT_NAME, __scopeSelect);
+    const contentContext = useSelectContentContext(ITEM_TEXT_NAME, __scopeSelect);
+    const itemContext = useSelectItemContext(ITEM_TEXT_NAME, __scopeSelect);
+    const nativeOptionsContext = useSelectNativeOptionsContext(ITEM_TEXT_NAME, __scopeSelect);
+    const [itemTextNode, setItemTextNode] = React.useState(null);
+    const composedRefs = useComposedRefs(
+      forwardedRef,
+      (node) => setItemTextNode(node),
+      itemContext.onItemTextChange,
+      (node) => contentContext.itemTextRefCallback?.(node, itemContext.value, itemContext.disabled)
+    );
+    const textContent = itemTextNode?.textContent;
+    const nativeOption = React.useMemo(
+      () => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: itemContext.value, disabled: itemContext.disabled, children: textContent }, itemContext.value),
+      [itemContext.disabled, itemContext.value, textContent]
+    );
+    const { onNativeOptionAdd, onNativeOptionRemove } = nativeOptionsContext;
+    useLayoutEffect2(() => {
+      onNativeOptionAdd(nativeOption);
+      return () => onNativeOptionRemove(nativeOption);
+    }, [onNativeOptionAdd, onNativeOptionRemove, nativeOption]);
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.span, { id: itemContext.textId, ...itemTextProps, ref: composedRefs }),
+      itemContext.isSelected && context.valueNode && !context.valueNodeHasChildren ? ReactDOM.createPortal(itemTextProps.children, context.valueNode) : null
+    ] });
+  }
+);
+SelectItemText.displayName = ITEM_TEXT_NAME;
+var ITEM_INDICATOR_NAME = "SelectItemIndicator";
+var SelectItemIndicator = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, ...itemIndicatorProps } = props;
+    const itemContext = useSelectItemContext(ITEM_INDICATOR_NAME, __scopeSelect);
+    return itemContext.isSelected ? /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.span, { "aria-hidden": true, ...itemIndicatorProps, ref: forwardedRef }) : null;
+  }
+);
+SelectItemIndicator.displayName = ITEM_INDICATOR_NAME;
+var SCROLL_UP_BUTTON_NAME = "SelectScrollUpButton";
+var SelectScrollUpButton = React.forwardRef((props, forwardedRef) => {
+  const contentContext = useSelectContentContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
+  const viewportContext = useSelectViewportContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
+  const [canScrollUp, setCanScrollUp] = React.useState(false);
+  const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
+  useLayoutEffect2(() => {
+    if (contentContext.viewport && contentContext.isPositioned) {
+      let handleScroll2 = function() {
+        const canScrollUp2 = viewport.scrollTop > 0;
+        setCanScrollUp(canScrollUp2);
+      };
+      const viewport = contentContext.viewport;
+      handleScroll2();
+      viewport.addEventListener("scroll", handleScroll2);
+      return () => viewport.removeEventListener("scroll", handleScroll2);
+    }
+  }, [contentContext.viewport, contentContext.isPositioned]);
+  return canScrollUp ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+    SelectScrollButtonImpl,
+    {
+      ...props,
+      ref: composedRefs,
+      onAutoScroll: () => {
+        const { viewport, selectedItem } = contentContext;
+        if (viewport && selectedItem) {
+          viewport.scrollTop = viewport.scrollTop - selectedItem.offsetHeight;
+        }
+      }
+    }
+  ) : null;
+});
+SelectScrollUpButton.displayName = SCROLL_UP_BUTTON_NAME;
+var SCROLL_DOWN_BUTTON_NAME = "SelectScrollDownButton";
+var SelectScrollDownButton = React.forwardRef((props, forwardedRef) => {
+  const contentContext = useSelectContentContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
+  const viewportContext = useSelectViewportContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
+  const [canScrollDown, setCanScrollDown] = React.useState(false);
+  const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
+  useLayoutEffect2(() => {
+    if (contentContext.viewport && contentContext.isPositioned) {
+      let handleScroll2 = function() {
+        const maxScroll = viewport.scrollHeight - viewport.clientHeight;
+        const canScrollDown2 = Math.ceil(viewport.scrollTop) < maxScroll;
+        setCanScrollDown(canScrollDown2);
+      };
+      const viewport = contentContext.viewport;
+      handleScroll2();
+      viewport.addEventListener("scroll", handleScroll2);
+      return () => viewport.removeEventListener("scroll", handleScroll2);
+    }
+  }, [contentContext.viewport, contentContext.isPositioned]);
+  return canScrollDown ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+    SelectScrollButtonImpl,
+    {
+      ...props,
+      ref: composedRefs,
+      onAutoScroll: () => {
+        const { viewport, selectedItem } = contentContext;
+        if (viewport && selectedItem) {
+          viewport.scrollTop = viewport.scrollTop + selectedItem.offsetHeight;
+        }
+      }
+    }
+  ) : null;
+});
+SelectScrollDownButton.displayName = SCROLL_DOWN_BUTTON_NAME;
+var SelectScrollButtonImpl = React.forwardRef((props, forwardedRef) => {
+  const { __scopeSelect, onAutoScroll, ...scrollIndicatorProps } = props;
+  const contentContext = useSelectContentContext("SelectScrollButton", __scopeSelect);
+  const autoScrollTimerRef = React.useRef(null);
+  const getItems = useCollection(__scopeSelect);
+  const clearAutoScrollTimer = React.useCallback(() => {
+    if (autoScrollTimerRef.current !== null) {
+      window.clearInterval(autoScrollTimerRef.current);
+      autoScrollTimerRef.current = null;
+    }
+  }, []);
+  React.useEffect(() => {
+    return () => clearAutoScrollTimer();
+  }, [clearAutoScrollTimer]);
+  useLayoutEffect2(() => {
+    const activeItem = getItems().find((item) => item.ref.current === document.activeElement);
+    activeItem?.ref.current?.scrollIntoView({ block: "nearest" });
+  }, [getItems]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    Primitive$1.div,
+    {
+      "aria-hidden": true,
+      ...scrollIndicatorProps,
+      ref: forwardedRef,
+      style: { flexShrink: 0, ...scrollIndicatorProps.style },
+      onPointerDown: composeEventHandlers(scrollIndicatorProps.onPointerDown, () => {
+        if (autoScrollTimerRef.current === null) {
+          autoScrollTimerRef.current = window.setInterval(onAutoScroll, 50);
+        }
+      }),
+      onPointerMove: composeEventHandlers(scrollIndicatorProps.onPointerMove, () => {
+        contentContext.onItemLeave?.();
+        if (autoScrollTimerRef.current === null) {
+          autoScrollTimerRef.current = window.setInterval(onAutoScroll, 50);
+        }
+      }),
+      onPointerLeave: composeEventHandlers(scrollIndicatorProps.onPointerLeave, () => {
+        clearAutoScrollTimer();
+      })
+    }
+  );
+});
+var SEPARATOR_NAME = "SelectSeparator";
+var SelectSeparator = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, ...separatorProps } = props;
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive$1.div, { "aria-hidden": true, ...separatorProps, ref: forwardedRef });
+  }
+);
+SelectSeparator.displayName = SEPARATOR_NAME;
+var ARROW_NAME = "SelectArrow";
+var SelectArrow = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSelect, ...arrowProps } = props;
+    const popperScope = usePopperScope(__scopeSelect);
+    const context = useSelectContext(ARROW_NAME, __scopeSelect);
+    const contentContext = useSelectContentContext(ARROW_NAME, __scopeSelect);
+    return context.open && contentContext.position === "popper" ? /* @__PURE__ */ jsxRuntimeExports.jsx(Arrow, { ...popperScope, ...arrowProps, ref: forwardedRef }) : null;
+  }
+);
+SelectArrow.displayName = ARROW_NAME;
+var BUBBLE_INPUT_NAME$1 = "SelectBubbleInput";
+var SelectBubbleInput = React.forwardRef(
+  ({ __scopeSelect, value, ...props }, forwardedRef) => {
+    const ref = React.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref);
+    const prevValue = usePrevious(value);
+    React.useEffect(() => {
+      const select = ref.current;
+      if (!select) return;
+      const selectProto = window.HTMLSelectElement.prototype;
+      const descriptor = Object.getOwnPropertyDescriptor(
+        selectProto,
+        "value"
+      );
+      const setValue = descriptor.set;
+      if (prevValue !== value && setValue) {
+        const event = new Event("change", { bubbles: true });
+        setValue.call(select, value);
+        select.dispatchEvent(event);
+      }
+    }, [prevValue, value]);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive$1.select,
+      {
+        ...props,
+        style: { ...VISUALLY_HIDDEN_STYLES, ...props.style },
+        ref: composedRefs,
+        defaultValue: value
+      }
+    );
+  }
+);
+SelectBubbleInput.displayName = BUBBLE_INPUT_NAME$1;
+function shouldShowPlaceholder(value) {
+  return value === "" || value === void 0;
+}
+function useTypeaheadSearch(onSearchChange) {
+  const handleSearchChange = useCallbackRef$1(onSearchChange);
+  const searchRef = React.useRef("");
+  const timerRef = React.useRef(0);
+  const handleTypeaheadSearch = React.useCallback(
+    (key) => {
+      const search = searchRef.current + key;
+      handleSearchChange(search);
+      (function updateSearch(value) {
+        searchRef.current = value;
+        window.clearTimeout(timerRef.current);
+        if (value !== "") timerRef.current = window.setTimeout(() => updateSearch(""), 1e3);
+      })(search);
+    },
+    [handleSearchChange]
+  );
+  const resetTypeahead = React.useCallback(() => {
+    searchRef.current = "";
+    window.clearTimeout(timerRef.current);
+  }, []);
+  React.useEffect(() => {
+    return () => window.clearTimeout(timerRef.current);
+  }, []);
+  return [searchRef, handleTypeaheadSearch, resetTypeahead];
+}
+function findNextItem(items, search, currentItem) {
+  const isRepeated = search.length > 1 && Array.from(search).every((char) => char === search[0]);
+  const normalizedSearch = isRepeated ? search[0] : search;
+  const currentItemIndex = currentItem ? items.indexOf(currentItem) : -1;
+  let wrappedItems = wrapArray(items, Math.max(currentItemIndex, 0));
+  const excludeCurrentItem = normalizedSearch.length === 1;
+  if (excludeCurrentItem) wrappedItems = wrappedItems.filter((v) => v !== currentItem);
+  const nextItem = wrappedItems.find(
+    (item) => item.textValue.toLowerCase().startsWith(normalizedSearch.toLowerCase())
+  );
+  return nextItem !== currentItem ? nextItem : void 0;
+}
+function wrapArray(array, startIndex) {
+  return array.map((_, index) => array[(startIndex + index) % array.length]);
+}
+var Root2 = Select;
+var Trigger = SelectTrigger;
+var Value = SelectValue;
+var Icon = SelectIcon;
+var Portal = SelectPortal;
+var Content2 = SelectContent;
+var Viewport = SelectViewport;
+var Group = SelectGroup;
+var Label$1 = SelectLabel;
+var Item = SelectItem;
+var ItemText = SelectItemText;
+var ItemIndicator = SelectItemIndicator;
+var ScrollUpButton = SelectScrollUpButton;
+var ScrollDownButton = SelectScrollDownButton;
+var Separator = SelectSeparator;
+
+function PromSelect(_a) {
+    var props = __rest(_a, []);
+    return jsxRuntimeExports.jsx(Root2, __assign({ "data-slot": "select" }, props));
+}
+function PromSelectGroup(_a) {
+    var props = __rest(_a, []);
+    return jsxRuntimeExports.jsx(Group, __assign({ "data-slot": "select-group" }, props));
+}
+function PromSelectValue(_a) {
+    var props = __rest(_a, []);
+    return jsxRuntimeExports.jsx(Value, __assign({ "data-slot": "select-value" }, props));
+}
+function PromSelectTrigger(_a) {
+    var className = _a.className, _b = _a.size, size = _b === void 0 ? "default" : _b, children = _a.children, props = __rest(_a, ["className", "size", "children"]);
+    return (jsxRuntimeExports.jsxs(Trigger, __assign({ "data-slot": "select-trigger", "data-size": size, className: cn("border-input data-placeholder:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-wrapper flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4", className) }, props, { children: [children, jsxRuntimeExports.jsx(Icon, { asChild: true, children: jsxRuntimeExports.jsx(ChevronDown, { className: "size-4 opacity-50" }) })] })));
+}
+function PromSelectContent(_a) {
+    var className = _a.className, children = _a.children, _b = _a.position, position = _b === void 0 ? "popper" : _b, _c = _a.align, align = _c === void 0 ? "center" : _c, props = __rest(_a, ["className", "children", "position", "align"]);
+    return (jsxRuntimeExports.jsx(Portal, { children: jsxRuntimeExports.jsxs(Content2, __assign({ "data-slot": "select-content", className: cn("bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md", position === "popper" &&
+                "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1", className), position: position, align: align }, props, { children: [jsxRuntimeExports.jsx(PromSelectScrollUpButton, {}), jsxRuntimeExports.jsx(Viewport, { className: cn("p-1", position === "popper" &&
+                        "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"), children: children }), jsxRuntimeExports.jsx(PromSelectScrollDownButton, {})] })) }));
+}
+function PromSelectLabel(_a) {
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx(Label$1, __assign({ "data-slot": "select-label", className: cn("text-muted-foreground px-2 py-1.5 text-xs", className) }, props)));
+}
+function PromSelectItem(_a) {
+    var className = _a.className, children = _a.children, props = __rest(_a, ["className", "children"]);
+    return (jsxRuntimeExports.jsxs(Item, __assign({ "data-slot": "select-item", className: cn("focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2", className) }, props, { children: [jsxRuntimeExports.jsx("span", { className: "absolute right-2 flex size-3.5 items-center justify-center", children: jsxRuntimeExports.jsx(ItemIndicator, { children: jsxRuntimeExports.jsx(Check, { className: "size-4" }) }) }), jsxRuntimeExports.jsx(ItemText, { children: children })] })));
+}
+function PromSelectSeparator(_a) {
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx(Separator, __assign({ "data-slot": "select-separator", className: cn("bg-border pointer-events-none -mx-1 my-1 h-px", className) }, props)));
+}
+function PromSelectScrollUpButton(_a) {
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx(ScrollUpButton, __assign({ "data-slot": "select-scroll-up-button", className: cn("flex cursor-default items-center justify-center py-1", className) }, props, { children: jsxRuntimeExports.jsx(ChevronUp, { className: "size-4" }) })));
+}
+function PromSelectScrollDownButton(_a) {
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx(ScrollDownButton, __assign({ "data-slot": "select-scroll-down-button", className: cn("flex cursor-default items-center justify-center py-1", className) }, props, { children: jsxRuntimeExports.jsx(ChevronDown, { className: "size-4" }) })));
+}
+
+function PromSkeleton(_a) {
+    var className = _a.className, props = __rest(_a, ["className"]);
+    return (jsxRuntimeExports.jsx("div", __assign({ "data-slot": "skeleton", className: cn("bg-accent animate-pulse rounded-md", className) }, props)));
+}
+
+var SWITCH_NAME = "Switch";
+var [createSwitchContext] = createContextScope(SWITCH_NAME);
+var [SwitchProvider, useSwitchContext] = createSwitchContext(SWITCH_NAME);
+var Switch = React.forwardRef(
+  (props, forwardedRef) => {
+    const {
+      __scopeSwitch,
+      name,
+      checked: checkedProp,
+      defaultChecked,
+      required,
+      disabled,
+      value = "on",
+      onCheckedChange,
+      form,
+      ...switchProps
+    } = props;
+    const [button, setButton] = React.useState(null);
+    const composedRefs = useComposedRefs(forwardedRef, (node) => setButton(node));
+    const hasConsumerStoppedPropagationRef = React.useRef(false);
+    const isFormControl = button ? form || !!button.closest("form") : true;
+    const [checked, setChecked] = useControllableState({
+      prop: checkedProp,
+      defaultProp: defaultChecked ?? false,
+      onChange: onCheckedChange,
+      caller: SWITCH_NAME
+    });
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchProvider, { scope: __scopeSwitch, checked, disabled, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Primitive$1.button,
+        {
+          type: "button",
+          role: "switch",
+          "aria-checked": checked,
+          "aria-required": required,
+          "data-state": getState(checked),
+          "data-disabled": disabled ? "" : void 0,
+          disabled,
+          value,
+          ...switchProps,
+          ref: composedRefs,
+          onClick: composeEventHandlers(props.onClick, (event) => {
+            setChecked((prevChecked) => !prevChecked);
+            if (isFormControl) {
+              hasConsumerStoppedPropagationRef.current = event.isPropagationStopped();
+              if (!hasConsumerStoppedPropagationRef.current) event.stopPropagation();
+            }
+          })
+        }
+      ),
+      isFormControl && /* @__PURE__ */ jsxRuntimeExports.jsx(
+        SwitchBubbleInput,
+        {
+          control: button,
+          bubbles: !hasConsumerStoppedPropagationRef.current,
+          name,
+          value,
+          checked,
+          required,
+          disabled,
+          form,
+          style: { transform: "translateX(-100%)" }
+        }
+      )
+    ] });
+  }
+);
+Switch.displayName = SWITCH_NAME;
+var THUMB_NAME = "SwitchThumb";
+var SwitchThumb = React.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeSwitch, ...thumbProps } = props;
+    const context = useSwitchContext(THUMB_NAME, __scopeSwitch);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive$1.span,
+      {
+        "data-state": getState(context.checked),
+        "data-disabled": context.disabled ? "" : void 0,
+        ...thumbProps,
+        ref: forwardedRef
+      }
+    );
+  }
+);
+SwitchThumb.displayName = THUMB_NAME;
+var BUBBLE_INPUT_NAME = "SwitchBubbleInput";
+var SwitchBubbleInput = React.forwardRef(
+  ({
+    __scopeSwitch,
+    control,
+    checked,
+    bubbles = true,
+    ...props
+  }, forwardedRef) => {
+    const ref = React.useRef(null);
+    const composedRefs = useComposedRefs(ref, forwardedRef);
+    const prevChecked = usePrevious(checked);
+    const controlSize = useSize(control);
+    React.useEffect(() => {
+      const input = ref.current;
+      if (!input) return;
+      const inputProto = window.HTMLInputElement.prototype;
+      const descriptor = Object.getOwnPropertyDescriptor(
+        inputProto,
+        "checked"
+      );
+      const setChecked = descriptor.set;
+      if (prevChecked !== checked && setChecked) {
+        const event = new Event("click", { bubbles });
+        setChecked.call(input, checked);
+        input.dispatchEvent(event);
+      }
+    }, [prevChecked, checked, bubbles]);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "input",
+      {
+        type: "checkbox",
+        "aria-hidden": true,
+        defaultChecked: checked,
+        ...props,
+        tabIndex: -1,
+        ref: composedRefs,
+        style: {
+          ...props.style,
+          ...controlSize,
+          position: "absolute",
+          pointerEvents: "none",
+          opacity: 0,
+          margin: 0
+        }
+      }
+    );
+  }
+);
+SwitchBubbleInput.displayName = BUBBLE_INPUT_NAME;
+function getState(checked) {
+  return checked ? "checked" : "unchecked";
+}
+var Root$1 = Switch;
+var Thumb = SwitchThumb;
+
+var PromSwitch = React.forwardRef(function (_a, ref) {
+    var className = _a.className, checked = _a.checked, props = __rest(_a, ["className", "checked"]);
+    return (jsxRuntimeExports.jsx(Root$1, __assign({ className: cn("peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors", "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background", "disabled:cursor-not-allowed disabled:opacity-50", checked ? "bg-primary" : "bg-input", className), checked: checked }, props, { ref: ref, children: jsxRuntimeExports.jsx(Thumb, { className: cn("pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform"), style: {
+                transform: checked ? "translateX(16px)" : "translateX(2px)",
+            } }) })));
+});
+PromSwitch.displayName = "PromSwitch";
+
+const r=(t,r,o)=>{if(t&&"reportValidity"in t){const s=get(o,r);t.setCustomValidity(s&&s.message||""),t.reportValidity();}},o=(e,t)=>{for(const o in t.fields){const s=t.fields[o];s&&s.ref&&"reportValidity"in s.ref?r(s.ref,o,e):s&&s.refs&&s.refs.forEach(t=>r(t,o,e));}},s$1=(r,s)=>{s.shouldUseNativeValidation&&o(r,s);const n={};for(const o in r){const f=get(s.fields,o),c=Object.assign(r[o]||{},{ref:f&&f.ref});if(i$1(s.names||Object.keys(r),o)){const r=Object.assign({},get(n,o));set$1(r,"root",c),set$1(n,o,r);}else set$1(n,o,c);}return n},i$1=(e,t)=>{const r=n(t);return e.some(e=>n(e).match(`^${r}\\.\\d+`))};function n(e){return e.replace(/\]|\[/g,"")}
 
 /** A special constant with type `never` */
 const NEVER = Object.freeze({
@@ -1508,7 +10522,7 @@ const _parse = (_Err) => (schema, value, _ctx, _params) => {
     }
     return result.value;
 };
-const parse$2 = /* @__PURE__*/ _parse($ZodRealError);
+const parse$1 = /* @__PURE__*/ _parse($ZodRealError);
 const _parseAsync = (_Err) => async (schema, value, _ctx, params) => {
     const ctx = _ctx ? Object.assign(_ctx, { async: true }) : { async: true };
     let result = schema._zod.run({ value, issues: [] }, ctx);
@@ -4355,10 +13369,10 @@ const $ZodFunction = /*@__PURE__*/ $constructor("$ZodFunction", (inst, def) => {
             throw new Error("implement() must be called with a function");
         }
         return function (...args) {
-            const parsedArgs = inst._def.input ? parse$2(inst._def.input, args) : args;
+            const parsedArgs = inst._def.input ? parse$1(inst._def.input, args) : args;
             const result = Reflect.apply(func, this, parsedArgs);
             if (inst._def.output) {
-                return parse$2(inst._def.output, result);
+                return parse$1(inst._def.output, result);
             }
             return result;
         };
@@ -9978,7 +18992,7 @@ function yo () {
     };
 }
 
-var index$2 = /*#__PURE__*/Object.freeze({
+var index$1 = /*#__PURE__*/Object.freeze({
     __proto__: null,
     ar: ar,
     az: az,
@@ -12285,7 +21299,7 @@ var jsonSchema = /*#__PURE__*/Object.freeze({
     __proto__: null
 });
 
-var index$1 = /*#__PURE__*/Object.freeze({
+var index = /*#__PURE__*/Object.freeze({
     __proto__: null,
     $ZodAny: $ZodAny,
     $ZodArray: $ZodArray,
@@ -12541,9 +21555,9 @@ var index$1 = /*#__PURE__*/Object.freeze({
     isValidBase64: isValidBase64,
     isValidBase64URL: isValidBase64URL,
     isValidJWT: isValidJWT,
-    locales: index$2,
+    locales: index$1,
     meta: meta$1,
-    parse: parse$2,
+    parse: parse$1,
     parseAsync: parseAsync$1,
     prettifyError: prettifyError,
     process: process$1,
@@ -12562,7 +21576,7 @@ var index$1 = /*#__PURE__*/Object.freeze({
     version: version
 });
 
-function t(r,e){try{var o=r();}catch(r){return e(r)}return o&&o.then?o.then(void 0,e):o}function s(r,e){for(var n={};r.length;){var t=r[0],s=t.code,i=t.message,a=t.path.join(".");if(!n[a])if("unionErrors"in t){var u=t.unionErrors[0].errors[0];n[a]={message:u.message,type:u.code};}else n[a]={message:i,type:s};if("unionErrors"in t&&t.unionErrors.forEach(function(e){return e.errors.forEach(function(e){return r.push(e)})}),e){var c=n[a].types,f=c&&c[t.code];n[a]=appendErrors(a,e,n,s,f?[].concat(f,t.message):t.message);}r.shift();}return n}function i(r,e){for(var n={};r.length;){var t=r[0],s=t.code,i=t.message,a=t.path.join(".");if(!n[a])if("invalid_union"===t.code&&t.errors.length>0){var u=t.errors[0][0];n[a]={message:u.message,type:u.code};}else n[a]={message:i,type:s};if("invalid_union"===t.code&&t.errors.forEach(function(e){return e.forEach(function(e){return r.push(e)})}),e){var c=n[a].types,f=c&&c[t.code];n[a]=appendErrors(a,e,n,s,f?[].concat(f,t.message):t.message);}r.shift();}return n}function a(o$1,a,u){if(void 0===u&&(u={}),function(r){return "_def"in r&&"object"==typeof r._def&&"typeName"in r._def}(o$1))return function(n,i,c){try{return Promise.resolve(t(function(){return Promise.resolve(o$1["sync"===u.mode?"parse":"parseAsync"](n,a)).then(function(e){return c.shouldUseNativeValidation&&o({},c),{errors:{},values:u.raw?Object.assign({},n):e}})},function(r){if(function(r){return Array.isArray(null==r?void 0:r.issues)}(r))return {values:{},errors:s$1(s(r.errors,!c.shouldUseNativeValidation&&"all"===c.criteriaMode),c)};throw r}))}catch(r){return Promise.reject(r)}};if(function(r){return "_zod"in r&&"object"==typeof r._zod}(o$1))return function(s,c,f){try{return Promise.resolve(t(function(){return Promise.resolve(("sync"===u.mode?parse$2:parseAsync$1)(o$1,s,a)).then(function(e){return f.shouldUseNativeValidation&&o({},f),{errors:{},values:u.raw?Object.assign({},s):e}})},function(r){if(function(r){return r instanceof $ZodError}(r))return {values:{},errors:s$1(i(r.issues,!f.shouldUseNativeValidation&&"all"===f.criteriaMode),f)};throw r}))}catch(r){return Promise.reject(r)}};throw new Error("Invalid input: not a Zod schema")}
+function t(r,e){try{var o=r();}catch(r){return e(r)}return o&&o.then?o.then(void 0,e):o}function s(r,e){for(var n={};r.length;){var t=r[0],s=t.code,i=t.message,a=t.path.join(".");if(!n[a])if("unionErrors"in t){var u=t.unionErrors[0].errors[0];n[a]={message:u.message,type:u.code};}else n[a]={message:i,type:s};if("unionErrors"in t&&t.unionErrors.forEach(function(e){return e.errors.forEach(function(e){return r.push(e)})}),e){var c=n[a].types,f=c&&c[t.code];n[a]=appendErrors(a,e,n,s,f?[].concat(f,t.message):t.message);}r.shift();}return n}function i(r,e){for(var n={};r.length;){var t=r[0],s=t.code,i=t.message,a=t.path.join(".");if(!n[a])if("invalid_union"===t.code&&t.errors.length>0){var u=t.errors[0][0];n[a]={message:u.message,type:u.code};}else n[a]={message:i,type:s};if("invalid_union"===t.code&&t.errors.forEach(function(e){return e.forEach(function(e){return r.push(e)})}),e){var c=n[a].types,f=c&&c[t.code];n[a]=appendErrors(a,e,n,s,f?[].concat(f,t.message):t.message);}r.shift();}return n}function a(o$1,a,u){if(void 0===u&&(u={}),function(r){return "_def"in r&&"object"==typeof r._def&&"typeName"in r._def}(o$1))return function(n,i,c){try{return Promise.resolve(t(function(){return Promise.resolve(o$1["sync"===u.mode?"parse":"parseAsync"](n,a)).then(function(e){return c.shouldUseNativeValidation&&o({},c),{errors:{},values:u.raw?Object.assign({},n):e}})},function(r){if(function(r){return Array.isArray(null==r?void 0:r.issues)}(r))return {values:{},errors:s$1(s(r.errors,!c.shouldUseNativeValidation&&"all"===c.criteriaMode),c)};throw r}))}catch(r){return Promise.reject(r)}};if(function(r){return "_zod"in r&&"object"==typeof r._zod}(o$1))return function(s,c,f){try{return Promise.resolve(t(function(){return Promise.resolve(("sync"===u.mode?parse$1:parseAsync$1)(o$1,s,a)).then(function(e){return f.shouldUseNativeValidation&&o({},f),{errors:{},values:u.raw?Object.assign({},s):e}})},function(r){if(function(r){return r instanceof $ZodError}(r))return {values:{},errors:s$1(i(r.issues,!f.shouldUseNativeValidation&&"all"===f.criteriaMode),f)};throw r}))}catch(r){return Promise.reject(r)}};throw new Error("Invalid input: not a Zod schema")}
 
 var PromFrom = function (_a) {
     var schema = _a.schema, render = _a.render, children = _a.children, onSubmit = _a.onSubmit, _b = _a.defaultValues, defaultValues = _b === void 0 ? {} : _b, externalForm = _a.form;
@@ -12658,3544 +21672,6 @@ var useCreatePromForm = function (_a) {
     });
 };
 
-// packages/react/compose-refs/src/compose-refs.tsx
-function setRef(ref, value) {
-  if (typeof ref === "function") {
-    return ref(value);
-  } else if (ref !== null && ref !== void 0) {
-    ref.current = value;
-  }
-}
-function composeRefs(...refs) {
-  return (node) => {
-    let hasCleanup = false;
-    const cleanups = refs.map((ref) => {
-      const cleanup = setRef(ref, node);
-      if (!hasCleanup && typeof cleanup == "function") {
-        hasCleanup = true;
-      }
-      return cleanup;
-    });
-    if (hasCleanup) {
-      return () => {
-        for (let i = 0; i < cleanups.length; i++) {
-          const cleanup = cleanups[i];
-          if (typeof cleanup == "function") {
-            cleanup();
-          } else {
-            setRef(refs[i], null);
-          }
-        }
-      };
-    }
-  };
-}
-function useComposedRefs(...refs) {
-  return React.useCallback(composeRefs(...refs), refs);
-}
-
-// src/slot.tsx
-var REACT_LAZY_TYPE = Symbol.for("react.lazy");
-var use = React[" use ".trim().toString()];
-function isPromiseLike(value) {
-  return typeof value === "object" && value !== null && "then" in value;
-}
-function isLazyComponent(element) {
-  return element != null && typeof element === "object" && "$$typeof" in element && element.$$typeof === REACT_LAZY_TYPE && "_payload" in element && isPromiseLike(element._payload);
-}
-// @__NO_SIDE_EFFECTS__
-function createSlot$1(ownerName) {
-  const SlotClone = /* @__PURE__ */ createSlotClone$1(ownerName);
-  const Slot2 = React.forwardRef((props, forwardedRef) => {
-    let { children, ...slotProps } = props;
-    if (isLazyComponent(children) && typeof use === "function") {
-      children = use(children._payload);
-    }
-    const childrenArray = React.Children.toArray(children);
-    const slottable = childrenArray.find(isSlottable$1);
-    if (slottable) {
-      const newElement = slottable.props.children;
-      const newChildren = childrenArray.map((child) => {
-        if (child === slottable) {
-          if (React.Children.count(newElement) > 1) return React.Children.only(null);
-          return React.isValidElement(newElement) ? newElement.props.children : null;
-        } else {
-          return child;
-        }
-      });
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children: React.isValidElement(newElement) ? React.cloneElement(newElement, void 0, newChildren) : null });
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children });
-  });
-  Slot2.displayName = `${ownerName}.Slot`;
-  return Slot2;
-}
-var Slot$1 = /* @__PURE__ */ createSlot$1("Slot");
-// @__NO_SIDE_EFFECTS__
-function createSlotClone$1(ownerName) {
-  const SlotClone = React.forwardRef((props, forwardedRef) => {
-    let { children, ...slotProps } = props;
-    if (isLazyComponent(children) && typeof use === "function") {
-      children = use(children._payload);
-    }
-    if (React.isValidElement(children)) {
-      const childrenRef = getElementRef$1(children);
-      const props2 = mergeProps$1(slotProps, children.props);
-      if (children.type !== React.Fragment) {
-        props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
-      }
-      return React.cloneElement(children, props2);
-    }
-    return React.Children.count(children) > 1 ? React.Children.only(null) : null;
-  });
-  SlotClone.displayName = `${ownerName}.SlotClone`;
-  return SlotClone;
-}
-var SLOTTABLE_IDENTIFIER$1 = Symbol("radix.slottable");
-function isSlottable$1(child) {
-  return React.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER$1;
-}
-function mergeProps$1(slotProps, childProps) {
-  const overrideProps = { ...childProps };
-  for (const propName in childProps) {
-    const slotPropValue = slotProps[propName];
-    const childPropValue = childProps[propName];
-    const isHandler = /^on[A-Z]/.test(propName);
-    if (isHandler) {
-      if (slotPropValue && childPropValue) {
-        overrideProps[propName] = (...args) => {
-          const result = childPropValue(...args);
-          slotPropValue(...args);
-          return result;
-        };
-      } else if (slotPropValue) {
-        overrideProps[propName] = slotPropValue;
-      }
-    } else if (propName === "style") {
-      overrideProps[propName] = { ...slotPropValue, ...childPropValue };
-    } else if (propName === "className") {
-      overrideProps[propName] = [slotPropValue, childPropValue].filter(Boolean).join(" ");
-    }
-  }
-  return { ...slotProps, ...overrideProps };
-}
-function getElementRef$1(element) {
-  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
-  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.ref;
-  }
-  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
-  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.props.ref;
-  }
-  return element.props.ref || element.ref;
-}
-
-// src/primitive.tsx
-var NODES$1 = [
-  "a",
-  "button",
-  "div",
-  "form",
-  "h2",
-  "h3",
-  "img",
-  "input",
-  "label",
-  "li",
-  "nav",
-  "ol",
-  "p",
-  "select",
-  "span",
-  "svg",
-  "ul"
-];
-var Primitive$1 = NODES$1.reduce((primitive, node) => {
-  const Slot = createSlot$1(`Primitive.${node}`);
-  const Node = React.forwardRef((props, forwardedRef) => {
-    const { asChild, ...primitiveProps } = props;
-    const Comp = asChild ? Slot : node;
-    if (typeof window !== "undefined") {
-      window[Symbol.for("radix-ui")] = true;
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Comp, { ...primitiveProps, ref: forwardedRef });
-  });
-  Node.displayName = `Primitive.${node}`;
-  return { ...primitive, [node]: Node };
-}, {});
-
-var NAME$2 = "Label";
-var Label$1 = React.forwardRef((props, forwardedRef) => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Primitive$1.label,
-    {
-      ...props,
-      ref: forwardedRef,
-      onMouseDown: (event) => {
-        const target = event.target;
-        if (target.closest("button, input, select, textarea")) return;
-        props.onMouseDown?.(event);
-        if (!event.defaultPrevented && event.detail > 1) event.preventDefault();
-      }
-    }
-  );
-});
-Label$1.displayName = NAME$2;
-var Root$2 = Label$1;
-
-function r(e){var t,f,n="";if("string"==typeof e||"number"==typeof e)n+=e;else if("object"==typeof e)if(Array.isArray(e)){var o=e.length;for(t=0;t<o;t++)e[t]&&(f=r(e[t]))&&(n&&(n+=" "),n+=f);}else for(f in e)e[f]&&(n&&(n+=" "),n+=f);return n}function clsx(){for(var e,t,f=0,n="",o=arguments.length;f<o;f++)(e=arguments[f])&&(t=r(e))&&(n&&(n+=" "),n+=t);return n}
-
-/**
- * Concatenates two arrays faster than the array spread operator.
- */
-const concatArrays = (array1, array2) => {
-  // Pre-allocate for better V8 optimization
-  const combinedArray = new Array(array1.length + array2.length);
-  for (let i = 0; i < array1.length; i++) {
-    combinedArray[i] = array1[i];
-  }
-  for (let i = 0; i < array2.length; i++) {
-    combinedArray[array1.length + i] = array2[i];
-  }
-  return combinedArray;
-};
-
-// Factory function ensures consistent object shapes
-const createClassValidatorObject = (classGroupId, validator) => ({
-  classGroupId,
-  validator
-});
-// Factory ensures consistent ClassPartObject shape
-const createClassPartObject = (nextPart = new Map(), validators = null, classGroupId) => ({
-  nextPart,
-  validators,
-  classGroupId
-});
-const CLASS_PART_SEPARATOR = '-';
-const EMPTY_CONFLICTS = [];
-// I use two dots here because one dot is used as prefix for class groups in plugins
-const ARBITRARY_PROPERTY_PREFIX = 'arbitrary..';
-const createClassGroupUtils = config => {
-  const classMap = createClassMap(config);
-  const {
-    conflictingClassGroups,
-    conflictingClassGroupModifiers
-  } = config;
-  const getClassGroupId = className => {
-    if (className.startsWith('[') && className.endsWith(']')) {
-      return getGroupIdForArbitraryProperty(className);
-    }
-    const classParts = className.split(CLASS_PART_SEPARATOR);
-    // Classes like `-inset-1` produce an empty string as first classPart. We assume that classes for negative values are used correctly and skip it.
-    const startIndex = classParts[0] === '' && classParts.length > 1 ? 1 : 0;
-    return getGroupRecursive(classParts, startIndex, classMap);
-  };
-  const getConflictingClassGroupIds = (classGroupId, hasPostfixModifier) => {
-    if (hasPostfixModifier) {
-      const modifierConflicts = conflictingClassGroupModifiers[classGroupId];
-      const baseConflicts = conflictingClassGroups[classGroupId];
-      if (modifierConflicts) {
-        if (baseConflicts) {
-          // Merge base conflicts with modifier conflicts
-          return concatArrays(baseConflicts, modifierConflicts);
-        }
-        // Only modifier conflicts
-        return modifierConflicts;
-      }
-      // Fall back to without postfix if no modifier conflicts
-      return baseConflicts || EMPTY_CONFLICTS;
-    }
-    return conflictingClassGroups[classGroupId] || EMPTY_CONFLICTS;
-  };
-  return {
-    getClassGroupId,
-    getConflictingClassGroupIds
-  };
-};
-const getGroupRecursive = (classParts, startIndex, classPartObject) => {
-  const classPathsLength = classParts.length - startIndex;
-  if (classPathsLength === 0) {
-    return classPartObject.classGroupId;
-  }
-  const currentClassPart = classParts[startIndex];
-  const nextClassPartObject = classPartObject.nextPart.get(currentClassPart);
-  if (nextClassPartObject) {
-    const result = getGroupRecursive(classParts, startIndex + 1, nextClassPartObject);
-    if (result) return result;
-  }
-  const validators = classPartObject.validators;
-  if (validators === null) {
-    return undefined;
-  }
-  // Build classRest string efficiently by joining from startIndex onwards
-  const classRest = startIndex === 0 ? classParts.join(CLASS_PART_SEPARATOR) : classParts.slice(startIndex).join(CLASS_PART_SEPARATOR);
-  const validatorsLength = validators.length;
-  for (let i = 0; i < validatorsLength; i++) {
-    const validatorObj = validators[i];
-    if (validatorObj.validator(classRest)) {
-      return validatorObj.classGroupId;
-    }
-  }
-  return undefined;
-};
-/**
- * Get the class group ID for an arbitrary property.
- *
- * @param className - The class name to get the group ID for. Is expected to be string starting with `[` and ending with `]`.
- */
-const getGroupIdForArbitraryProperty = className => className.slice(1, -1).indexOf(':') === -1 ? undefined : (() => {
-  const content = className.slice(1, -1);
-  const colonIndex = content.indexOf(':');
-  const property = content.slice(0, colonIndex);
-  return property ? ARBITRARY_PROPERTY_PREFIX + property : undefined;
-})();
-/**
- * Exported for testing only
- */
-const createClassMap = config => {
-  const {
-    theme,
-    classGroups
-  } = config;
-  return processClassGroups(classGroups, theme);
-};
-// Split into separate functions to maintain monomorphic call sites
-const processClassGroups = (classGroups, theme) => {
-  const classMap = createClassPartObject();
-  for (const classGroupId in classGroups) {
-    const group = classGroups[classGroupId];
-    processClassesRecursively(group, classMap, classGroupId, theme);
-  }
-  return classMap;
-};
-const processClassesRecursively = (classGroup, classPartObject, classGroupId, theme) => {
-  const len = classGroup.length;
-  for (let i = 0; i < len; i++) {
-    const classDefinition = classGroup[i];
-    processClassDefinition(classDefinition, classPartObject, classGroupId, theme);
-  }
-};
-// Split into separate functions for each type to maintain monomorphic call sites
-const processClassDefinition = (classDefinition, classPartObject, classGroupId, theme) => {
-  if (typeof classDefinition === 'string') {
-    processStringDefinition(classDefinition, classPartObject, classGroupId);
-    return;
-  }
-  if (typeof classDefinition === 'function') {
-    processFunctionDefinition(classDefinition, classPartObject, classGroupId, theme);
-    return;
-  }
-  processObjectDefinition(classDefinition, classPartObject, classGroupId, theme);
-};
-const processStringDefinition = (classDefinition, classPartObject, classGroupId) => {
-  const classPartObjectToEdit = classDefinition === '' ? classPartObject : getPart(classPartObject, classDefinition);
-  classPartObjectToEdit.classGroupId = classGroupId;
-};
-const processFunctionDefinition = (classDefinition, classPartObject, classGroupId, theme) => {
-  if (isThemeGetter(classDefinition)) {
-    processClassesRecursively(classDefinition(theme), classPartObject, classGroupId, theme);
-    return;
-  }
-  if (classPartObject.validators === null) {
-    classPartObject.validators = [];
-  }
-  classPartObject.validators.push(createClassValidatorObject(classGroupId, classDefinition));
-};
-const processObjectDefinition = (classDefinition, classPartObject, classGroupId, theme) => {
-  const entries = Object.entries(classDefinition);
-  const len = entries.length;
-  for (let i = 0; i < len; i++) {
-    const [key, value] = entries[i];
-    processClassesRecursively(value, getPart(classPartObject, key), classGroupId, theme);
-  }
-};
-const getPart = (classPartObject, path) => {
-  let current = classPartObject;
-  const parts = path.split(CLASS_PART_SEPARATOR);
-  const len = parts.length;
-  for (let i = 0; i < len; i++) {
-    const part = parts[i];
-    let next = current.nextPart.get(part);
-    if (!next) {
-      next = createClassPartObject();
-      current.nextPart.set(part, next);
-    }
-    current = next;
-  }
-  return current;
-};
-// Type guard maintains monomorphic check
-const isThemeGetter = func => 'isThemeGetter' in func && func.isThemeGetter === true;
-
-// LRU cache implementation using plain objects for simplicity
-const createLruCache = maxCacheSize => {
-  if (maxCacheSize < 1) {
-    return {
-      get: () => undefined,
-      set: () => {}
-    };
-  }
-  let cacheSize = 0;
-  let cache = Object.create(null);
-  let previousCache = Object.create(null);
-  const update = (key, value) => {
-    cache[key] = value;
-    cacheSize++;
-    if (cacheSize > maxCacheSize) {
-      cacheSize = 0;
-      previousCache = cache;
-      cache = Object.create(null);
-    }
-  };
-  return {
-    get(key) {
-      let value = cache[key];
-      if (value !== undefined) {
-        return value;
-      }
-      if ((value = previousCache[key]) !== undefined) {
-        update(key, value);
-        return value;
-      }
-    },
-    set(key, value) {
-      if (key in cache) {
-        cache[key] = value;
-      } else {
-        update(key, value);
-      }
-    }
-  };
-};
-const IMPORTANT_MODIFIER = '!';
-const MODIFIER_SEPARATOR = ':';
-const EMPTY_MODIFIERS = [];
-// Pre-allocated result object shape for consistency
-const createResultObject = (modifiers, hasImportantModifier, baseClassName, maybePostfixModifierPosition, isExternal) => ({
-  modifiers,
-  hasImportantModifier,
-  baseClassName,
-  maybePostfixModifierPosition,
-  isExternal
-});
-const createParseClassName = config => {
-  const {
-    prefix,
-    experimentalParseClassName
-  } = config;
-  /**
-   * Parse class name into parts.
-   *
-   * Inspired by `splitAtTopLevelOnly` used in Tailwind CSS
-   * @see https://github.com/tailwindlabs/tailwindcss/blob/v3.2.2/src/util/splitAtTopLevelOnly.js
-   */
-  let parseClassName = className => {
-    // Use simple array with push for better performance
-    const modifiers = [];
-    let bracketDepth = 0;
-    let parenDepth = 0;
-    let modifierStart = 0;
-    let postfixModifierPosition;
-    const len = className.length;
-    for (let index = 0; index < len; index++) {
-      const currentCharacter = className[index];
-      if (bracketDepth === 0 && parenDepth === 0) {
-        if (currentCharacter === MODIFIER_SEPARATOR) {
-          modifiers.push(className.slice(modifierStart, index));
-          modifierStart = index + 1;
-          continue;
-        }
-        if (currentCharacter === '/') {
-          postfixModifierPosition = index;
-          continue;
-        }
-      }
-      if (currentCharacter === '[') bracketDepth++;else if (currentCharacter === ']') bracketDepth--;else if (currentCharacter === '(') parenDepth++;else if (currentCharacter === ')') parenDepth--;
-    }
-    const baseClassNameWithImportantModifier = modifiers.length === 0 ? className : className.slice(modifierStart);
-    // Inline important modifier check
-    let baseClassName = baseClassNameWithImportantModifier;
-    let hasImportantModifier = false;
-    if (baseClassNameWithImportantModifier.endsWith(IMPORTANT_MODIFIER)) {
-      baseClassName = baseClassNameWithImportantModifier.slice(0, -1);
-      hasImportantModifier = true;
-    } else if (
-    /**
-     * In Tailwind CSS v3 the important modifier was at the start of the base class name. This is still supported for legacy reasons.
-     * @see https://github.com/dcastil/tailwind-merge/issues/513#issuecomment-2614029864
-     */
-    baseClassNameWithImportantModifier.startsWith(IMPORTANT_MODIFIER)) {
-      baseClassName = baseClassNameWithImportantModifier.slice(1);
-      hasImportantModifier = true;
-    }
-    const maybePostfixModifierPosition = postfixModifierPosition && postfixModifierPosition > modifierStart ? postfixModifierPosition - modifierStart : undefined;
-    return createResultObject(modifiers, hasImportantModifier, baseClassName, maybePostfixModifierPosition);
-  };
-  if (prefix) {
-    const fullPrefix = prefix + MODIFIER_SEPARATOR;
-    const parseClassNameOriginal = parseClassName;
-    parseClassName = className => className.startsWith(fullPrefix) ? parseClassNameOriginal(className.slice(fullPrefix.length)) : createResultObject(EMPTY_MODIFIERS, false, className, undefined, true);
-  }
-  if (experimentalParseClassName) {
-    const parseClassNameOriginal = parseClassName;
-    parseClassName = className => experimentalParseClassName({
-      className,
-      parseClassName: parseClassNameOriginal
-    });
-  }
-  return parseClassName;
-};
-
-/**
- * Sorts modifiers according to following schema:
- * - Predefined modifiers are sorted alphabetically
- * - When an arbitrary variant appears, it must be preserved which modifiers are before and after it
- */
-const createSortModifiers = config => {
-  // Pre-compute weights for all known modifiers for O(1) comparison
-  const modifierWeights = new Map();
-  // Assign weights to sensitive modifiers (highest priority, but preserve order)
-  config.orderSensitiveModifiers.forEach((mod, index) => {
-    modifierWeights.set(mod, 1000000 + index); // High weights for sensitive mods
-  });
-  return modifiers => {
-    const result = [];
-    let currentSegment = [];
-    // Process modifiers in one pass
-    for (let i = 0; i < modifiers.length; i++) {
-      const modifier = modifiers[i];
-      // Check if modifier is sensitive (starts with '[' or in orderSensitiveModifiers)
-      const isArbitrary = modifier[0] === '[';
-      const isOrderSensitive = modifierWeights.has(modifier);
-      if (isArbitrary || isOrderSensitive) {
-        // Sort and flush current segment alphabetically
-        if (currentSegment.length > 0) {
-          currentSegment.sort();
-          result.push(...currentSegment);
-          currentSegment = [];
-        }
-        result.push(modifier);
-      } else {
-        // Regular modifier - add to current segment for batch sorting
-        currentSegment.push(modifier);
-      }
-    }
-    // Sort and add any remaining segment items
-    if (currentSegment.length > 0) {
-      currentSegment.sort();
-      result.push(...currentSegment);
-    }
-    return result;
-  };
-};
-const createConfigUtils = config => ({
-  cache: createLruCache(config.cacheSize),
-  parseClassName: createParseClassName(config),
-  sortModifiers: createSortModifiers(config),
-  ...createClassGroupUtils(config)
-});
-const SPLIT_CLASSES_REGEX = /\s+/;
-const mergeClassList = (classList, configUtils) => {
-  const {
-    parseClassName,
-    getClassGroupId,
-    getConflictingClassGroupIds,
-    sortModifiers
-  } = configUtils;
-  /**
-   * Set of classGroupIds in following format:
-   * `{importantModifier}{variantModifiers}{classGroupId}`
-   * @example 'float'
-   * @example 'hover:focus:bg-color'
-   * @example 'md:!pr'
-   */
-  const classGroupsInConflict = [];
-  const classNames = classList.trim().split(SPLIT_CLASSES_REGEX);
-  let result = '';
-  for (let index = classNames.length - 1; index >= 0; index -= 1) {
-    const originalClassName = classNames[index];
-    const {
-      isExternal,
-      modifiers,
-      hasImportantModifier,
-      baseClassName,
-      maybePostfixModifierPosition
-    } = parseClassName(originalClassName);
-    if (isExternal) {
-      result = originalClassName + (result.length > 0 ? ' ' + result : result);
-      continue;
-    }
-    let hasPostfixModifier = !!maybePostfixModifierPosition;
-    let classGroupId = getClassGroupId(hasPostfixModifier ? baseClassName.substring(0, maybePostfixModifierPosition) : baseClassName);
-    if (!classGroupId) {
-      if (!hasPostfixModifier) {
-        // Not a Tailwind class
-        result = originalClassName + (result.length > 0 ? ' ' + result : result);
-        continue;
-      }
-      classGroupId = getClassGroupId(baseClassName);
-      if (!classGroupId) {
-        // Not a Tailwind class
-        result = originalClassName + (result.length > 0 ? ' ' + result : result);
-        continue;
-      }
-      hasPostfixModifier = false;
-    }
-    // Fast path: skip sorting for empty or single modifier
-    const variantModifier = modifiers.length === 0 ? '' : modifiers.length === 1 ? modifiers[0] : sortModifiers(modifiers).join(':');
-    const modifierId = hasImportantModifier ? variantModifier + IMPORTANT_MODIFIER : variantModifier;
-    const classId = modifierId + classGroupId;
-    if (classGroupsInConflict.indexOf(classId) > -1) {
-      // Tailwind class omitted due to conflict
-      continue;
-    }
-    classGroupsInConflict.push(classId);
-    const conflictGroups = getConflictingClassGroupIds(classGroupId, hasPostfixModifier);
-    for (let i = 0; i < conflictGroups.length; ++i) {
-      const group = conflictGroups[i];
-      classGroupsInConflict.push(modifierId + group);
-    }
-    // Tailwind class not in conflict
-    result = originalClassName + (result.length > 0 ? ' ' + result : result);
-  }
-  return result;
-};
-
-/**
- * The code in this file is copied from https://github.com/lukeed/clsx and modified to suit the needs of tailwind-merge better.
- *
- * Specifically:
- * - Runtime code from https://github.com/lukeed/clsx/blob/v1.2.1/src/index.js
- * - TypeScript types from https://github.com/lukeed/clsx/blob/v1.2.1/clsx.d.ts
- *
- * Original code has MIT license: Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
- */
-const twJoin = (...classLists) => {
-  let index = 0;
-  let argument;
-  let resolvedValue;
-  let string = '';
-  while (index < classLists.length) {
-    if (argument = classLists[index++]) {
-      if (resolvedValue = toValue(argument)) {
-        string && (string += ' ');
-        string += resolvedValue;
-      }
-    }
-  }
-  return string;
-};
-const toValue = mix => {
-  // Fast path for strings
-  if (typeof mix === 'string') {
-    return mix;
-  }
-  let resolvedValue;
-  let string = '';
-  for (let k = 0; k < mix.length; k++) {
-    if (mix[k]) {
-      if (resolvedValue = toValue(mix[k])) {
-        string && (string += ' ');
-        string += resolvedValue;
-      }
-    }
-  }
-  return string;
-};
-const createTailwindMerge = (createConfigFirst, ...createConfigRest) => {
-  let configUtils;
-  let cacheGet;
-  let cacheSet;
-  let functionToCall;
-  const initTailwindMerge = classList => {
-    const config = createConfigRest.reduce((previousConfig, createConfigCurrent) => createConfigCurrent(previousConfig), createConfigFirst());
-    configUtils = createConfigUtils(config);
-    cacheGet = configUtils.cache.get;
-    cacheSet = configUtils.cache.set;
-    functionToCall = tailwindMerge;
-    return tailwindMerge(classList);
-  };
-  const tailwindMerge = classList => {
-    const cachedResult = cacheGet(classList);
-    if (cachedResult) {
-      return cachedResult;
-    }
-    const result = mergeClassList(classList, configUtils);
-    cacheSet(classList, result);
-    return result;
-  };
-  functionToCall = initTailwindMerge;
-  return (...args) => functionToCall(twJoin(...args));
-};
-const fallbackThemeArr = [];
-const fromTheme = key => {
-  const themeGetter = theme => theme[key] || fallbackThemeArr;
-  themeGetter.isThemeGetter = true;
-  return themeGetter;
-};
-const arbitraryValueRegex = /^\[(?:(\w[\w-]*):)?(.+)\]$/i;
-const arbitraryVariableRegex = /^\((?:(\w[\w-]*):)?(.+)\)$/i;
-const fractionRegex = /^\d+\/\d+$/;
-const tshirtUnitRegex = /^(\d+(\.\d+)?)?(xs|sm|md|lg|xl)$/;
-const lengthUnitRegex = /\d+(%|px|r?em|[sdl]?v([hwib]|min|max)|pt|pc|in|cm|mm|cap|ch|ex|r?lh|cq(w|h|i|b|min|max))|\b(calc|min|max|clamp)\(.+\)|^0$/;
-const colorFunctionRegex = /^(rgba?|hsla?|hwb|(ok)?(lab|lch)|color-mix)\(.+\)$/;
-// Shadow always begins with x and y offset separated by underscore optionally prepended by inset
-const shadowRegex = /^(inset_)?-?((\d+)?\.?(\d+)[a-z]+|0)_-?((\d+)?\.?(\d+)[a-z]+|0)/;
-const imageRegex = /^(url|image|image-set|cross-fade|element|(repeating-)?(linear|radial|conic)-gradient)\(.+\)$/;
-const isFraction = value => fractionRegex.test(value);
-const isNumber = value => !!value && !Number.isNaN(Number(value));
-const isInteger = value => !!value && Number.isInteger(Number(value));
-const isPercent = value => value.endsWith('%') && isNumber(value.slice(0, -1));
-const isTshirtSize = value => tshirtUnitRegex.test(value);
-const isAny = () => true;
-const isLengthOnly = value =>
-// `colorFunctionRegex` check is necessary because color functions can have percentages in them which which would be incorrectly classified as lengths.
-// For example, `hsl(0 0% 0%)` would be classified as a length without this check.
-// I could also use lookbehind assertion in `lengthUnitRegex` but that isn't supported widely enough.
-lengthUnitRegex.test(value) && !colorFunctionRegex.test(value);
-const isNever = () => false;
-const isShadow = value => shadowRegex.test(value);
-const isImage = value => imageRegex.test(value);
-const isAnyNonArbitrary = value => !isArbitraryValue(value) && !isArbitraryVariable(value);
-const isArbitrarySize = value => getIsArbitraryValue(value, isLabelSize, isNever);
-const isArbitraryValue = value => arbitraryValueRegex.test(value);
-const isArbitraryLength = value => getIsArbitraryValue(value, isLabelLength, isLengthOnly);
-const isArbitraryNumber = value => getIsArbitraryValue(value, isLabelNumber, isNumber);
-const isArbitraryPosition = value => getIsArbitraryValue(value, isLabelPosition, isNever);
-const isArbitraryImage = value => getIsArbitraryValue(value, isLabelImage, isImage);
-const isArbitraryShadow = value => getIsArbitraryValue(value, isLabelShadow, isShadow);
-const isArbitraryVariable = value => arbitraryVariableRegex.test(value);
-const isArbitraryVariableLength = value => getIsArbitraryVariable(value, isLabelLength);
-const isArbitraryVariableFamilyName = value => getIsArbitraryVariable(value, isLabelFamilyName);
-const isArbitraryVariablePosition = value => getIsArbitraryVariable(value, isLabelPosition);
-const isArbitraryVariableSize = value => getIsArbitraryVariable(value, isLabelSize);
-const isArbitraryVariableImage = value => getIsArbitraryVariable(value, isLabelImage);
-const isArbitraryVariableShadow = value => getIsArbitraryVariable(value, isLabelShadow, true);
-// Helpers
-const getIsArbitraryValue = (value, testLabel, testValue) => {
-  const result = arbitraryValueRegex.exec(value);
-  if (result) {
-    if (result[1]) {
-      return testLabel(result[1]);
-    }
-    return testValue(result[2]);
-  }
-  return false;
-};
-const getIsArbitraryVariable = (value, testLabel, shouldMatchNoLabel = false) => {
-  const result = arbitraryVariableRegex.exec(value);
-  if (result) {
-    if (result[1]) {
-      return testLabel(result[1]);
-    }
-    return shouldMatchNoLabel;
-  }
-  return false;
-};
-// Labels
-const isLabelPosition = label => label === 'position' || label === 'percentage';
-const isLabelImage = label => label === 'image' || label === 'url';
-const isLabelSize = label => label === 'length' || label === 'size' || label === 'bg-size';
-const isLabelLength = label => label === 'length';
-const isLabelNumber = label => label === 'number';
-const isLabelFamilyName = label => label === 'family-name';
-const isLabelShadow = label => label === 'shadow';
-const getDefaultConfig = () => {
-  /**
-   * Theme getters for theme variable namespaces
-   * @see https://tailwindcss.com/docs/theme#theme-variable-namespaces
-   */
-  /***/
-  const themeColor = fromTheme('color');
-  const themeFont = fromTheme('font');
-  const themeText = fromTheme('text');
-  const themeFontWeight = fromTheme('font-weight');
-  const themeTracking = fromTheme('tracking');
-  const themeLeading = fromTheme('leading');
-  const themeBreakpoint = fromTheme('breakpoint');
-  const themeContainer = fromTheme('container');
-  const themeSpacing = fromTheme('spacing');
-  const themeRadius = fromTheme('radius');
-  const themeShadow = fromTheme('shadow');
-  const themeInsetShadow = fromTheme('inset-shadow');
-  const themeTextShadow = fromTheme('text-shadow');
-  const themeDropShadow = fromTheme('drop-shadow');
-  const themeBlur = fromTheme('blur');
-  const themePerspective = fromTheme('perspective');
-  const themeAspect = fromTheme('aspect');
-  const themeEase = fromTheme('ease');
-  const themeAnimate = fromTheme('animate');
-  /**
-   * Helpers to avoid repeating the same scales
-   *
-   * We use functions that create a new array every time they're called instead of static arrays.
-   * This ensures that users who modify any scale by mutating the array (e.g. with `array.push(element)`) don't accidentally mutate arrays in other parts of the config.
-   */
-  /***/
-  const scaleBreak = () => ['auto', 'avoid', 'all', 'avoid-page', 'page', 'left', 'right', 'column'];
-  const scalePosition = () => ['center', 'top', 'bottom', 'left', 'right', 'top-left',
-  // Deprecated since Tailwind CSS v4.1.0, see https://github.com/tailwindlabs/tailwindcss/pull/17378
-  'left-top', 'top-right',
-  // Deprecated since Tailwind CSS v4.1.0, see https://github.com/tailwindlabs/tailwindcss/pull/17378
-  'right-top', 'bottom-right',
-  // Deprecated since Tailwind CSS v4.1.0, see https://github.com/tailwindlabs/tailwindcss/pull/17378
-  'right-bottom', 'bottom-left',
-  // Deprecated since Tailwind CSS v4.1.0, see https://github.com/tailwindlabs/tailwindcss/pull/17378
-  'left-bottom'];
-  const scalePositionWithArbitrary = () => [...scalePosition(), isArbitraryVariable, isArbitraryValue];
-  const scaleOverflow = () => ['auto', 'hidden', 'clip', 'visible', 'scroll'];
-  const scaleOverscroll = () => ['auto', 'contain', 'none'];
-  const scaleUnambiguousSpacing = () => [isArbitraryVariable, isArbitraryValue, themeSpacing];
-  const scaleInset = () => [isFraction, 'full', 'auto', ...scaleUnambiguousSpacing()];
-  const scaleGridTemplateColsRows = () => [isInteger, 'none', 'subgrid', isArbitraryVariable, isArbitraryValue];
-  const scaleGridColRowStartAndEnd = () => ['auto', {
-    span: ['full', isInteger, isArbitraryVariable, isArbitraryValue]
-  }, isInteger, isArbitraryVariable, isArbitraryValue];
-  const scaleGridColRowStartOrEnd = () => [isInteger, 'auto', isArbitraryVariable, isArbitraryValue];
-  const scaleGridAutoColsRows = () => ['auto', 'min', 'max', 'fr', isArbitraryVariable, isArbitraryValue];
-  const scaleAlignPrimaryAxis = () => ['start', 'end', 'center', 'between', 'around', 'evenly', 'stretch', 'baseline', 'center-safe', 'end-safe'];
-  const scaleAlignSecondaryAxis = () => ['start', 'end', 'center', 'stretch', 'center-safe', 'end-safe'];
-  const scaleMargin = () => ['auto', ...scaleUnambiguousSpacing()];
-  const scaleSizing = () => [isFraction, 'auto', 'full', 'dvw', 'dvh', 'lvw', 'lvh', 'svw', 'svh', 'min', 'max', 'fit', ...scaleUnambiguousSpacing()];
-  const scaleColor = () => [themeColor, isArbitraryVariable, isArbitraryValue];
-  const scaleBgPosition = () => [...scalePosition(), isArbitraryVariablePosition, isArbitraryPosition, {
-    position: [isArbitraryVariable, isArbitraryValue]
-  }];
-  const scaleBgRepeat = () => ['no-repeat', {
-    repeat: ['', 'x', 'y', 'space', 'round']
-  }];
-  const scaleBgSize = () => ['auto', 'cover', 'contain', isArbitraryVariableSize, isArbitrarySize, {
-    size: [isArbitraryVariable, isArbitraryValue]
-  }];
-  const scaleGradientStopPosition = () => [isPercent, isArbitraryVariableLength, isArbitraryLength];
-  const scaleRadius = () => [
-  // Deprecated since Tailwind CSS v4.0.0
-  '', 'none', 'full', themeRadius, isArbitraryVariable, isArbitraryValue];
-  const scaleBorderWidth = () => ['', isNumber, isArbitraryVariableLength, isArbitraryLength];
-  const scaleLineStyle = () => ['solid', 'dashed', 'dotted', 'double'];
-  const scaleBlendMode = () => ['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity'];
-  const scaleMaskImagePosition = () => [isNumber, isPercent, isArbitraryVariablePosition, isArbitraryPosition];
-  const scaleBlur = () => [
-  // Deprecated since Tailwind CSS v4.0.0
-  '', 'none', themeBlur, isArbitraryVariable, isArbitraryValue];
-  const scaleRotate = () => ['none', isNumber, isArbitraryVariable, isArbitraryValue];
-  const scaleScale = () => ['none', isNumber, isArbitraryVariable, isArbitraryValue];
-  const scaleSkew = () => [isNumber, isArbitraryVariable, isArbitraryValue];
-  const scaleTranslate = () => [isFraction, 'full', ...scaleUnambiguousSpacing()];
-  return {
-    cacheSize: 500,
-    theme: {
-      animate: ['spin', 'ping', 'pulse', 'bounce'],
-      aspect: ['video'],
-      blur: [isTshirtSize],
-      breakpoint: [isTshirtSize],
-      color: [isAny],
-      container: [isTshirtSize],
-      'drop-shadow': [isTshirtSize],
-      ease: ['in', 'out', 'in-out'],
-      font: [isAnyNonArbitrary],
-      'font-weight': ['thin', 'extralight', 'light', 'normal', 'medium', 'semibold', 'bold', 'extrabold', 'black'],
-      'inset-shadow': [isTshirtSize],
-      leading: ['none', 'tight', 'snug', 'normal', 'relaxed', 'loose'],
-      perspective: ['dramatic', 'near', 'normal', 'midrange', 'distant', 'none'],
-      radius: [isTshirtSize],
-      shadow: [isTshirtSize],
-      spacing: ['px', isNumber],
-      text: [isTshirtSize],
-      'text-shadow': [isTshirtSize],
-      tracking: ['tighter', 'tight', 'normal', 'wide', 'wider', 'widest']
-    },
-    classGroups: {
-      // --------------
-      // --- Layout ---
-      // --------------
-      /**
-       * Aspect Ratio
-       * @see https://tailwindcss.com/docs/aspect-ratio
-       */
-      aspect: [{
-        aspect: ['auto', 'square', isFraction, isArbitraryValue, isArbitraryVariable, themeAspect]
-      }],
-      /**
-       * Container
-       * @see https://tailwindcss.com/docs/container
-       * @deprecated since Tailwind CSS v4.0.0
-       */
-      container: ['container'],
-      /**
-       * Columns
-       * @see https://tailwindcss.com/docs/columns
-       */
-      columns: [{
-        columns: [isNumber, isArbitraryValue, isArbitraryVariable, themeContainer]
-      }],
-      /**
-       * Break After
-       * @see https://tailwindcss.com/docs/break-after
-       */
-      'break-after': [{
-        'break-after': scaleBreak()
-      }],
-      /**
-       * Break Before
-       * @see https://tailwindcss.com/docs/break-before
-       */
-      'break-before': [{
-        'break-before': scaleBreak()
-      }],
-      /**
-       * Break Inside
-       * @see https://tailwindcss.com/docs/break-inside
-       */
-      'break-inside': [{
-        'break-inside': ['auto', 'avoid', 'avoid-page', 'avoid-column']
-      }],
-      /**
-       * Box Decoration Break
-       * @see https://tailwindcss.com/docs/box-decoration-break
-       */
-      'box-decoration': [{
-        'box-decoration': ['slice', 'clone']
-      }],
-      /**
-       * Box Sizing
-       * @see https://tailwindcss.com/docs/box-sizing
-       */
-      box: [{
-        box: ['border', 'content']
-      }],
-      /**
-       * Display
-       * @see https://tailwindcss.com/docs/display
-       */
-      display: ['block', 'inline-block', 'inline', 'flex', 'inline-flex', 'table', 'inline-table', 'table-caption', 'table-cell', 'table-column', 'table-column-group', 'table-footer-group', 'table-header-group', 'table-row-group', 'table-row', 'flow-root', 'grid', 'inline-grid', 'contents', 'list-item', 'hidden'],
-      /**
-       * Screen Reader Only
-       * @see https://tailwindcss.com/docs/display#screen-reader-only
-       */
-      sr: ['sr-only', 'not-sr-only'],
-      /**
-       * Floats
-       * @see https://tailwindcss.com/docs/float
-       */
-      float: [{
-        float: ['right', 'left', 'none', 'start', 'end']
-      }],
-      /**
-       * Clear
-       * @see https://tailwindcss.com/docs/clear
-       */
-      clear: [{
-        clear: ['left', 'right', 'both', 'none', 'start', 'end']
-      }],
-      /**
-       * Isolation
-       * @see https://tailwindcss.com/docs/isolation
-       */
-      isolation: ['isolate', 'isolation-auto'],
-      /**
-       * Object Fit
-       * @see https://tailwindcss.com/docs/object-fit
-       */
-      'object-fit': [{
-        object: ['contain', 'cover', 'fill', 'none', 'scale-down']
-      }],
-      /**
-       * Object Position
-       * @see https://tailwindcss.com/docs/object-position
-       */
-      'object-position': [{
-        object: scalePositionWithArbitrary()
-      }],
-      /**
-       * Overflow
-       * @see https://tailwindcss.com/docs/overflow
-       */
-      overflow: [{
-        overflow: scaleOverflow()
-      }],
-      /**
-       * Overflow X
-       * @see https://tailwindcss.com/docs/overflow
-       */
-      'overflow-x': [{
-        'overflow-x': scaleOverflow()
-      }],
-      /**
-       * Overflow Y
-       * @see https://tailwindcss.com/docs/overflow
-       */
-      'overflow-y': [{
-        'overflow-y': scaleOverflow()
-      }],
-      /**
-       * Overscroll Behavior
-       * @see https://tailwindcss.com/docs/overscroll-behavior
-       */
-      overscroll: [{
-        overscroll: scaleOverscroll()
-      }],
-      /**
-       * Overscroll Behavior X
-       * @see https://tailwindcss.com/docs/overscroll-behavior
-       */
-      'overscroll-x': [{
-        'overscroll-x': scaleOverscroll()
-      }],
-      /**
-       * Overscroll Behavior Y
-       * @see https://tailwindcss.com/docs/overscroll-behavior
-       */
-      'overscroll-y': [{
-        'overscroll-y': scaleOverscroll()
-      }],
-      /**
-       * Position
-       * @see https://tailwindcss.com/docs/position
-       */
-      position: ['static', 'fixed', 'absolute', 'relative', 'sticky'],
-      /**
-       * Top / Right / Bottom / Left
-       * @see https://tailwindcss.com/docs/top-right-bottom-left
-       */
-      inset: [{
-        inset: scaleInset()
-      }],
-      /**
-       * Right / Left
-       * @see https://tailwindcss.com/docs/top-right-bottom-left
-       */
-      'inset-x': [{
-        'inset-x': scaleInset()
-      }],
-      /**
-       * Top / Bottom
-       * @see https://tailwindcss.com/docs/top-right-bottom-left
-       */
-      'inset-y': [{
-        'inset-y': scaleInset()
-      }],
-      /**
-       * Start
-       * @see https://tailwindcss.com/docs/top-right-bottom-left
-       */
-      start: [{
-        start: scaleInset()
-      }],
-      /**
-       * End
-       * @see https://tailwindcss.com/docs/top-right-bottom-left
-       */
-      end: [{
-        end: scaleInset()
-      }],
-      /**
-       * Top
-       * @see https://tailwindcss.com/docs/top-right-bottom-left
-       */
-      top: [{
-        top: scaleInset()
-      }],
-      /**
-       * Right
-       * @see https://tailwindcss.com/docs/top-right-bottom-left
-       */
-      right: [{
-        right: scaleInset()
-      }],
-      /**
-       * Bottom
-       * @see https://tailwindcss.com/docs/top-right-bottom-left
-       */
-      bottom: [{
-        bottom: scaleInset()
-      }],
-      /**
-       * Left
-       * @see https://tailwindcss.com/docs/top-right-bottom-left
-       */
-      left: [{
-        left: scaleInset()
-      }],
-      /**
-       * Visibility
-       * @see https://tailwindcss.com/docs/visibility
-       */
-      visibility: ['visible', 'invisible', 'collapse'],
-      /**
-       * Z-Index
-       * @see https://tailwindcss.com/docs/z-index
-       */
-      z: [{
-        z: [isInteger, 'auto', isArbitraryVariable, isArbitraryValue]
-      }],
-      // ------------------------
-      // --- Flexbox and Grid ---
-      // ------------------------
-      /**
-       * Flex Basis
-       * @see https://tailwindcss.com/docs/flex-basis
-       */
-      basis: [{
-        basis: [isFraction, 'full', 'auto', themeContainer, ...scaleUnambiguousSpacing()]
-      }],
-      /**
-       * Flex Direction
-       * @see https://tailwindcss.com/docs/flex-direction
-       */
-      'flex-direction': [{
-        flex: ['row', 'row-reverse', 'col', 'col-reverse']
-      }],
-      /**
-       * Flex Wrap
-       * @see https://tailwindcss.com/docs/flex-wrap
-       */
-      'flex-wrap': [{
-        flex: ['nowrap', 'wrap', 'wrap-reverse']
-      }],
-      /**
-       * Flex
-       * @see https://tailwindcss.com/docs/flex
-       */
-      flex: [{
-        flex: [isNumber, isFraction, 'auto', 'initial', 'none', isArbitraryValue]
-      }],
-      /**
-       * Flex Grow
-       * @see https://tailwindcss.com/docs/flex-grow
-       */
-      grow: [{
-        grow: ['', isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Flex Shrink
-       * @see https://tailwindcss.com/docs/flex-shrink
-       */
-      shrink: [{
-        shrink: ['', isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Order
-       * @see https://tailwindcss.com/docs/order
-       */
-      order: [{
-        order: [isInteger, 'first', 'last', 'none', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Grid Template Columns
-       * @see https://tailwindcss.com/docs/grid-template-columns
-       */
-      'grid-cols': [{
-        'grid-cols': scaleGridTemplateColsRows()
-      }],
-      /**
-       * Grid Column Start / End
-       * @see https://tailwindcss.com/docs/grid-column
-       */
-      'col-start-end': [{
-        col: scaleGridColRowStartAndEnd()
-      }],
-      /**
-       * Grid Column Start
-       * @see https://tailwindcss.com/docs/grid-column
-       */
-      'col-start': [{
-        'col-start': scaleGridColRowStartOrEnd()
-      }],
-      /**
-       * Grid Column End
-       * @see https://tailwindcss.com/docs/grid-column
-       */
-      'col-end': [{
-        'col-end': scaleGridColRowStartOrEnd()
-      }],
-      /**
-       * Grid Template Rows
-       * @see https://tailwindcss.com/docs/grid-template-rows
-       */
-      'grid-rows': [{
-        'grid-rows': scaleGridTemplateColsRows()
-      }],
-      /**
-       * Grid Row Start / End
-       * @see https://tailwindcss.com/docs/grid-row
-       */
-      'row-start-end': [{
-        row: scaleGridColRowStartAndEnd()
-      }],
-      /**
-       * Grid Row Start
-       * @see https://tailwindcss.com/docs/grid-row
-       */
-      'row-start': [{
-        'row-start': scaleGridColRowStartOrEnd()
-      }],
-      /**
-       * Grid Row End
-       * @see https://tailwindcss.com/docs/grid-row
-       */
-      'row-end': [{
-        'row-end': scaleGridColRowStartOrEnd()
-      }],
-      /**
-       * Grid Auto Flow
-       * @see https://tailwindcss.com/docs/grid-auto-flow
-       */
-      'grid-flow': [{
-        'grid-flow': ['row', 'col', 'dense', 'row-dense', 'col-dense']
-      }],
-      /**
-       * Grid Auto Columns
-       * @see https://tailwindcss.com/docs/grid-auto-columns
-       */
-      'auto-cols': [{
-        'auto-cols': scaleGridAutoColsRows()
-      }],
-      /**
-       * Grid Auto Rows
-       * @see https://tailwindcss.com/docs/grid-auto-rows
-       */
-      'auto-rows': [{
-        'auto-rows': scaleGridAutoColsRows()
-      }],
-      /**
-       * Gap
-       * @see https://tailwindcss.com/docs/gap
-       */
-      gap: [{
-        gap: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Gap X
-       * @see https://tailwindcss.com/docs/gap
-       */
-      'gap-x': [{
-        'gap-x': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Gap Y
-       * @see https://tailwindcss.com/docs/gap
-       */
-      'gap-y': [{
-        'gap-y': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Justify Content
-       * @see https://tailwindcss.com/docs/justify-content
-       */
-      'justify-content': [{
-        justify: [...scaleAlignPrimaryAxis(), 'normal']
-      }],
-      /**
-       * Justify Items
-       * @see https://tailwindcss.com/docs/justify-items
-       */
-      'justify-items': [{
-        'justify-items': [...scaleAlignSecondaryAxis(), 'normal']
-      }],
-      /**
-       * Justify Self
-       * @see https://tailwindcss.com/docs/justify-self
-       */
-      'justify-self': [{
-        'justify-self': ['auto', ...scaleAlignSecondaryAxis()]
-      }],
-      /**
-       * Align Content
-       * @see https://tailwindcss.com/docs/align-content
-       */
-      'align-content': [{
-        content: ['normal', ...scaleAlignPrimaryAxis()]
-      }],
-      /**
-       * Align Items
-       * @see https://tailwindcss.com/docs/align-items
-       */
-      'align-items': [{
-        items: [...scaleAlignSecondaryAxis(), {
-          baseline: ['', 'last']
-        }]
-      }],
-      /**
-       * Align Self
-       * @see https://tailwindcss.com/docs/align-self
-       */
-      'align-self': [{
-        self: ['auto', ...scaleAlignSecondaryAxis(), {
-          baseline: ['', 'last']
-        }]
-      }],
-      /**
-       * Place Content
-       * @see https://tailwindcss.com/docs/place-content
-       */
-      'place-content': [{
-        'place-content': scaleAlignPrimaryAxis()
-      }],
-      /**
-       * Place Items
-       * @see https://tailwindcss.com/docs/place-items
-       */
-      'place-items': [{
-        'place-items': [...scaleAlignSecondaryAxis(), 'baseline']
-      }],
-      /**
-       * Place Self
-       * @see https://tailwindcss.com/docs/place-self
-       */
-      'place-self': [{
-        'place-self': ['auto', ...scaleAlignSecondaryAxis()]
-      }],
-      // Spacing
-      /**
-       * Padding
-       * @see https://tailwindcss.com/docs/padding
-       */
-      p: [{
-        p: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Padding X
-       * @see https://tailwindcss.com/docs/padding
-       */
-      px: [{
-        px: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Padding Y
-       * @see https://tailwindcss.com/docs/padding
-       */
-      py: [{
-        py: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Padding Start
-       * @see https://tailwindcss.com/docs/padding
-       */
-      ps: [{
-        ps: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Padding End
-       * @see https://tailwindcss.com/docs/padding
-       */
-      pe: [{
-        pe: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Padding Top
-       * @see https://tailwindcss.com/docs/padding
-       */
-      pt: [{
-        pt: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Padding Right
-       * @see https://tailwindcss.com/docs/padding
-       */
-      pr: [{
-        pr: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Padding Bottom
-       * @see https://tailwindcss.com/docs/padding
-       */
-      pb: [{
-        pb: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Padding Left
-       * @see https://tailwindcss.com/docs/padding
-       */
-      pl: [{
-        pl: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Margin
-       * @see https://tailwindcss.com/docs/margin
-       */
-      m: [{
-        m: scaleMargin()
-      }],
-      /**
-       * Margin X
-       * @see https://tailwindcss.com/docs/margin
-       */
-      mx: [{
-        mx: scaleMargin()
-      }],
-      /**
-       * Margin Y
-       * @see https://tailwindcss.com/docs/margin
-       */
-      my: [{
-        my: scaleMargin()
-      }],
-      /**
-       * Margin Start
-       * @see https://tailwindcss.com/docs/margin
-       */
-      ms: [{
-        ms: scaleMargin()
-      }],
-      /**
-       * Margin End
-       * @see https://tailwindcss.com/docs/margin
-       */
-      me: [{
-        me: scaleMargin()
-      }],
-      /**
-       * Margin Top
-       * @see https://tailwindcss.com/docs/margin
-       */
-      mt: [{
-        mt: scaleMargin()
-      }],
-      /**
-       * Margin Right
-       * @see https://tailwindcss.com/docs/margin
-       */
-      mr: [{
-        mr: scaleMargin()
-      }],
-      /**
-       * Margin Bottom
-       * @see https://tailwindcss.com/docs/margin
-       */
-      mb: [{
-        mb: scaleMargin()
-      }],
-      /**
-       * Margin Left
-       * @see https://tailwindcss.com/docs/margin
-       */
-      ml: [{
-        ml: scaleMargin()
-      }],
-      /**
-       * Space Between X
-       * @see https://tailwindcss.com/docs/margin#adding-space-between-children
-       */
-      'space-x': [{
-        'space-x': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Space Between X Reverse
-       * @see https://tailwindcss.com/docs/margin#adding-space-between-children
-       */
-      'space-x-reverse': ['space-x-reverse'],
-      /**
-       * Space Between Y
-       * @see https://tailwindcss.com/docs/margin#adding-space-between-children
-       */
-      'space-y': [{
-        'space-y': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Space Between Y Reverse
-       * @see https://tailwindcss.com/docs/margin#adding-space-between-children
-       */
-      'space-y-reverse': ['space-y-reverse'],
-      // --------------
-      // --- Sizing ---
-      // --------------
-      /**
-       * Size
-       * @see https://tailwindcss.com/docs/width#setting-both-width-and-height
-       */
-      size: [{
-        size: scaleSizing()
-      }],
-      /**
-       * Width
-       * @see https://tailwindcss.com/docs/width
-       */
-      w: [{
-        w: [themeContainer, 'screen', ...scaleSizing()]
-      }],
-      /**
-       * Min-Width
-       * @see https://tailwindcss.com/docs/min-width
-       */
-      'min-w': [{
-        'min-w': [themeContainer, 'screen', /** Deprecated. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
-        'none', ...scaleSizing()]
-      }],
-      /**
-       * Max-Width
-       * @see https://tailwindcss.com/docs/max-width
-       */
-      'max-w': [{
-        'max-w': [themeContainer, 'screen', 'none', /** Deprecated since Tailwind CSS v4.0.0. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
-        'prose', /** Deprecated since Tailwind CSS v4.0.0. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
-        {
-          screen: [themeBreakpoint]
-        }, ...scaleSizing()]
-      }],
-      /**
-       * Height
-       * @see https://tailwindcss.com/docs/height
-       */
-      h: [{
-        h: ['screen', 'lh', ...scaleSizing()]
-      }],
-      /**
-       * Min-Height
-       * @see https://tailwindcss.com/docs/min-height
-       */
-      'min-h': [{
-        'min-h': ['screen', 'lh', 'none', ...scaleSizing()]
-      }],
-      /**
-       * Max-Height
-       * @see https://tailwindcss.com/docs/max-height
-       */
-      'max-h': [{
-        'max-h': ['screen', 'lh', ...scaleSizing()]
-      }],
-      // ------------------
-      // --- Typography ---
-      // ------------------
-      /**
-       * Font Size
-       * @see https://tailwindcss.com/docs/font-size
-       */
-      'font-size': [{
-        text: ['base', themeText, isArbitraryVariableLength, isArbitraryLength]
-      }],
-      /**
-       * Font Smoothing
-       * @see https://tailwindcss.com/docs/font-smoothing
-       */
-      'font-smoothing': ['antialiased', 'subpixel-antialiased'],
-      /**
-       * Font Style
-       * @see https://tailwindcss.com/docs/font-style
-       */
-      'font-style': ['italic', 'not-italic'],
-      /**
-       * Font Weight
-       * @see https://tailwindcss.com/docs/font-weight
-       */
-      'font-weight': [{
-        font: [themeFontWeight, isArbitraryVariable, isArbitraryNumber]
-      }],
-      /**
-       * Font Stretch
-       * @see https://tailwindcss.com/docs/font-stretch
-       */
-      'font-stretch': [{
-        'font-stretch': ['ultra-condensed', 'extra-condensed', 'condensed', 'semi-condensed', 'normal', 'semi-expanded', 'expanded', 'extra-expanded', 'ultra-expanded', isPercent, isArbitraryValue]
-      }],
-      /**
-       * Font Family
-       * @see https://tailwindcss.com/docs/font-family
-       */
-      'font-family': [{
-        font: [isArbitraryVariableFamilyName, isArbitraryValue, themeFont]
-      }],
-      /**
-       * Font Variant Numeric
-       * @see https://tailwindcss.com/docs/font-variant-numeric
-       */
-      'fvn-normal': ['normal-nums'],
-      /**
-       * Font Variant Numeric
-       * @see https://tailwindcss.com/docs/font-variant-numeric
-       */
-      'fvn-ordinal': ['ordinal'],
-      /**
-       * Font Variant Numeric
-       * @see https://tailwindcss.com/docs/font-variant-numeric
-       */
-      'fvn-slashed-zero': ['slashed-zero'],
-      /**
-       * Font Variant Numeric
-       * @see https://tailwindcss.com/docs/font-variant-numeric
-       */
-      'fvn-figure': ['lining-nums', 'oldstyle-nums'],
-      /**
-       * Font Variant Numeric
-       * @see https://tailwindcss.com/docs/font-variant-numeric
-       */
-      'fvn-spacing': ['proportional-nums', 'tabular-nums'],
-      /**
-       * Font Variant Numeric
-       * @see https://tailwindcss.com/docs/font-variant-numeric
-       */
-      'fvn-fraction': ['diagonal-fractions', 'stacked-fractions'],
-      /**
-       * Letter Spacing
-       * @see https://tailwindcss.com/docs/letter-spacing
-       */
-      tracking: [{
-        tracking: [themeTracking, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Line Clamp
-       * @see https://tailwindcss.com/docs/line-clamp
-       */
-      'line-clamp': [{
-        'line-clamp': [isNumber, 'none', isArbitraryVariable, isArbitraryNumber]
-      }],
-      /**
-       * Line Height
-       * @see https://tailwindcss.com/docs/line-height
-       */
-      leading: [{
-        leading: [/** Deprecated since Tailwind CSS v4.0.0. @see https://github.com/tailwindlabs/tailwindcss.com/issues/2027#issuecomment-2620152757 */
-        themeLeading, ...scaleUnambiguousSpacing()]
-      }],
-      /**
-       * List Style Image
-       * @see https://tailwindcss.com/docs/list-style-image
-       */
-      'list-image': [{
-        'list-image': ['none', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * List Style Position
-       * @see https://tailwindcss.com/docs/list-style-position
-       */
-      'list-style-position': [{
-        list: ['inside', 'outside']
-      }],
-      /**
-       * List Style Type
-       * @see https://tailwindcss.com/docs/list-style-type
-       */
-      'list-style-type': [{
-        list: ['disc', 'decimal', 'none', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Text Alignment
-       * @see https://tailwindcss.com/docs/text-align
-       */
-      'text-alignment': [{
-        text: ['left', 'center', 'right', 'justify', 'start', 'end']
-      }],
-      /**
-       * Placeholder Color
-       * @deprecated since Tailwind CSS v3.0.0
-       * @see https://v3.tailwindcss.com/docs/placeholder-color
-       */
-      'placeholder-color': [{
-        placeholder: scaleColor()
-      }],
-      /**
-       * Text Color
-       * @see https://tailwindcss.com/docs/text-color
-       */
-      'text-color': [{
-        text: scaleColor()
-      }],
-      /**
-       * Text Decoration
-       * @see https://tailwindcss.com/docs/text-decoration
-       */
-      'text-decoration': ['underline', 'overline', 'line-through', 'no-underline'],
-      /**
-       * Text Decoration Style
-       * @see https://tailwindcss.com/docs/text-decoration-style
-       */
-      'text-decoration-style': [{
-        decoration: [...scaleLineStyle(), 'wavy']
-      }],
-      /**
-       * Text Decoration Thickness
-       * @see https://tailwindcss.com/docs/text-decoration-thickness
-       */
-      'text-decoration-thickness': [{
-        decoration: [isNumber, 'from-font', 'auto', isArbitraryVariable, isArbitraryLength]
-      }],
-      /**
-       * Text Decoration Color
-       * @see https://tailwindcss.com/docs/text-decoration-color
-       */
-      'text-decoration-color': [{
-        decoration: scaleColor()
-      }],
-      /**
-       * Text Underline Offset
-       * @see https://tailwindcss.com/docs/text-underline-offset
-       */
-      'underline-offset': [{
-        'underline-offset': [isNumber, 'auto', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Text Transform
-       * @see https://tailwindcss.com/docs/text-transform
-       */
-      'text-transform': ['uppercase', 'lowercase', 'capitalize', 'normal-case'],
-      /**
-       * Text Overflow
-       * @see https://tailwindcss.com/docs/text-overflow
-       */
-      'text-overflow': ['truncate', 'text-ellipsis', 'text-clip'],
-      /**
-       * Text Wrap
-       * @see https://tailwindcss.com/docs/text-wrap
-       */
-      'text-wrap': [{
-        text: ['wrap', 'nowrap', 'balance', 'pretty']
-      }],
-      /**
-       * Text Indent
-       * @see https://tailwindcss.com/docs/text-indent
-       */
-      indent: [{
-        indent: scaleUnambiguousSpacing()
-      }],
-      /**
-       * Vertical Alignment
-       * @see https://tailwindcss.com/docs/vertical-align
-       */
-      'vertical-align': [{
-        align: ['baseline', 'top', 'middle', 'bottom', 'text-top', 'text-bottom', 'sub', 'super', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Whitespace
-       * @see https://tailwindcss.com/docs/whitespace
-       */
-      whitespace: [{
-        whitespace: ['normal', 'nowrap', 'pre', 'pre-line', 'pre-wrap', 'break-spaces']
-      }],
-      /**
-       * Word Break
-       * @see https://tailwindcss.com/docs/word-break
-       */
-      break: [{
-        break: ['normal', 'words', 'all', 'keep']
-      }],
-      /**
-       * Overflow Wrap
-       * @see https://tailwindcss.com/docs/overflow-wrap
-       */
-      wrap: [{
-        wrap: ['break-word', 'anywhere', 'normal']
-      }],
-      /**
-       * Hyphens
-       * @see https://tailwindcss.com/docs/hyphens
-       */
-      hyphens: [{
-        hyphens: ['none', 'manual', 'auto']
-      }],
-      /**
-       * Content
-       * @see https://tailwindcss.com/docs/content
-       */
-      content: [{
-        content: ['none', isArbitraryVariable, isArbitraryValue]
-      }],
-      // -------------------
-      // --- Backgrounds ---
-      // -------------------
-      /**
-       * Background Attachment
-       * @see https://tailwindcss.com/docs/background-attachment
-       */
-      'bg-attachment': [{
-        bg: ['fixed', 'local', 'scroll']
-      }],
-      /**
-       * Background Clip
-       * @see https://tailwindcss.com/docs/background-clip
-       */
-      'bg-clip': [{
-        'bg-clip': ['border', 'padding', 'content', 'text']
-      }],
-      /**
-       * Background Origin
-       * @see https://tailwindcss.com/docs/background-origin
-       */
-      'bg-origin': [{
-        'bg-origin': ['border', 'padding', 'content']
-      }],
-      /**
-       * Background Position
-       * @see https://tailwindcss.com/docs/background-position
-       */
-      'bg-position': [{
-        bg: scaleBgPosition()
-      }],
-      /**
-       * Background Repeat
-       * @see https://tailwindcss.com/docs/background-repeat
-       */
-      'bg-repeat': [{
-        bg: scaleBgRepeat()
-      }],
-      /**
-       * Background Size
-       * @see https://tailwindcss.com/docs/background-size
-       */
-      'bg-size': [{
-        bg: scaleBgSize()
-      }],
-      /**
-       * Background Image
-       * @see https://tailwindcss.com/docs/background-image
-       */
-      'bg-image': [{
-        bg: ['none', {
-          linear: [{
-            to: ['t', 'tr', 'r', 'br', 'b', 'bl', 'l', 'tl']
-          }, isInteger, isArbitraryVariable, isArbitraryValue],
-          radial: ['', isArbitraryVariable, isArbitraryValue],
-          conic: [isInteger, isArbitraryVariable, isArbitraryValue]
-        }, isArbitraryVariableImage, isArbitraryImage]
-      }],
-      /**
-       * Background Color
-       * @see https://tailwindcss.com/docs/background-color
-       */
-      'bg-color': [{
-        bg: scaleColor()
-      }],
-      /**
-       * Gradient Color Stops From Position
-       * @see https://tailwindcss.com/docs/gradient-color-stops
-       */
-      'gradient-from-pos': [{
-        from: scaleGradientStopPosition()
-      }],
-      /**
-       * Gradient Color Stops Via Position
-       * @see https://tailwindcss.com/docs/gradient-color-stops
-       */
-      'gradient-via-pos': [{
-        via: scaleGradientStopPosition()
-      }],
-      /**
-       * Gradient Color Stops To Position
-       * @see https://tailwindcss.com/docs/gradient-color-stops
-       */
-      'gradient-to-pos': [{
-        to: scaleGradientStopPosition()
-      }],
-      /**
-       * Gradient Color Stops From
-       * @see https://tailwindcss.com/docs/gradient-color-stops
-       */
-      'gradient-from': [{
-        from: scaleColor()
-      }],
-      /**
-       * Gradient Color Stops Via
-       * @see https://tailwindcss.com/docs/gradient-color-stops
-       */
-      'gradient-via': [{
-        via: scaleColor()
-      }],
-      /**
-       * Gradient Color Stops To
-       * @see https://tailwindcss.com/docs/gradient-color-stops
-       */
-      'gradient-to': [{
-        to: scaleColor()
-      }],
-      // ---------------
-      // --- Borders ---
-      // ---------------
-      /**
-       * Border Radius
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      rounded: [{
-        rounded: scaleRadius()
-      }],
-      /**
-       * Border Radius Start
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-s': [{
-        'rounded-s': scaleRadius()
-      }],
-      /**
-       * Border Radius End
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-e': [{
-        'rounded-e': scaleRadius()
-      }],
-      /**
-       * Border Radius Top
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-t': [{
-        'rounded-t': scaleRadius()
-      }],
-      /**
-       * Border Radius Right
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-r': [{
-        'rounded-r': scaleRadius()
-      }],
-      /**
-       * Border Radius Bottom
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-b': [{
-        'rounded-b': scaleRadius()
-      }],
-      /**
-       * Border Radius Left
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-l': [{
-        'rounded-l': scaleRadius()
-      }],
-      /**
-       * Border Radius Start Start
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-ss': [{
-        'rounded-ss': scaleRadius()
-      }],
-      /**
-       * Border Radius Start End
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-se': [{
-        'rounded-se': scaleRadius()
-      }],
-      /**
-       * Border Radius End End
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-ee': [{
-        'rounded-ee': scaleRadius()
-      }],
-      /**
-       * Border Radius End Start
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-es': [{
-        'rounded-es': scaleRadius()
-      }],
-      /**
-       * Border Radius Top Left
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-tl': [{
-        'rounded-tl': scaleRadius()
-      }],
-      /**
-       * Border Radius Top Right
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-tr': [{
-        'rounded-tr': scaleRadius()
-      }],
-      /**
-       * Border Radius Bottom Right
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-br': [{
-        'rounded-br': scaleRadius()
-      }],
-      /**
-       * Border Radius Bottom Left
-       * @see https://tailwindcss.com/docs/border-radius
-       */
-      'rounded-bl': [{
-        'rounded-bl': scaleRadius()
-      }],
-      /**
-       * Border Width
-       * @see https://tailwindcss.com/docs/border-width
-       */
-      'border-w': [{
-        border: scaleBorderWidth()
-      }],
-      /**
-       * Border Width X
-       * @see https://tailwindcss.com/docs/border-width
-       */
-      'border-w-x': [{
-        'border-x': scaleBorderWidth()
-      }],
-      /**
-       * Border Width Y
-       * @see https://tailwindcss.com/docs/border-width
-       */
-      'border-w-y': [{
-        'border-y': scaleBorderWidth()
-      }],
-      /**
-       * Border Width Start
-       * @see https://tailwindcss.com/docs/border-width
-       */
-      'border-w-s': [{
-        'border-s': scaleBorderWidth()
-      }],
-      /**
-       * Border Width End
-       * @see https://tailwindcss.com/docs/border-width
-       */
-      'border-w-e': [{
-        'border-e': scaleBorderWidth()
-      }],
-      /**
-       * Border Width Top
-       * @see https://tailwindcss.com/docs/border-width
-       */
-      'border-w-t': [{
-        'border-t': scaleBorderWidth()
-      }],
-      /**
-       * Border Width Right
-       * @see https://tailwindcss.com/docs/border-width
-       */
-      'border-w-r': [{
-        'border-r': scaleBorderWidth()
-      }],
-      /**
-       * Border Width Bottom
-       * @see https://tailwindcss.com/docs/border-width
-       */
-      'border-w-b': [{
-        'border-b': scaleBorderWidth()
-      }],
-      /**
-       * Border Width Left
-       * @see https://tailwindcss.com/docs/border-width
-       */
-      'border-w-l': [{
-        'border-l': scaleBorderWidth()
-      }],
-      /**
-       * Divide Width X
-       * @see https://tailwindcss.com/docs/border-width#between-children
-       */
-      'divide-x': [{
-        'divide-x': scaleBorderWidth()
-      }],
-      /**
-       * Divide Width X Reverse
-       * @see https://tailwindcss.com/docs/border-width#between-children
-       */
-      'divide-x-reverse': ['divide-x-reverse'],
-      /**
-       * Divide Width Y
-       * @see https://tailwindcss.com/docs/border-width#between-children
-       */
-      'divide-y': [{
-        'divide-y': scaleBorderWidth()
-      }],
-      /**
-       * Divide Width Y Reverse
-       * @see https://tailwindcss.com/docs/border-width#between-children
-       */
-      'divide-y-reverse': ['divide-y-reverse'],
-      /**
-       * Border Style
-       * @see https://tailwindcss.com/docs/border-style
-       */
-      'border-style': [{
-        border: [...scaleLineStyle(), 'hidden', 'none']
-      }],
-      /**
-       * Divide Style
-       * @see https://tailwindcss.com/docs/border-style#setting-the-divider-style
-       */
-      'divide-style': [{
-        divide: [...scaleLineStyle(), 'hidden', 'none']
-      }],
-      /**
-       * Border Color
-       * @see https://tailwindcss.com/docs/border-color
-       */
-      'border-color': [{
-        border: scaleColor()
-      }],
-      /**
-       * Border Color X
-       * @see https://tailwindcss.com/docs/border-color
-       */
-      'border-color-x': [{
-        'border-x': scaleColor()
-      }],
-      /**
-       * Border Color Y
-       * @see https://tailwindcss.com/docs/border-color
-       */
-      'border-color-y': [{
-        'border-y': scaleColor()
-      }],
-      /**
-       * Border Color S
-       * @see https://tailwindcss.com/docs/border-color
-       */
-      'border-color-s': [{
-        'border-s': scaleColor()
-      }],
-      /**
-       * Border Color E
-       * @see https://tailwindcss.com/docs/border-color
-       */
-      'border-color-e': [{
-        'border-e': scaleColor()
-      }],
-      /**
-       * Border Color Top
-       * @see https://tailwindcss.com/docs/border-color
-       */
-      'border-color-t': [{
-        'border-t': scaleColor()
-      }],
-      /**
-       * Border Color Right
-       * @see https://tailwindcss.com/docs/border-color
-       */
-      'border-color-r': [{
-        'border-r': scaleColor()
-      }],
-      /**
-       * Border Color Bottom
-       * @see https://tailwindcss.com/docs/border-color
-       */
-      'border-color-b': [{
-        'border-b': scaleColor()
-      }],
-      /**
-       * Border Color Left
-       * @see https://tailwindcss.com/docs/border-color
-       */
-      'border-color-l': [{
-        'border-l': scaleColor()
-      }],
-      /**
-       * Divide Color
-       * @see https://tailwindcss.com/docs/divide-color
-       */
-      'divide-color': [{
-        divide: scaleColor()
-      }],
-      /**
-       * Outline Style
-       * @see https://tailwindcss.com/docs/outline-style
-       */
-      'outline-style': [{
-        outline: [...scaleLineStyle(), 'none', 'hidden']
-      }],
-      /**
-       * Outline Offset
-       * @see https://tailwindcss.com/docs/outline-offset
-       */
-      'outline-offset': [{
-        'outline-offset': [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Outline Width
-       * @see https://tailwindcss.com/docs/outline-width
-       */
-      'outline-w': [{
-        outline: ['', isNumber, isArbitraryVariableLength, isArbitraryLength]
-      }],
-      /**
-       * Outline Color
-       * @see https://tailwindcss.com/docs/outline-color
-       */
-      'outline-color': [{
-        outline: scaleColor()
-      }],
-      // ---------------
-      // --- Effects ---
-      // ---------------
-      /**
-       * Box Shadow
-       * @see https://tailwindcss.com/docs/box-shadow
-       */
-      shadow: [{
-        shadow: [
-        // Deprecated since Tailwind CSS v4.0.0
-        '', 'none', themeShadow, isArbitraryVariableShadow, isArbitraryShadow]
-      }],
-      /**
-       * Box Shadow Color
-       * @see https://tailwindcss.com/docs/box-shadow#setting-the-shadow-color
-       */
-      'shadow-color': [{
-        shadow: scaleColor()
-      }],
-      /**
-       * Inset Box Shadow
-       * @see https://tailwindcss.com/docs/box-shadow#adding-an-inset-shadow
-       */
-      'inset-shadow': [{
-        'inset-shadow': ['none', themeInsetShadow, isArbitraryVariableShadow, isArbitraryShadow]
-      }],
-      /**
-       * Inset Box Shadow Color
-       * @see https://tailwindcss.com/docs/box-shadow#setting-the-inset-shadow-color
-       */
-      'inset-shadow-color': [{
-        'inset-shadow': scaleColor()
-      }],
-      /**
-       * Ring Width
-       * @see https://tailwindcss.com/docs/box-shadow#adding-a-ring
-       */
-      'ring-w': [{
-        ring: scaleBorderWidth()
-      }],
-      /**
-       * Ring Width Inset
-       * @see https://v3.tailwindcss.com/docs/ring-width#inset-rings
-       * @deprecated since Tailwind CSS v4.0.0
-       * @see https://github.com/tailwindlabs/tailwindcss/blob/v4.0.0/packages/tailwindcss/src/utilities.ts#L4158
-       */
-      'ring-w-inset': ['ring-inset'],
-      /**
-       * Ring Color
-       * @see https://tailwindcss.com/docs/box-shadow#setting-the-ring-color
-       */
-      'ring-color': [{
-        ring: scaleColor()
-      }],
-      /**
-       * Ring Offset Width
-       * @see https://v3.tailwindcss.com/docs/ring-offset-width
-       * @deprecated since Tailwind CSS v4.0.0
-       * @see https://github.com/tailwindlabs/tailwindcss/blob/v4.0.0/packages/tailwindcss/src/utilities.ts#L4158
-       */
-      'ring-offset-w': [{
-        'ring-offset': [isNumber, isArbitraryLength]
-      }],
-      /**
-       * Ring Offset Color
-       * @see https://v3.tailwindcss.com/docs/ring-offset-color
-       * @deprecated since Tailwind CSS v4.0.0
-       * @see https://github.com/tailwindlabs/tailwindcss/blob/v4.0.0/packages/tailwindcss/src/utilities.ts#L4158
-       */
-      'ring-offset-color': [{
-        'ring-offset': scaleColor()
-      }],
-      /**
-       * Inset Ring Width
-       * @see https://tailwindcss.com/docs/box-shadow#adding-an-inset-ring
-       */
-      'inset-ring-w': [{
-        'inset-ring': scaleBorderWidth()
-      }],
-      /**
-       * Inset Ring Color
-       * @see https://tailwindcss.com/docs/box-shadow#setting-the-inset-ring-color
-       */
-      'inset-ring-color': [{
-        'inset-ring': scaleColor()
-      }],
-      /**
-       * Text Shadow
-       * @see https://tailwindcss.com/docs/text-shadow
-       */
-      'text-shadow': [{
-        'text-shadow': ['none', themeTextShadow, isArbitraryVariableShadow, isArbitraryShadow]
-      }],
-      /**
-       * Text Shadow Color
-       * @see https://tailwindcss.com/docs/text-shadow#setting-the-shadow-color
-       */
-      'text-shadow-color': [{
-        'text-shadow': scaleColor()
-      }],
-      /**
-       * Opacity
-       * @see https://tailwindcss.com/docs/opacity
-       */
-      opacity: [{
-        opacity: [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Mix Blend Mode
-       * @see https://tailwindcss.com/docs/mix-blend-mode
-       */
-      'mix-blend': [{
-        'mix-blend': [...scaleBlendMode(), 'plus-darker', 'plus-lighter']
-      }],
-      /**
-       * Background Blend Mode
-       * @see https://tailwindcss.com/docs/background-blend-mode
-       */
-      'bg-blend': [{
-        'bg-blend': scaleBlendMode()
-      }],
-      /**
-       * Mask Clip
-       * @see https://tailwindcss.com/docs/mask-clip
-       */
-      'mask-clip': [{
-        'mask-clip': ['border', 'padding', 'content', 'fill', 'stroke', 'view']
-      }, 'mask-no-clip'],
-      /**
-       * Mask Composite
-       * @see https://tailwindcss.com/docs/mask-composite
-       */
-      'mask-composite': [{
-        mask: ['add', 'subtract', 'intersect', 'exclude']
-      }],
-      /**
-       * Mask Image
-       * @see https://tailwindcss.com/docs/mask-image
-       */
-      'mask-image-linear-pos': [{
-        'mask-linear': [isNumber]
-      }],
-      'mask-image-linear-from-pos': [{
-        'mask-linear-from': scaleMaskImagePosition()
-      }],
-      'mask-image-linear-to-pos': [{
-        'mask-linear-to': scaleMaskImagePosition()
-      }],
-      'mask-image-linear-from-color': [{
-        'mask-linear-from': scaleColor()
-      }],
-      'mask-image-linear-to-color': [{
-        'mask-linear-to': scaleColor()
-      }],
-      'mask-image-t-from-pos': [{
-        'mask-t-from': scaleMaskImagePosition()
-      }],
-      'mask-image-t-to-pos': [{
-        'mask-t-to': scaleMaskImagePosition()
-      }],
-      'mask-image-t-from-color': [{
-        'mask-t-from': scaleColor()
-      }],
-      'mask-image-t-to-color': [{
-        'mask-t-to': scaleColor()
-      }],
-      'mask-image-r-from-pos': [{
-        'mask-r-from': scaleMaskImagePosition()
-      }],
-      'mask-image-r-to-pos': [{
-        'mask-r-to': scaleMaskImagePosition()
-      }],
-      'mask-image-r-from-color': [{
-        'mask-r-from': scaleColor()
-      }],
-      'mask-image-r-to-color': [{
-        'mask-r-to': scaleColor()
-      }],
-      'mask-image-b-from-pos': [{
-        'mask-b-from': scaleMaskImagePosition()
-      }],
-      'mask-image-b-to-pos': [{
-        'mask-b-to': scaleMaskImagePosition()
-      }],
-      'mask-image-b-from-color': [{
-        'mask-b-from': scaleColor()
-      }],
-      'mask-image-b-to-color': [{
-        'mask-b-to': scaleColor()
-      }],
-      'mask-image-l-from-pos': [{
-        'mask-l-from': scaleMaskImagePosition()
-      }],
-      'mask-image-l-to-pos': [{
-        'mask-l-to': scaleMaskImagePosition()
-      }],
-      'mask-image-l-from-color': [{
-        'mask-l-from': scaleColor()
-      }],
-      'mask-image-l-to-color': [{
-        'mask-l-to': scaleColor()
-      }],
-      'mask-image-x-from-pos': [{
-        'mask-x-from': scaleMaskImagePosition()
-      }],
-      'mask-image-x-to-pos': [{
-        'mask-x-to': scaleMaskImagePosition()
-      }],
-      'mask-image-x-from-color': [{
-        'mask-x-from': scaleColor()
-      }],
-      'mask-image-x-to-color': [{
-        'mask-x-to': scaleColor()
-      }],
-      'mask-image-y-from-pos': [{
-        'mask-y-from': scaleMaskImagePosition()
-      }],
-      'mask-image-y-to-pos': [{
-        'mask-y-to': scaleMaskImagePosition()
-      }],
-      'mask-image-y-from-color': [{
-        'mask-y-from': scaleColor()
-      }],
-      'mask-image-y-to-color': [{
-        'mask-y-to': scaleColor()
-      }],
-      'mask-image-radial': [{
-        'mask-radial': [isArbitraryVariable, isArbitraryValue]
-      }],
-      'mask-image-radial-from-pos': [{
-        'mask-radial-from': scaleMaskImagePosition()
-      }],
-      'mask-image-radial-to-pos': [{
-        'mask-radial-to': scaleMaskImagePosition()
-      }],
-      'mask-image-radial-from-color': [{
-        'mask-radial-from': scaleColor()
-      }],
-      'mask-image-radial-to-color': [{
-        'mask-radial-to': scaleColor()
-      }],
-      'mask-image-radial-shape': [{
-        'mask-radial': ['circle', 'ellipse']
-      }],
-      'mask-image-radial-size': [{
-        'mask-radial': [{
-          closest: ['side', 'corner'],
-          farthest: ['side', 'corner']
-        }]
-      }],
-      'mask-image-radial-pos': [{
-        'mask-radial-at': scalePosition()
-      }],
-      'mask-image-conic-pos': [{
-        'mask-conic': [isNumber]
-      }],
-      'mask-image-conic-from-pos': [{
-        'mask-conic-from': scaleMaskImagePosition()
-      }],
-      'mask-image-conic-to-pos': [{
-        'mask-conic-to': scaleMaskImagePosition()
-      }],
-      'mask-image-conic-from-color': [{
-        'mask-conic-from': scaleColor()
-      }],
-      'mask-image-conic-to-color': [{
-        'mask-conic-to': scaleColor()
-      }],
-      /**
-       * Mask Mode
-       * @see https://tailwindcss.com/docs/mask-mode
-       */
-      'mask-mode': [{
-        mask: ['alpha', 'luminance', 'match']
-      }],
-      /**
-       * Mask Origin
-       * @see https://tailwindcss.com/docs/mask-origin
-       */
-      'mask-origin': [{
-        'mask-origin': ['border', 'padding', 'content', 'fill', 'stroke', 'view']
-      }],
-      /**
-       * Mask Position
-       * @see https://tailwindcss.com/docs/mask-position
-       */
-      'mask-position': [{
-        mask: scaleBgPosition()
-      }],
-      /**
-       * Mask Repeat
-       * @see https://tailwindcss.com/docs/mask-repeat
-       */
-      'mask-repeat': [{
-        mask: scaleBgRepeat()
-      }],
-      /**
-       * Mask Size
-       * @see https://tailwindcss.com/docs/mask-size
-       */
-      'mask-size': [{
-        mask: scaleBgSize()
-      }],
-      /**
-       * Mask Type
-       * @see https://tailwindcss.com/docs/mask-type
-       */
-      'mask-type': [{
-        'mask-type': ['alpha', 'luminance']
-      }],
-      /**
-       * Mask Image
-       * @see https://tailwindcss.com/docs/mask-image
-       */
-      'mask-image': [{
-        mask: ['none', isArbitraryVariable, isArbitraryValue]
-      }],
-      // ---------------
-      // --- Filters ---
-      // ---------------
-      /**
-       * Filter
-       * @see https://tailwindcss.com/docs/filter
-       */
-      filter: [{
-        filter: [
-        // Deprecated since Tailwind CSS v3.0.0
-        '', 'none', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Blur
-       * @see https://tailwindcss.com/docs/blur
-       */
-      blur: [{
-        blur: scaleBlur()
-      }],
-      /**
-       * Brightness
-       * @see https://tailwindcss.com/docs/brightness
-       */
-      brightness: [{
-        brightness: [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Contrast
-       * @see https://tailwindcss.com/docs/contrast
-       */
-      contrast: [{
-        contrast: [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Drop Shadow
-       * @see https://tailwindcss.com/docs/drop-shadow
-       */
-      'drop-shadow': [{
-        'drop-shadow': [
-        // Deprecated since Tailwind CSS v4.0.0
-        '', 'none', themeDropShadow, isArbitraryVariableShadow, isArbitraryShadow]
-      }],
-      /**
-       * Drop Shadow Color
-       * @see https://tailwindcss.com/docs/filter-drop-shadow#setting-the-shadow-color
-       */
-      'drop-shadow-color': [{
-        'drop-shadow': scaleColor()
-      }],
-      /**
-       * Grayscale
-       * @see https://tailwindcss.com/docs/grayscale
-       */
-      grayscale: [{
-        grayscale: ['', isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Hue Rotate
-       * @see https://tailwindcss.com/docs/hue-rotate
-       */
-      'hue-rotate': [{
-        'hue-rotate': [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Invert
-       * @see https://tailwindcss.com/docs/invert
-       */
-      invert: [{
-        invert: ['', isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Saturate
-       * @see https://tailwindcss.com/docs/saturate
-       */
-      saturate: [{
-        saturate: [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Sepia
-       * @see https://tailwindcss.com/docs/sepia
-       */
-      sepia: [{
-        sepia: ['', isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Backdrop Filter
-       * @see https://tailwindcss.com/docs/backdrop-filter
-       */
-      'backdrop-filter': [{
-        'backdrop-filter': [
-        // Deprecated since Tailwind CSS v3.0.0
-        '', 'none', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Backdrop Blur
-       * @see https://tailwindcss.com/docs/backdrop-blur
-       */
-      'backdrop-blur': [{
-        'backdrop-blur': scaleBlur()
-      }],
-      /**
-       * Backdrop Brightness
-       * @see https://tailwindcss.com/docs/backdrop-brightness
-       */
-      'backdrop-brightness': [{
-        'backdrop-brightness': [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Backdrop Contrast
-       * @see https://tailwindcss.com/docs/backdrop-contrast
-       */
-      'backdrop-contrast': [{
-        'backdrop-contrast': [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Backdrop Grayscale
-       * @see https://tailwindcss.com/docs/backdrop-grayscale
-       */
-      'backdrop-grayscale': [{
-        'backdrop-grayscale': ['', isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Backdrop Hue Rotate
-       * @see https://tailwindcss.com/docs/backdrop-hue-rotate
-       */
-      'backdrop-hue-rotate': [{
-        'backdrop-hue-rotate': [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Backdrop Invert
-       * @see https://tailwindcss.com/docs/backdrop-invert
-       */
-      'backdrop-invert': [{
-        'backdrop-invert': ['', isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Backdrop Opacity
-       * @see https://tailwindcss.com/docs/backdrop-opacity
-       */
-      'backdrop-opacity': [{
-        'backdrop-opacity': [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Backdrop Saturate
-       * @see https://tailwindcss.com/docs/backdrop-saturate
-       */
-      'backdrop-saturate': [{
-        'backdrop-saturate': [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Backdrop Sepia
-       * @see https://tailwindcss.com/docs/backdrop-sepia
-       */
-      'backdrop-sepia': [{
-        'backdrop-sepia': ['', isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      // --------------
-      // --- Tables ---
-      // --------------
-      /**
-       * Border Collapse
-       * @see https://tailwindcss.com/docs/border-collapse
-       */
-      'border-collapse': [{
-        border: ['collapse', 'separate']
-      }],
-      /**
-       * Border Spacing
-       * @see https://tailwindcss.com/docs/border-spacing
-       */
-      'border-spacing': [{
-        'border-spacing': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Border Spacing X
-       * @see https://tailwindcss.com/docs/border-spacing
-       */
-      'border-spacing-x': [{
-        'border-spacing-x': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Border Spacing Y
-       * @see https://tailwindcss.com/docs/border-spacing
-       */
-      'border-spacing-y': [{
-        'border-spacing-y': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Table Layout
-       * @see https://tailwindcss.com/docs/table-layout
-       */
-      'table-layout': [{
-        table: ['auto', 'fixed']
-      }],
-      /**
-       * Caption Side
-       * @see https://tailwindcss.com/docs/caption-side
-       */
-      caption: [{
-        caption: ['top', 'bottom']
-      }],
-      // ---------------------------------
-      // --- Transitions and Animation ---
-      // ---------------------------------
-      /**
-       * Transition Property
-       * @see https://tailwindcss.com/docs/transition-property
-       */
-      transition: [{
-        transition: ['', 'all', 'colors', 'opacity', 'shadow', 'transform', 'none', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Transition Behavior
-       * @see https://tailwindcss.com/docs/transition-behavior
-       */
-      'transition-behavior': [{
-        transition: ['normal', 'discrete']
-      }],
-      /**
-       * Transition Duration
-       * @see https://tailwindcss.com/docs/transition-duration
-       */
-      duration: [{
-        duration: [isNumber, 'initial', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Transition Timing Function
-       * @see https://tailwindcss.com/docs/transition-timing-function
-       */
-      ease: [{
-        ease: ['linear', 'initial', themeEase, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Transition Delay
-       * @see https://tailwindcss.com/docs/transition-delay
-       */
-      delay: [{
-        delay: [isNumber, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Animation
-       * @see https://tailwindcss.com/docs/animation
-       */
-      animate: [{
-        animate: ['none', themeAnimate, isArbitraryVariable, isArbitraryValue]
-      }],
-      // ------------------
-      // --- Transforms ---
-      // ------------------
-      /**
-       * Backface Visibility
-       * @see https://tailwindcss.com/docs/backface-visibility
-       */
-      backface: [{
-        backface: ['hidden', 'visible']
-      }],
-      /**
-       * Perspective
-       * @see https://tailwindcss.com/docs/perspective
-       */
-      perspective: [{
-        perspective: [themePerspective, isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Perspective Origin
-       * @see https://tailwindcss.com/docs/perspective-origin
-       */
-      'perspective-origin': [{
-        'perspective-origin': scalePositionWithArbitrary()
-      }],
-      /**
-       * Rotate
-       * @see https://tailwindcss.com/docs/rotate
-       */
-      rotate: [{
-        rotate: scaleRotate()
-      }],
-      /**
-       * Rotate X
-       * @see https://tailwindcss.com/docs/rotate
-       */
-      'rotate-x': [{
-        'rotate-x': scaleRotate()
-      }],
-      /**
-       * Rotate Y
-       * @see https://tailwindcss.com/docs/rotate
-       */
-      'rotate-y': [{
-        'rotate-y': scaleRotate()
-      }],
-      /**
-       * Rotate Z
-       * @see https://tailwindcss.com/docs/rotate
-       */
-      'rotate-z': [{
-        'rotate-z': scaleRotate()
-      }],
-      /**
-       * Scale
-       * @see https://tailwindcss.com/docs/scale
-       */
-      scale: [{
-        scale: scaleScale()
-      }],
-      /**
-       * Scale X
-       * @see https://tailwindcss.com/docs/scale
-       */
-      'scale-x': [{
-        'scale-x': scaleScale()
-      }],
-      /**
-       * Scale Y
-       * @see https://tailwindcss.com/docs/scale
-       */
-      'scale-y': [{
-        'scale-y': scaleScale()
-      }],
-      /**
-       * Scale Z
-       * @see https://tailwindcss.com/docs/scale
-       */
-      'scale-z': [{
-        'scale-z': scaleScale()
-      }],
-      /**
-       * Scale 3D
-       * @see https://tailwindcss.com/docs/scale
-       */
-      'scale-3d': ['scale-3d'],
-      /**
-       * Skew
-       * @see https://tailwindcss.com/docs/skew
-       */
-      skew: [{
-        skew: scaleSkew()
-      }],
-      /**
-       * Skew X
-       * @see https://tailwindcss.com/docs/skew
-       */
-      'skew-x': [{
-        'skew-x': scaleSkew()
-      }],
-      /**
-       * Skew Y
-       * @see https://tailwindcss.com/docs/skew
-       */
-      'skew-y': [{
-        'skew-y': scaleSkew()
-      }],
-      /**
-       * Transform
-       * @see https://tailwindcss.com/docs/transform
-       */
-      transform: [{
-        transform: [isArbitraryVariable, isArbitraryValue, '', 'none', 'gpu', 'cpu']
-      }],
-      /**
-       * Transform Origin
-       * @see https://tailwindcss.com/docs/transform-origin
-       */
-      'transform-origin': [{
-        origin: scalePositionWithArbitrary()
-      }],
-      /**
-       * Transform Style
-       * @see https://tailwindcss.com/docs/transform-style
-       */
-      'transform-style': [{
-        transform: ['3d', 'flat']
-      }],
-      /**
-       * Translate
-       * @see https://tailwindcss.com/docs/translate
-       */
-      translate: [{
-        translate: scaleTranslate()
-      }],
-      /**
-       * Translate X
-       * @see https://tailwindcss.com/docs/translate
-       */
-      'translate-x': [{
-        'translate-x': scaleTranslate()
-      }],
-      /**
-       * Translate Y
-       * @see https://tailwindcss.com/docs/translate
-       */
-      'translate-y': [{
-        'translate-y': scaleTranslate()
-      }],
-      /**
-       * Translate Z
-       * @see https://tailwindcss.com/docs/translate
-       */
-      'translate-z': [{
-        'translate-z': scaleTranslate()
-      }],
-      /**
-       * Translate None
-       * @see https://tailwindcss.com/docs/translate
-       */
-      'translate-none': ['translate-none'],
-      // ---------------------
-      // --- Interactivity ---
-      // ---------------------
-      /**
-       * Accent Color
-       * @see https://tailwindcss.com/docs/accent-color
-       */
-      accent: [{
-        accent: scaleColor()
-      }],
-      /**
-       * Appearance
-       * @see https://tailwindcss.com/docs/appearance
-       */
-      appearance: [{
-        appearance: ['none', 'auto']
-      }],
-      /**
-       * Caret Color
-       * @see https://tailwindcss.com/docs/just-in-time-mode#caret-color-utilities
-       */
-      'caret-color': [{
-        caret: scaleColor()
-      }],
-      /**
-       * Color Scheme
-       * @see https://tailwindcss.com/docs/color-scheme
-       */
-      'color-scheme': [{
-        scheme: ['normal', 'dark', 'light', 'light-dark', 'only-dark', 'only-light']
-      }],
-      /**
-       * Cursor
-       * @see https://tailwindcss.com/docs/cursor
-       */
-      cursor: [{
-        cursor: ['auto', 'default', 'pointer', 'wait', 'text', 'move', 'help', 'not-allowed', 'none', 'context-menu', 'progress', 'cell', 'crosshair', 'vertical-text', 'alias', 'copy', 'no-drop', 'grab', 'grabbing', 'all-scroll', 'col-resize', 'row-resize', 'n-resize', 'e-resize', 's-resize', 'w-resize', 'ne-resize', 'nw-resize', 'se-resize', 'sw-resize', 'ew-resize', 'ns-resize', 'nesw-resize', 'nwse-resize', 'zoom-in', 'zoom-out', isArbitraryVariable, isArbitraryValue]
-      }],
-      /**
-       * Field Sizing
-       * @see https://tailwindcss.com/docs/field-sizing
-       */
-      'field-sizing': [{
-        'field-sizing': ['fixed', 'content']
-      }],
-      /**
-       * Pointer Events
-       * @see https://tailwindcss.com/docs/pointer-events
-       */
-      'pointer-events': [{
-        'pointer-events': ['auto', 'none']
-      }],
-      /**
-       * Resize
-       * @see https://tailwindcss.com/docs/resize
-       */
-      resize: [{
-        resize: ['none', '', 'y', 'x']
-      }],
-      /**
-       * Scroll Behavior
-       * @see https://tailwindcss.com/docs/scroll-behavior
-       */
-      'scroll-behavior': [{
-        scroll: ['auto', 'smooth']
-      }],
-      /**
-       * Scroll Margin
-       * @see https://tailwindcss.com/docs/scroll-margin
-       */
-      'scroll-m': [{
-        'scroll-m': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Margin X
-       * @see https://tailwindcss.com/docs/scroll-margin
-       */
-      'scroll-mx': [{
-        'scroll-mx': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Margin Y
-       * @see https://tailwindcss.com/docs/scroll-margin
-       */
-      'scroll-my': [{
-        'scroll-my': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Margin Start
-       * @see https://tailwindcss.com/docs/scroll-margin
-       */
-      'scroll-ms': [{
-        'scroll-ms': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Margin End
-       * @see https://tailwindcss.com/docs/scroll-margin
-       */
-      'scroll-me': [{
-        'scroll-me': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Margin Top
-       * @see https://tailwindcss.com/docs/scroll-margin
-       */
-      'scroll-mt': [{
-        'scroll-mt': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Margin Right
-       * @see https://tailwindcss.com/docs/scroll-margin
-       */
-      'scroll-mr': [{
-        'scroll-mr': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Margin Bottom
-       * @see https://tailwindcss.com/docs/scroll-margin
-       */
-      'scroll-mb': [{
-        'scroll-mb': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Margin Left
-       * @see https://tailwindcss.com/docs/scroll-margin
-       */
-      'scroll-ml': [{
-        'scroll-ml': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Padding
-       * @see https://tailwindcss.com/docs/scroll-padding
-       */
-      'scroll-p': [{
-        'scroll-p': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Padding X
-       * @see https://tailwindcss.com/docs/scroll-padding
-       */
-      'scroll-px': [{
-        'scroll-px': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Padding Y
-       * @see https://tailwindcss.com/docs/scroll-padding
-       */
-      'scroll-py': [{
-        'scroll-py': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Padding Start
-       * @see https://tailwindcss.com/docs/scroll-padding
-       */
-      'scroll-ps': [{
-        'scroll-ps': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Padding End
-       * @see https://tailwindcss.com/docs/scroll-padding
-       */
-      'scroll-pe': [{
-        'scroll-pe': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Padding Top
-       * @see https://tailwindcss.com/docs/scroll-padding
-       */
-      'scroll-pt': [{
-        'scroll-pt': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Padding Right
-       * @see https://tailwindcss.com/docs/scroll-padding
-       */
-      'scroll-pr': [{
-        'scroll-pr': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Padding Bottom
-       * @see https://tailwindcss.com/docs/scroll-padding
-       */
-      'scroll-pb': [{
-        'scroll-pb': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Padding Left
-       * @see https://tailwindcss.com/docs/scroll-padding
-       */
-      'scroll-pl': [{
-        'scroll-pl': scaleUnambiguousSpacing()
-      }],
-      /**
-       * Scroll Snap Align
-       * @see https://tailwindcss.com/docs/scroll-snap-align
-       */
-      'snap-align': [{
-        snap: ['start', 'end', 'center', 'align-none']
-      }],
-      /**
-       * Scroll Snap Stop
-       * @see https://tailwindcss.com/docs/scroll-snap-stop
-       */
-      'snap-stop': [{
-        snap: ['normal', 'always']
-      }],
-      /**
-       * Scroll Snap Type
-       * @see https://tailwindcss.com/docs/scroll-snap-type
-       */
-      'snap-type': [{
-        snap: ['none', 'x', 'y', 'both']
-      }],
-      /**
-       * Scroll Snap Type Strictness
-       * @see https://tailwindcss.com/docs/scroll-snap-type
-       */
-      'snap-strictness': [{
-        snap: ['mandatory', 'proximity']
-      }],
-      /**
-       * Touch Action
-       * @see https://tailwindcss.com/docs/touch-action
-       */
-      touch: [{
-        touch: ['auto', 'none', 'manipulation']
-      }],
-      /**
-       * Touch Action X
-       * @see https://tailwindcss.com/docs/touch-action
-       */
-      'touch-x': [{
-        'touch-pan': ['x', 'left', 'right']
-      }],
-      /**
-       * Touch Action Y
-       * @see https://tailwindcss.com/docs/touch-action
-       */
-      'touch-y': [{
-        'touch-pan': ['y', 'up', 'down']
-      }],
-      /**
-       * Touch Action Pinch Zoom
-       * @see https://tailwindcss.com/docs/touch-action
-       */
-      'touch-pz': ['touch-pinch-zoom'],
-      /**
-       * User Select
-       * @see https://tailwindcss.com/docs/user-select
-       */
-      select: [{
-        select: ['none', 'text', 'all', 'auto']
-      }],
-      /**
-       * Will Change
-       * @see https://tailwindcss.com/docs/will-change
-       */
-      'will-change': [{
-        'will-change': ['auto', 'scroll', 'contents', 'transform', isArbitraryVariable, isArbitraryValue]
-      }],
-      // -----------
-      // --- SVG ---
-      // -----------
-      /**
-       * Fill
-       * @see https://tailwindcss.com/docs/fill
-       */
-      fill: [{
-        fill: ['none', ...scaleColor()]
-      }],
-      /**
-       * Stroke Width
-       * @see https://tailwindcss.com/docs/stroke-width
-       */
-      'stroke-w': [{
-        stroke: [isNumber, isArbitraryVariableLength, isArbitraryLength, isArbitraryNumber]
-      }],
-      /**
-       * Stroke
-       * @see https://tailwindcss.com/docs/stroke
-       */
-      stroke: [{
-        stroke: ['none', ...scaleColor()]
-      }],
-      // ---------------------
-      // --- Accessibility ---
-      // ---------------------
-      /**
-       * Forced Color Adjust
-       * @see https://tailwindcss.com/docs/forced-color-adjust
-       */
-      'forced-color-adjust': [{
-        'forced-color-adjust': ['auto', 'none']
-      }]
-    },
-    conflictingClassGroups: {
-      overflow: ['overflow-x', 'overflow-y'],
-      overscroll: ['overscroll-x', 'overscroll-y'],
-      inset: ['inset-x', 'inset-y', 'start', 'end', 'top', 'right', 'bottom', 'left'],
-      'inset-x': ['right', 'left'],
-      'inset-y': ['top', 'bottom'],
-      flex: ['basis', 'grow', 'shrink'],
-      gap: ['gap-x', 'gap-y'],
-      p: ['px', 'py', 'ps', 'pe', 'pt', 'pr', 'pb', 'pl'],
-      px: ['pr', 'pl'],
-      py: ['pt', 'pb'],
-      m: ['mx', 'my', 'ms', 'me', 'mt', 'mr', 'mb', 'ml'],
-      mx: ['mr', 'ml'],
-      my: ['mt', 'mb'],
-      size: ['w', 'h'],
-      'font-size': ['leading'],
-      'fvn-normal': ['fvn-ordinal', 'fvn-slashed-zero', 'fvn-figure', 'fvn-spacing', 'fvn-fraction'],
-      'fvn-ordinal': ['fvn-normal'],
-      'fvn-slashed-zero': ['fvn-normal'],
-      'fvn-figure': ['fvn-normal'],
-      'fvn-spacing': ['fvn-normal'],
-      'fvn-fraction': ['fvn-normal'],
-      'line-clamp': ['display', 'overflow'],
-      rounded: ['rounded-s', 'rounded-e', 'rounded-t', 'rounded-r', 'rounded-b', 'rounded-l', 'rounded-ss', 'rounded-se', 'rounded-ee', 'rounded-es', 'rounded-tl', 'rounded-tr', 'rounded-br', 'rounded-bl'],
-      'rounded-s': ['rounded-ss', 'rounded-es'],
-      'rounded-e': ['rounded-se', 'rounded-ee'],
-      'rounded-t': ['rounded-tl', 'rounded-tr'],
-      'rounded-r': ['rounded-tr', 'rounded-br'],
-      'rounded-b': ['rounded-br', 'rounded-bl'],
-      'rounded-l': ['rounded-tl', 'rounded-bl'],
-      'border-spacing': ['border-spacing-x', 'border-spacing-y'],
-      'border-w': ['border-w-x', 'border-w-y', 'border-w-s', 'border-w-e', 'border-w-t', 'border-w-r', 'border-w-b', 'border-w-l'],
-      'border-w-x': ['border-w-r', 'border-w-l'],
-      'border-w-y': ['border-w-t', 'border-w-b'],
-      'border-color': ['border-color-x', 'border-color-y', 'border-color-s', 'border-color-e', 'border-color-t', 'border-color-r', 'border-color-b', 'border-color-l'],
-      'border-color-x': ['border-color-r', 'border-color-l'],
-      'border-color-y': ['border-color-t', 'border-color-b'],
-      translate: ['translate-x', 'translate-y', 'translate-none'],
-      'translate-none': ['translate', 'translate-x', 'translate-y', 'translate-z'],
-      'scroll-m': ['scroll-mx', 'scroll-my', 'scroll-ms', 'scroll-me', 'scroll-mt', 'scroll-mr', 'scroll-mb', 'scroll-ml'],
-      'scroll-mx': ['scroll-mr', 'scroll-ml'],
-      'scroll-my': ['scroll-mt', 'scroll-mb'],
-      'scroll-p': ['scroll-px', 'scroll-py', 'scroll-ps', 'scroll-pe', 'scroll-pt', 'scroll-pr', 'scroll-pb', 'scroll-pl'],
-      'scroll-px': ['scroll-pr', 'scroll-pl'],
-      'scroll-py': ['scroll-pt', 'scroll-pb'],
-      touch: ['touch-x', 'touch-y', 'touch-pz'],
-      'touch-x': ['touch'],
-      'touch-y': ['touch'],
-      'touch-pz': ['touch']
-    },
-    conflictingClassGroupModifiers: {
-      'font-size': ['leading']
-    },
-    orderSensitiveModifiers: ['*', '**', 'after', 'backdrop', 'before', 'details-content', 'file', 'first-letter', 'first-line', 'marker', 'placeholder', 'selection']
-  };
-};
-const twMerge = /*#__PURE__*/createTailwindMerge(getDefaultConfig);
-
-function cn() {
-    var inputs = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        inputs[_i] = arguments[_i];
-    }
-    return twMerge(clsx(inputs));
-}
-
-function PromLabel(_a) {
-    var className = _a.className, props = __rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(Root$2, __assign({ "data-slot": "label", className: cn("flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50", className) }, props)));
-}
-
-var PromInput = function (_a) {
-    var name = _a.name, mask = _a.mask, label = _a.label, isLoad = _a.isLoad, styleTitle = _a.styleTitle, styleWrapper = _a.styleWrapper, _b = _a.type, type = _b === void 0 ? "text" : _b, allowedPattern = _a.allowedPattern, props = __rest(_a, ["name", "mask", "label", "isLoad", "styleTitle", "styleWrapper", "type", "allowedPattern"]);
-    var _c = useFormContext(), control = _c.control, setValue = _c.setValue;
-    var handleChange = function (value) {
-        var processedValue = value;
-        if (mask) {
-            processedValue = mask(value);
-        }
-        if (allowedPattern) {
-            if (!allowedPattern.test(processedValue)) {
-                return;
-            }
-        }
-        setValue(name, processedValue);
-    };
-    return (jsxRuntimeExports.jsx(PromFormFiled, { control: control, name: name, render: function (_a) {
-            var field = _a.field, fieldState = _a.fieldState;
-            return (jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [label && (jsxRuntimeExports.jsx(PromLabel, { className: cn("block text-sm font-medium", styleTitle), children: label })), jsxRuntimeExports.jsx("input", __assign({}, field, props, { onChange: function (e) { return handleChange(e.target.value); }, type: type, disabled: isLoad || props.disabled, className: cn("file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]", "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive", styleWrapper) })), fieldState.error && (jsxRuntimeExports.jsx("p", { className: "text-red-500 text-sm mt-1", children: fieldState.error.message }))] }));
-        } }));
-};
-
-var PromTextarea = function (_a) {
-    var name = _a.name, label = _a.label; _a.isLoad; _a.styleTitle; var styleWrapper = _a.styleWrapper, props = __rest(_a, ["name", "label", "isLoad", "styleTitle", "styleWrapper"]);
-    var control = useFormContext().control;
-    return (jsxRuntimeExports.jsx(PromFormFiled, { control: control, name: name, render: function (_a) {
-            var field = _a.field, fieldState = _a.fieldState;
-            return (jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [label && (jsxRuntimeExports.jsx(PromLabel, { className: "block text-sm font-medium", children: label })), jsxRuntimeExports.jsx("textarea", __assign({}, field, { "data-slot": "textarea", className: cn("border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", styleWrapper) }, props)), fieldState.error && (jsxRuntimeExports.jsx("p", { className: "text-red-500 text-sm mt-1", children: fieldState.error.message }))] }));
-        } }));
-};
-
-// src/primitive.tsx
-function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
-  return function handleEvent(event) {
-    originalEventHandler?.(event);
-    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
-      return ourEventHandler?.(event);
-    }
-  };
-}
-
-// packages/react/context/src/create-context.tsx
-function createContextScope(scopeName, createContextScopeDeps = []) {
-  let defaultContexts = [];
-  function createContext3(rootComponentName, defaultContext) {
-    const BaseContext = React.createContext(defaultContext);
-    const index = defaultContexts.length;
-    defaultContexts = [...defaultContexts, defaultContext];
-    const Provider = (props) => {
-      const { scope, children, ...context } = props;
-      const Context = scope?.[scopeName]?.[index] || BaseContext;
-      const value = React.useMemo(() => context, Object.values(context));
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Context.Provider, { value, children });
-    };
-    Provider.displayName = rootComponentName + "Provider";
-    function useContext2(consumerName, scope) {
-      const Context = scope?.[scopeName]?.[index] || BaseContext;
-      const context = React.useContext(Context);
-      if (context) return context;
-      if (defaultContext !== void 0) return defaultContext;
-      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
-    }
-    return [Provider, useContext2];
-  }
-  const createScope = () => {
-    const scopeContexts = defaultContexts.map((defaultContext) => {
-      return React.createContext(defaultContext);
-    });
-    return function useScope(scope) {
-      const contexts = scope?.[scopeName] || scopeContexts;
-      return React.useMemo(
-        () => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }),
-        [scope, contexts]
-      );
-    };
-  };
-  createScope.scopeName = scopeName;
-  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
-}
-function composeContextScopes(...scopes) {
-  const baseScope = scopes[0];
-  if (scopes.length === 1) return baseScope;
-  const createScope = () => {
-    const scopeHooks = scopes.map((createScope2) => ({
-      useScope: createScope2(),
-      scopeName: createScope2.scopeName
-    }));
-    return function useComposedScopes(overrideScopes) {
-      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
-        const scopeProps = useScope(overrideScopes);
-        const currentScope = scopeProps[`__scope${scopeName}`];
-        return { ...nextScopes2, ...currentScope };
-      }, {});
-      return React.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
-    };
-  };
-  createScope.scopeName = baseScope.scopeName;
-  return createScope;
-}
-
-// packages/react/use-layout-effect/src/use-layout-effect.tsx
-var useLayoutEffect2 = globalThis?.document ? React.useLayoutEffect : () => {
-};
-
-// src/use-controllable-state.tsx
-var useInsertionEffect = React[" useInsertionEffect ".trim().toString()] || useLayoutEffect2;
-function useControllableState({
-  prop,
-  defaultProp,
-  onChange = () => {
-  },
-  caller
-}) {
-  const [uncontrolledProp, setUncontrolledProp, onChangeRef] = useUncontrolledState({
-    defaultProp,
-    onChange
-  });
-  const isControlled = prop !== void 0;
-  const value = isControlled ? prop : uncontrolledProp;
-  {
-    const isControlledRef = React.useRef(prop !== void 0);
-    React.useEffect(() => {
-      const wasControlled = isControlledRef.current;
-      if (wasControlled !== isControlled) {
-        const from = wasControlled ? "controlled" : "uncontrolled";
-        const to = isControlled ? "controlled" : "uncontrolled";
-        console.warn(
-          `${caller} is changing from ${from} to ${to}. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.`
-        );
-      }
-      isControlledRef.current = isControlled;
-    }, [isControlled, caller]);
-  }
-  const setValue = React.useCallback(
-    (nextValue) => {
-      if (isControlled) {
-        const value2 = isFunction(nextValue) ? nextValue(prop) : nextValue;
-        if (value2 !== prop) {
-          onChangeRef.current?.(value2);
-        }
-      } else {
-        setUncontrolledProp(nextValue);
-      }
-    },
-    [isControlled, prop, setUncontrolledProp, onChangeRef]
-  );
-  return [value, setValue];
-}
-function useUncontrolledState({
-  defaultProp,
-  onChange
-}) {
-  const [value, setValue] = React.useState(defaultProp);
-  const prevValueRef = React.useRef(value);
-  const onChangeRef = React.useRef(onChange);
-  useInsertionEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-  React.useEffect(() => {
-    if (prevValueRef.current !== value) {
-      onChangeRef.current?.(value);
-      prevValueRef.current = value;
-    }
-  }, [value, prevValueRef]);
-  return [value, setValue, onChangeRef];
-}
-function isFunction(value) {
-  return typeof value === "function";
-}
-
-// packages/react/use-previous/src/use-previous.tsx
-function usePrevious(value) {
-  const ref = React.useRef({ value, previous: value });
-  return React.useMemo(() => {
-    if (ref.current.value !== value) {
-      ref.current.previous = ref.current.value;
-      ref.current.value = value;
-    }
-    return ref.current.previous;
-  }, [value]);
-}
-
-// packages/react/use-size/src/use-size.tsx
-function useSize(element) {
-  const [size, setSize] = React.useState(void 0);
-  useLayoutEffect2(() => {
-    if (element) {
-      setSize({ width: element.offsetWidth, height: element.offsetHeight });
-      const resizeObserver = new ResizeObserver((entries) => {
-        if (!Array.isArray(entries)) {
-          return;
-        }
-        if (!entries.length) {
-          return;
-        }
-        const entry = entries[0];
-        let width;
-        let height;
-        if ("borderBoxSize" in entry) {
-          const borderSizeEntry = entry["borderBoxSize"];
-          const borderSize = Array.isArray(borderSizeEntry) ? borderSizeEntry[0] : borderSizeEntry;
-          width = borderSize["inlineSize"];
-          height = borderSize["blockSize"];
-        } else {
-          width = element.offsetWidth;
-          height = element.offsetHeight;
-        }
-        setSize({ width, height });
-      });
-      resizeObserver.observe(element, { box: "border-box" });
-      return () => resizeObserver.unobserve(element);
-    } else {
-      setSize(void 0);
-    }
-  }, [element]);
-  return size;
-}
-
-// src/slot.tsx
-// @__NO_SIDE_EFFECTS__
-function createSlot(ownerName) {
-  const SlotClone = /* @__PURE__ */ createSlotClone(ownerName);
-  const Slot2 = React.forwardRef((props, forwardedRef) => {
-    const { children, ...slotProps } = props;
-    const childrenArray = React.Children.toArray(children);
-    const slottable = childrenArray.find(isSlottable);
-    if (slottable) {
-      const newElement = slottable.props.children;
-      const newChildren = childrenArray.map((child) => {
-        if (child === slottable) {
-          if (React.Children.count(newElement) > 1) return React.Children.only(null);
-          return React.isValidElement(newElement) ? newElement.props.children : null;
-        } else {
-          return child;
-        }
-      });
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children: React.isValidElement(newElement) ? React.cloneElement(newElement, void 0, newChildren) : null });
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(SlotClone, { ...slotProps, ref: forwardedRef, children });
-  });
-  Slot2.displayName = `${ownerName}.Slot`;
-  return Slot2;
-}
-// @__NO_SIDE_EFFECTS__
-function createSlotClone(ownerName) {
-  const SlotClone = React.forwardRef((props, forwardedRef) => {
-    const { children, ...slotProps } = props;
-    if (React.isValidElement(children)) {
-      const childrenRef = getElementRef(children);
-      const props2 = mergeProps(slotProps, children.props);
-      if (children.type !== React.Fragment) {
-        props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
-      }
-      return React.cloneElement(children, props2);
-    }
-    return React.Children.count(children) > 1 ? React.Children.only(null) : null;
-  });
-  SlotClone.displayName = `${ownerName}.SlotClone`;
-  return SlotClone;
-}
-var SLOTTABLE_IDENTIFIER = Symbol("radix.slottable");
-function isSlottable(child) {
-  return React.isValidElement(child) && typeof child.type === "function" && "__radixId" in child.type && child.type.__radixId === SLOTTABLE_IDENTIFIER;
-}
-function mergeProps(slotProps, childProps) {
-  const overrideProps = { ...childProps };
-  for (const propName in childProps) {
-    const slotPropValue = slotProps[propName];
-    const childPropValue = childProps[propName];
-    const isHandler = /^on[A-Z]/.test(propName);
-    if (isHandler) {
-      if (slotPropValue && childPropValue) {
-        overrideProps[propName] = (...args) => {
-          const result = childPropValue(...args);
-          slotPropValue(...args);
-          return result;
-        };
-      } else if (slotPropValue) {
-        overrideProps[propName] = slotPropValue;
-      }
-    } else if (propName === "style") {
-      overrideProps[propName] = { ...slotPropValue, ...childPropValue };
-    } else if (propName === "className") {
-      overrideProps[propName] = [slotPropValue, childPropValue].filter(Boolean).join(" ");
-    }
-  }
-  return { ...slotProps, ...overrideProps };
-}
-function getElementRef(element) {
-  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
-  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.ref;
-  }
-  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
-  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.props.ref;
-  }
-  return element.props.ref || element.ref;
-}
-
 // src/primitive.tsx
 var NODES = [
   "a",
@@ -16217,7 +21693,7 @@ var NODES = [
   "ul"
 ];
 var Primitive = NODES.reduce((primitive, node) => {
-  const Slot = createSlot(`Primitive.${node}`);
+  const Slot = createSlot$1(`Primitive.${node}`);
   const Node = React.forwardRef((props, forwardedRef) => {
     const { asChild, ...primitiveProps } = props;
     const Comp = asChild ? Slot : node;
@@ -16229,5399 +21705,74 @@ var Primitive = NODES.reduce((primitive, node) => {
   Node.displayName = `Primitive.${node}`;
   return { ...primitive, [node]: Node };
 }, {});
-function dispatchDiscreteCustomEvent(target, event) {
-  if (target) ReactDOM.flushSync(() => target.dispatchEvent(event));
-}
 
-var SWITCH_NAME = "Switch";
-var [createSwitchContext] = createContextScope(SWITCH_NAME);
-var [SwitchProvider, useSwitchContext] = createSwitchContext(SWITCH_NAME);
-var Switch = React.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      __scopeSwitch,
-      name,
-      checked: checkedProp,
-      defaultChecked,
-      required,
-      disabled,
-      value = "on",
-      onCheckedChange,
-      form,
-      ...switchProps
-    } = props;
-    const [button, setButton] = React.useState(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setButton(node));
-    const hasConsumerStoppedPropagationRef = React.useRef(false);
-    const isFormControl = button ? form || !!button.closest("form") : true;
-    const [checked, setChecked] = useControllableState({
-      prop: checkedProp,
-      defaultProp: defaultChecked ?? false,
-      onChange: onCheckedChange,
-      caller: SWITCH_NAME
-    });
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(SwitchProvider, { scope: __scopeSwitch, checked, disabled, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Primitive.button,
-        {
-          type: "button",
-          role: "switch",
-          "aria-checked": checked,
-          "aria-required": required,
-          "data-state": getState(checked),
-          "data-disabled": disabled ? "" : void 0,
-          disabled,
-          value,
-          ...switchProps,
-          ref: composedRefs,
-          onClick: composeEventHandlers(props.onClick, (event) => {
-            setChecked((prevChecked) => !prevChecked);
-            if (isFormControl) {
-              hasConsumerStoppedPropagationRef.current = event.isPropagationStopped();
-              if (!hasConsumerStoppedPropagationRef.current) event.stopPropagation();
-            }
-          })
-        }
-      ),
-      isFormControl && /* @__PURE__ */ jsxRuntimeExports.jsx(
-        SwitchBubbleInput,
-        {
-          control: button,
-          bubbles: !hasConsumerStoppedPropagationRef.current,
-          name,
-          value,
-          checked,
-          required,
-          disabled,
-          form,
-          style: { transform: "translateX(-100%)" }
-        }
-      )
-    ] });
-  }
-);
-Switch.displayName = SWITCH_NAME;
-var THUMB_NAME = "SwitchThumb";
-var SwitchThumb = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSwitch, ...thumbProps } = props;
-    const context = useSwitchContext(THUMB_NAME, __scopeSwitch);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.span,
-      {
-        "data-state": getState(context.checked),
-        "data-disabled": context.disabled ? "" : void 0,
-        ...thumbProps,
-        ref: forwardedRef
+var NAME = "Label";
+var Label = React.forwardRef((props, forwardedRef) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    Primitive.label,
+    {
+      ...props,
+      ref: forwardedRef,
+      onMouseDown: (event) => {
+        const target = event.target;
+        if (target.closest("button, input, select, textarea")) return;
+        props.onMouseDown?.(event);
+        if (!event.defaultPrevented && event.detail > 1) event.preventDefault();
       }
-    );
-  }
-);
-SwitchThumb.displayName = THUMB_NAME;
-var BUBBLE_INPUT_NAME$1 = "SwitchBubbleInput";
-var SwitchBubbleInput = React.forwardRef(
-  ({
-    __scopeSwitch,
-    control,
-    checked,
-    bubbles = true,
-    ...props
-  }, forwardedRef) => {
-    const ref = React.useRef(null);
-    const composedRefs = useComposedRefs(ref, forwardedRef);
-    const prevChecked = usePrevious(checked);
-    const controlSize = useSize(control);
-    React.useEffect(() => {
-      const input = ref.current;
-      if (!input) return;
-      const inputProto = window.HTMLInputElement.prototype;
-      const descriptor = Object.getOwnPropertyDescriptor(
-        inputProto,
-        "checked"
-      );
-      const setChecked = descriptor.set;
-      if (prevChecked !== checked && setChecked) {
-        const event = new Event("click", { bubbles });
-        setChecked.call(input, checked);
-        input.dispatchEvent(event);
-      }
-    }, [prevChecked, checked, bubbles]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "input",
-      {
-        type: "checkbox",
-        "aria-hidden": true,
-        defaultChecked: checked,
-        ...props,
-        tabIndex: -1,
-        ref: composedRefs,
-        style: {
-          ...props.style,
-          ...controlSize,
-          position: "absolute",
-          pointerEvents: "none",
-          opacity: 0,
-          margin: 0
-        }
-      }
-    );
-  }
-);
-SwitchBubbleInput.displayName = BUBBLE_INPUT_NAME$1;
-function getState(checked) {
-  return checked ? "checked" : "unchecked";
-}
-var Root$1 = Switch;
-var Thumb = SwitchThumb;
-
-var PromSwitch = React.forwardRef(function (_a, ref) {
-    var className = _a.className, checked = _a.checked, props = __rest(_a, ["className", "checked"]);
-    return (jsxRuntimeExports.jsx(Root$1, __assign({ className: cn("peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-colors", "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background", "disabled:cursor-not-allowed disabled:opacity-50", checked ? "bg-primary" : "bg-input", className), checked: checked }, props, { ref: ref, children: jsxRuntimeExports.jsx(Thumb, { className: cn("pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform"), style: {
-                transform: checked ? "translateX(16px)" : "translateX(2px)",
-            } }) })));
+    }
+  );
 });
-PromSwitch.displayName = "PromSwitch";
+Label.displayName = NAME;
+var Root = Label;
 
-function PromSkeleton(_a) {
+function PromLabel(_a) {
     var className = _a.className, props = __rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx("div", __assign({ "data-slot": "skeleton", className: cn("bg-accent animate-pulse rounded-md", className) }, props)));
+    return (jsxRuntimeExports.jsx(Root, __assign({ "data-slot": "label", className: cn("flex items-center gap-2 text-label text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50", className) }, props)));
 }
 
-var PromSwitchField = function (_a) {
-    var name = _a.name, label = _a.label; _a.className; var _b = _a.isLoad, isLoad = _b === void 0 ? false : _b, _c = _a.isDisable, isDisable = _c === void 0 ? false : _c, props = __rest(_a, ["name", "label", "className", "isLoad", "isDisable"]);
-    var control = useFormContext().control;
-    return (jsxRuntimeExports.jsx(PromFormFiled, { name: name, control: control, render: function (_a) {
-            var field = _a.field;
-            return (jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: !isLoad ? (jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [jsxRuntimeExports.jsx(PromSwitch, __assign({ id: name, disabled: isDisable, checked: field.value, onCheckedChange: field.onChange }, props)), label && jsxRuntimeExports.jsx(PromLabel, { htmlFor: name, children: label })] })) : (jsxRuntimeExports.jsx(PromSkeleton, { className: "w-10 h-2" })) }));
+var PromInput = function (_a) {
+    var name = _a.name, mask = _a.mask, label = _a.label, isLoad = _a.isLoad, styleTitle = _a.styleTitle, styleWrapper = _a.styleWrapper, _b = _a.type, type = _b === void 0 ? "text" : _b, allowedPattern = _a.allowedPattern, props = __rest(_a, ["name", "mask", "label", "isLoad", "styleTitle", "styleWrapper", "type", "allowedPattern"]);
+    var _c = useFormContext(), control = _c.control, setValue = _c.setValue;
+    var _d = useState(false), showPassword = _d[0], setShowPassword = _d[1];
+    var togglePasswordVisibility = function () {
+        setShowPassword(!showPassword);
+    };
+    var inputType = type === "password" && showPassword ? "text" : type;
+    var handleChange = function (value) {
+        var processedValue = value;
+        if (mask) {
+            processedValue = mask(value);
+        }
+        if (allowedPattern) {
+            if (!allowedPattern.test(processedValue)) {
+                return;
+            }
+        }
+        setValue(name, processedValue);
+    };
+    return (jsxRuntimeExports.jsx(PromFormFiled, { control: control, name: name, render: function (_a) {
+            var field = _a.field, fieldState = _a.fieldState;
+            return (jsxRuntimeExports.jsxs("div", { className: "space-y-2 relative flex flex-col", children: [label && (jsxRuntimeExports.jsx(PromLabel, { className: cn("block text-sm font-medium", styleTitle), children: label })), jsxRuntimeExports.jsxs("div", { className: "relative w-full", children: [jsxRuntimeExports.jsx("input", __assign({}, field, props, { type: inputType, onChange: function (e) { return handleChange(e.target.value); }, disabled: isLoad || props.disabled, className: cn("file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]", "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive", styleWrapper) })), type === "password" && (jsxRuntimeExports.jsx("button", { type: "button", onClick: togglePasswordVisibility, className: "absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none", tabIndex: -1, disabled: props.disabled, children: showPassword ? (jsxRuntimeExports.jsx(EyeOff, { className: "h-4 w-4" })) : (jsxRuntimeExports.jsx(Eye, { className: "h-4 w-4" })) }))] }), fieldState.error && (jsxRuntimeExports.jsx("p", { className: "text-red-500 text-sm mt-1 text-center w-full", children: fieldState.error.message }))] }));
         } }));
 };
 
-// packages/core/number/src/number.ts
-function clamp$1(value, [min, max]) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function createCollection(name) {
-  const PROVIDER_NAME = name + "CollectionProvider";
-  const [createCollectionContext, createCollectionScope] = createContextScope(PROVIDER_NAME);
-  const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(
-    PROVIDER_NAME,
-    { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map() }
-  );
-  const CollectionProvider = (props) => {
-    const { scope, children } = props;
-    const ref = React__default.useRef(null);
-    const itemMap = React__default.useRef(/* @__PURE__ */ new Map()).current;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
-  };
-  CollectionProvider.displayName = PROVIDER_NAME;
-  const COLLECTION_SLOT_NAME = name + "CollectionSlot";
-  const CollectionSlotImpl = createSlot(COLLECTION_SLOT_NAME);
-  const CollectionSlot = React__default.forwardRef(
-    (props, forwardedRef) => {
-      const { scope, children } = props;
-      const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
-      const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionSlotImpl, { ref: composedRefs, children });
-    }
-  );
-  CollectionSlot.displayName = COLLECTION_SLOT_NAME;
-  const ITEM_SLOT_NAME = name + "CollectionItemSlot";
-  const ITEM_DATA_ATTR = "data-radix-collection-item";
-  const CollectionItemSlotImpl = createSlot(ITEM_SLOT_NAME);
-  const CollectionItemSlot = React__default.forwardRef(
-    (props, forwardedRef) => {
-      const { scope, children, ...itemData } = props;
-      const ref = React__default.useRef(null);
-      const composedRefs = useComposedRefs(forwardedRef, ref);
-      const context = useCollectionContext(ITEM_SLOT_NAME, scope);
-      React__default.useEffect(() => {
-        context.itemMap.set(ref, { ref, ...itemData });
-        return () => void context.itemMap.delete(ref);
-      });
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
-    }
-  );
-  CollectionItemSlot.displayName = ITEM_SLOT_NAME;
-  function useCollection(scope) {
-    const context = useCollectionContext(name + "CollectionConsumer", scope);
-    const getItems = React__default.useCallback(() => {
-      const collectionNode = context.collectionRef.current;
-      if (!collectionNode) return [];
-      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`));
-      const items = Array.from(context.itemMap.values());
-      const orderedItems = items.sort(
-        (a, b) => orderedNodes.indexOf(a.ref.current) - orderedNodes.indexOf(b.ref.current)
-      );
-      return orderedItems;
-    }, [context.collectionRef, context.itemMap]);
-    return getItems;
-  }
-  return [
-    { Provider: CollectionProvider, Slot: CollectionSlot, ItemSlot: CollectionItemSlot },
-    useCollection,
-    createCollectionScope
-  ];
-}
-
-// packages/react/direction/src/direction.tsx
-var DirectionContext = React.createContext(void 0);
-function useDirection(localDir) {
-  const globalDir = React.useContext(DirectionContext);
-  return localDir || globalDir || "ltr";
-}
-
-// packages/react/use-callback-ref/src/use-callback-ref.tsx
-function useCallbackRef$1(callback) {
-  const callbackRef = React.useRef(callback);
-  React.useEffect(() => {
-    callbackRef.current = callback;
-  });
-  return React.useMemo(() => (...args) => callbackRef.current?.(...args), []);
-}
-
-// packages/react/use-escape-keydown/src/use-escape-keydown.tsx
-function useEscapeKeydown(onEscapeKeyDownProp, ownerDocument = globalThis?.document) {
-  const onEscapeKeyDown = useCallbackRef$1(onEscapeKeyDownProp);
-  React.useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onEscapeKeyDown(event);
-      }
-    };
-    ownerDocument.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () => ownerDocument.removeEventListener("keydown", handleKeyDown, { capture: true });
-  }, [onEscapeKeyDown, ownerDocument]);
-}
-
-var DISMISSABLE_LAYER_NAME = "DismissableLayer";
-var CONTEXT_UPDATE = "dismissableLayer.update";
-var POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside";
-var FOCUS_OUTSIDE = "dismissableLayer.focusOutside";
-var originalBodyPointerEvents;
-var DismissableLayerContext = React.createContext({
-  layers: /* @__PURE__ */ new Set(),
-  layersWithOutsidePointerEventsDisabled: /* @__PURE__ */ new Set(),
-  branches: /* @__PURE__ */ new Set()
-});
-var DismissableLayer = React.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      disableOutsidePointerEvents = false,
-      onEscapeKeyDown,
-      onPointerDownOutside,
-      onFocusOutside,
-      onInteractOutside,
-      onDismiss,
-      ...layerProps
-    } = props;
-    const context = React.useContext(DismissableLayerContext);
-    const [node, setNode] = React.useState(null);
-    const ownerDocument = node?.ownerDocument ?? globalThis?.document;
-    const [, force] = React.useState({});
-    const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
-    const layers = Array.from(context.layers);
-    const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
-    const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(highestLayerWithOutsidePointerEventsDisabled);
-    const index = node ? layers.indexOf(node) : -1;
-    const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0;
-    const isPointerEventsEnabled = index >= highestLayerWithOutsidePointerEventsDisabledIndex;
-    const pointerDownOutside = usePointerDownOutside((event) => {
-      const target = event.target;
-      const isPointerDownOnBranch = [...context.branches].some((branch) => branch.contains(target));
-      if (!isPointerEventsEnabled || isPointerDownOnBranch) return;
-      onPointerDownOutside?.(event);
-      onInteractOutside?.(event);
-      if (!event.defaultPrevented) onDismiss?.();
-    }, ownerDocument);
-    const focusOutside = useFocusOutside((event) => {
-      const target = event.target;
-      const isFocusInBranch = [...context.branches].some((branch) => branch.contains(target));
-      if (isFocusInBranch) return;
-      onFocusOutside?.(event);
-      onInteractOutside?.(event);
-      if (!event.defaultPrevented) onDismiss?.();
-    }, ownerDocument);
-    useEscapeKeydown((event) => {
-      const isHighestLayer = index === context.layers.size - 1;
-      if (!isHighestLayer) return;
-      onEscapeKeyDown?.(event);
-      if (!event.defaultPrevented && onDismiss) {
-        event.preventDefault();
-        onDismiss();
-      }
-    }, ownerDocument);
-    React.useEffect(() => {
-      if (!node) return;
-      if (disableOutsidePointerEvents) {
-        if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
-          originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
-          ownerDocument.body.style.pointerEvents = "none";
-        }
-        context.layersWithOutsidePointerEventsDisabled.add(node);
-      }
-      context.layers.add(node);
-      dispatchUpdate();
-      return () => {
-        if (disableOutsidePointerEvents && context.layersWithOutsidePointerEventsDisabled.size === 1) {
-          ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
-        }
-      };
-    }, [node, ownerDocument, disableOutsidePointerEvents, context]);
-    React.useEffect(() => {
-      return () => {
-        if (!node) return;
-        context.layers.delete(node);
-        context.layersWithOutsidePointerEventsDisabled.delete(node);
-        dispatchUpdate();
-      };
-    }, [node, context]);
-    React.useEffect(() => {
-      const handleUpdate = () => force({});
-      document.addEventListener(CONTEXT_UPDATE, handleUpdate);
-      return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
-    }, []);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.div,
-      {
-        ...layerProps,
-        ref: composedRefs,
-        style: {
-          pointerEvents: isBodyPointerEventsDisabled ? isPointerEventsEnabled ? "auto" : "none" : void 0,
-          ...props.style
-        },
-        onFocusCapture: composeEventHandlers(props.onFocusCapture, focusOutside.onFocusCapture),
-        onBlurCapture: composeEventHandlers(props.onBlurCapture, focusOutside.onBlurCapture),
-        onPointerDownCapture: composeEventHandlers(
-          props.onPointerDownCapture,
-          pointerDownOutside.onPointerDownCapture
-        )
-      }
-    );
-  }
-);
-DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
-var BRANCH_NAME = "DismissableLayerBranch";
-var DismissableLayerBranch = React.forwardRef((props, forwardedRef) => {
-  const context = React.useContext(DismissableLayerContext);
-  const ref = React.useRef(null);
-  const composedRefs = useComposedRefs(forwardedRef, ref);
-  React.useEffect(() => {
-    const node = ref.current;
-    if (node) {
-      context.branches.add(node);
-      return () => {
-        context.branches.delete(node);
-      };
-    }
-  }, [context.branches]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...props, ref: composedRefs });
-});
-DismissableLayerBranch.displayName = BRANCH_NAME;
-function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis?.document) {
-  const handlePointerDownOutside = useCallbackRef$1(onPointerDownOutside);
-  const isPointerInsideReactTreeRef = React.useRef(false);
-  const handleClickRef = React.useRef(() => {
-  });
-  React.useEffect(() => {
-    const handlePointerDown = (event) => {
-      if (event.target && !isPointerInsideReactTreeRef.current) {
-        let handleAndDispatchPointerDownOutsideEvent2 = function() {
-          handleAndDispatchCustomEvent(
-            POINTER_DOWN_OUTSIDE,
-            handlePointerDownOutside,
-            eventDetail,
-            { discrete: true }
-          );
-        };
-        const eventDetail = { originalEvent: event };
-        if (event.pointerType === "touch") {
-          ownerDocument.removeEventListener("click", handleClickRef.current);
-          handleClickRef.current = handleAndDispatchPointerDownOutsideEvent2;
-          ownerDocument.addEventListener("click", handleClickRef.current, { once: true });
-        } else {
-          handleAndDispatchPointerDownOutsideEvent2();
-        }
-      } else {
-        ownerDocument.removeEventListener("click", handleClickRef.current);
-      }
-      isPointerInsideReactTreeRef.current = false;
-    };
-    const timerId = window.setTimeout(() => {
-      ownerDocument.addEventListener("pointerdown", handlePointerDown);
-    }, 0);
-    return () => {
-      window.clearTimeout(timerId);
-      ownerDocument.removeEventListener("pointerdown", handlePointerDown);
-      ownerDocument.removeEventListener("click", handleClickRef.current);
-    };
-  }, [ownerDocument, handlePointerDownOutside]);
-  return {
-    // ensures we check React component tree (not just DOM tree)
-    onPointerDownCapture: () => isPointerInsideReactTreeRef.current = true
-  };
-}
-function useFocusOutside(onFocusOutside, ownerDocument = globalThis?.document) {
-  const handleFocusOutside = useCallbackRef$1(onFocusOutside);
-  const isFocusInsideReactTreeRef = React.useRef(false);
-  React.useEffect(() => {
-    const handleFocus = (event) => {
-      if (event.target && !isFocusInsideReactTreeRef.current) {
-        const eventDetail = { originalEvent: event };
-        handleAndDispatchCustomEvent(FOCUS_OUTSIDE, handleFocusOutside, eventDetail, {
-          discrete: false
-        });
-      }
-    };
-    ownerDocument.addEventListener("focusin", handleFocus);
-    return () => ownerDocument.removeEventListener("focusin", handleFocus);
-  }, [ownerDocument, handleFocusOutside]);
-  return {
-    onFocusCapture: () => isFocusInsideReactTreeRef.current = true,
-    onBlurCapture: () => isFocusInsideReactTreeRef.current = false
-  };
-}
-function dispatchUpdate() {
-  const event = new CustomEvent(CONTEXT_UPDATE);
-  document.dispatchEvent(event);
-}
-function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
-  const target = detail.originalEvent.target;
-  const event = new CustomEvent(name, { bubbles: false, cancelable: true, detail });
-  if (handler) target.addEventListener(name, handler, { once: true });
-  if (discrete) {
-    dispatchDiscreteCustomEvent(target, event);
-  } else {
-    target.dispatchEvent(event);
-  }
-}
-
-var count$1 = 0;
-function useFocusGuards() {
-  React.useEffect(() => {
-    const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
-    document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
-    document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
-    count$1++;
-    return () => {
-      if (count$1 === 1) {
-        document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
-      }
-      count$1--;
-    };
-  }, []);
-}
-function createFocusGuard() {
-  const element = document.createElement("span");
-  element.setAttribute("data-radix-focus-guard", "");
-  element.tabIndex = 0;
-  element.style.outline = "none";
-  element.style.opacity = "0";
-  element.style.position = "fixed";
-  element.style.pointerEvents = "none";
-  return element;
-}
-
-var AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount";
-var AUTOFOCUS_ON_UNMOUNT = "focusScope.autoFocusOnUnmount";
-var EVENT_OPTIONS = { bubbles: false, cancelable: true };
-var FOCUS_SCOPE_NAME = "FocusScope";
-var FocusScope = React.forwardRef((props, forwardedRef) => {
-  const {
-    loop = false,
-    trapped = false,
-    onMountAutoFocus: onMountAutoFocusProp,
-    onUnmountAutoFocus: onUnmountAutoFocusProp,
-    ...scopeProps
-  } = props;
-  const [container, setContainer] = React.useState(null);
-  const onMountAutoFocus = useCallbackRef$1(onMountAutoFocusProp);
-  const onUnmountAutoFocus = useCallbackRef$1(onUnmountAutoFocusProp);
-  const lastFocusedElementRef = React.useRef(null);
-  const composedRefs = useComposedRefs(forwardedRef, (node) => setContainer(node));
-  const focusScope = React.useRef({
-    paused: false,
-    pause() {
-      this.paused = true;
-    },
-    resume() {
-      this.paused = false;
-    }
-  }).current;
-  React.useEffect(() => {
-    if (trapped) {
-      let handleFocusIn2 = function(event) {
-        if (focusScope.paused || !container) return;
-        const target = event.target;
-        if (container.contains(target)) {
-          lastFocusedElementRef.current = target;
-        } else {
-          focus(lastFocusedElementRef.current, { select: true });
-        }
-      }, handleFocusOut2 = function(event) {
-        if (focusScope.paused || !container) return;
-        const relatedTarget = event.relatedTarget;
-        if (relatedTarget === null) return;
-        if (!container.contains(relatedTarget)) {
-          focus(lastFocusedElementRef.current, { select: true });
-        }
-      }, handleMutations2 = function(mutations) {
-        const focusedElement = document.activeElement;
-        if (focusedElement !== document.body) return;
-        for (const mutation of mutations) {
-          if (mutation.removedNodes.length > 0) focus(container);
-        }
-      };
-      document.addEventListener("focusin", handleFocusIn2);
-      document.addEventListener("focusout", handleFocusOut2);
-      const mutationObserver = new MutationObserver(handleMutations2);
-      if (container) mutationObserver.observe(container, { childList: true, subtree: true });
-      return () => {
-        document.removeEventListener("focusin", handleFocusIn2);
-        document.removeEventListener("focusout", handleFocusOut2);
-        mutationObserver.disconnect();
-      };
-    }
-  }, [trapped, container, focusScope.paused]);
-  React.useEffect(() => {
-    if (container) {
-      focusScopesStack.add(focusScope);
-      const previouslyFocusedElement = document.activeElement;
-      const hasFocusedCandidate = container.contains(previouslyFocusedElement);
-      if (!hasFocusedCandidate) {
-        const mountEvent = new CustomEvent(AUTOFOCUS_ON_MOUNT, EVENT_OPTIONS);
-        container.addEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
-        container.dispatchEvent(mountEvent);
-        if (!mountEvent.defaultPrevented) {
-          focusFirst(removeLinks(getTabbableCandidates(container)), { select: true });
-          if (document.activeElement === previouslyFocusedElement) {
-            focus(container);
-          }
-        }
-      }
-      return () => {
-        container.removeEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
-        setTimeout(() => {
-          const unmountEvent = new CustomEvent(AUTOFOCUS_ON_UNMOUNT, EVENT_OPTIONS);
-          container.addEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
-          container.dispatchEvent(unmountEvent);
-          if (!unmountEvent.defaultPrevented) {
-            focus(previouslyFocusedElement ?? document.body, { select: true });
-          }
-          container.removeEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
-          focusScopesStack.remove(focusScope);
-        }, 0);
-      };
-    }
-  }, [container, onMountAutoFocus, onUnmountAutoFocus, focusScope]);
-  const handleKeyDown = React.useCallback(
-    (event) => {
-      if (!loop && !trapped) return;
-      if (focusScope.paused) return;
-      const isTabKey = event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey;
-      const focusedElement = document.activeElement;
-      if (isTabKey && focusedElement) {
-        const container2 = event.currentTarget;
-        const [first, last] = getTabbableEdges(container2);
-        const hasTabbableElementsInside = first && last;
-        if (!hasTabbableElementsInside) {
-          if (focusedElement === container2) event.preventDefault();
-        } else {
-          if (!event.shiftKey && focusedElement === last) {
-            event.preventDefault();
-            if (loop) focus(first, { select: true });
-          } else if (event.shiftKey && focusedElement === first) {
-            event.preventDefault();
-            if (loop) focus(last, { select: true });
-          }
-        }
-      }
-    },
-    [loop, trapped, focusScope.paused]
-  );
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { tabIndex: -1, ...scopeProps, ref: composedRefs, onKeyDown: handleKeyDown });
-});
-FocusScope.displayName = FOCUS_SCOPE_NAME;
-function focusFirst(candidates, { select = false } = {}) {
-  const previouslyFocusedElement = document.activeElement;
-  for (const candidate of candidates) {
-    focus(candidate, { select });
-    if (document.activeElement !== previouslyFocusedElement) return;
-  }
-}
-function getTabbableEdges(container) {
-  const candidates = getTabbableCandidates(container);
-  const first = findVisible(candidates, container);
-  const last = findVisible(candidates.reverse(), container);
-  return [first, last];
-}
-function getTabbableCandidates(container) {
-  const nodes = [];
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: (node) => {
-      const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
-      if (node.disabled || node.hidden || isHiddenInput) return NodeFilter.FILTER_SKIP;
-      return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
-    }
-  });
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-  return nodes;
-}
-function findVisible(elements, container) {
-  for (const element of elements) {
-    if (!isHidden(element, { upTo: container })) return element;
-  }
-}
-function isHidden(node, { upTo }) {
-  if (getComputedStyle(node).visibility === "hidden") return true;
-  while (node) {
-    if (upTo !== void 0 && node === upTo) return false;
-    if (getComputedStyle(node).display === "none") return true;
-    node = node.parentElement;
-  }
-  return false;
-}
-function isSelectableInput(element) {
-  return element instanceof HTMLInputElement && "select" in element;
-}
-function focus(element, { select = false } = {}) {
-  if (element && element.focus) {
-    const previouslyFocusedElement = document.activeElement;
-    element.focus({ preventScroll: true });
-    if (element !== previouslyFocusedElement && isSelectableInput(element) && select)
-      element.select();
-  }
-}
-var focusScopesStack = createFocusScopesStack();
-function createFocusScopesStack() {
-  let stack = [];
-  return {
-    add(focusScope) {
-      const activeFocusScope = stack[0];
-      if (focusScope !== activeFocusScope) {
-        activeFocusScope?.pause();
-      }
-      stack = arrayRemove(stack, focusScope);
-      stack.unshift(focusScope);
-    },
-    remove(focusScope) {
-      stack = arrayRemove(stack, focusScope);
-      stack[0]?.resume();
-    }
-  };
-}
-function arrayRemove(array, item) {
-  const updatedArray = [...array];
-  const index = updatedArray.indexOf(item);
-  if (index !== -1) {
-    updatedArray.splice(index, 1);
-  }
-  return updatedArray;
-}
-function removeLinks(items) {
-  return items.filter((item) => item.tagName !== "A");
-}
-
-// packages/react/id/src/id.tsx
-var useReactId = React[" useId ".trim().toString()] || (() => void 0);
-var count = 0;
-function useId(deterministicId) {
-  const [id, setId] = React.useState(useReactId());
-  useLayoutEffect2(() => {
-    setId((reactId) => reactId ?? String(count++));
-  }, [deterministicId]);
-  return deterministicId || (id ? `radix-${id}` : "");
-}
-
-/**
- * Custom positioning reference element.
- * @see https://floating-ui.com/docs/virtual-elements
- */
-
-const sides = ['top', 'right', 'bottom', 'left'];
-const min = Math.min;
-const max = Math.max;
-const round = Math.round;
-const floor = Math.floor;
-const createCoords = v => ({
-  x: v,
-  y: v
-});
-const oppositeSideMap = {
-  left: 'right',
-  right: 'left',
-  bottom: 'top',
-  top: 'bottom'
-};
-const oppositeAlignmentMap = {
-  start: 'end',
-  end: 'start'
-};
-function clamp(start, value, end) {
-  return max(start, min(value, end));
-}
-function evaluate(value, param) {
-  return typeof value === 'function' ? value(param) : value;
-}
-function getSide(placement) {
-  return placement.split('-')[0];
-}
-function getAlignment(placement) {
-  return placement.split('-')[1];
-}
-function getOppositeAxis(axis) {
-  return axis === 'x' ? 'y' : 'x';
-}
-function getAxisLength(axis) {
-  return axis === 'y' ? 'height' : 'width';
-}
-const yAxisSides = /*#__PURE__*/new Set(['top', 'bottom']);
-function getSideAxis(placement) {
-  return yAxisSides.has(getSide(placement)) ? 'y' : 'x';
-}
-function getAlignmentAxis(placement) {
-  return getOppositeAxis(getSideAxis(placement));
-}
-function getAlignmentSides(placement, rects, rtl) {
-  if (rtl === void 0) {
-    rtl = false;
-  }
-  const alignment = getAlignment(placement);
-  const alignmentAxis = getAlignmentAxis(placement);
-  const length = getAxisLength(alignmentAxis);
-  let mainAlignmentSide = alignmentAxis === 'x' ? alignment === (rtl ? 'end' : 'start') ? 'right' : 'left' : alignment === 'start' ? 'bottom' : 'top';
-  if (rects.reference[length] > rects.floating[length]) {
-    mainAlignmentSide = getOppositePlacement(mainAlignmentSide);
-  }
-  return [mainAlignmentSide, getOppositePlacement(mainAlignmentSide)];
-}
-function getExpandedPlacements(placement) {
-  const oppositePlacement = getOppositePlacement(placement);
-  return [getOppositeAlignmentPlacement(placement), oppositePlacement, getOppositeAlignmentPlacement(oppositePlacement)];
-}
-function getOppositeAlignmentPlacement(placement) {
-  return placement.replace(/start|end/g, alignment => oppositeAlignmentMap[alignment]);
-}
-const lrPlacement = ['left', 'right'];
-const rlPlacement = ['right', 'left'];
-const tbPlacement = ['top', 'bottom'];
-const btPlacement = ['bottom', 'top'];
-function getSideList(side, isStart, rtl) {
-  switch (side) {
-    case 'top':
-    case 'bottom':
-      if (rtl) return isStart ? rlPlacement : lrPlacement;
-      return isStart ? lrPlacement : rlPlacement;
-    case 'left':
-    case 'right':
-      return isStart ? tbPlacement : btPlacement;
-    default:
-      return [];
-  }
-}
-function getOppositeAxisPlacements(placement, flipAlignment, direction, rtl) {
-  const alignment = getAlignment(placement);
-  let list = getSideList(getSide(placement), direction === 'start', rtl);
-  if (alignment) {
-    list = list.map(side => side + "-" + alignment);
-    if (flipAlignment) {
-      list = list.concat(list.map(getOppositeAlignmentPlacement));
-    }
-  }
-  return list;
-}
-function getOppositePlacement(placement) {
-  return placement.replace(/left|right|bottom|top/g, side => oppositeSideMap[side]);
-}
-function expandPaddingObject(padding) {
-  return {
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    ...padding
-  };
-}
-function getPaddingObject(padding) {
-  return typeof padding !== 'number' ? expandPaddingObject(padding) : {
-    top: padding,
-    right: padding,
-    bottom: padding,
-    left: padding
-  };
-}
-function rectToClientRect(rect) {
-  const {
-    x,
-    y,
-    width,
-    height
-  } = rect;
-  return {
-    width,
-    height,
-    top: y,
-    left: x,
-    right: x + width,
-    bottom: y + height,
-    x,
-    y
-  };
-}
-
-function computeCoordsFromPlacement(_ref, placement, rtl) {
-  let {
-    reference,
-    floating
-  } = _ref;
-  const sideAxis = getSideAxis(placement);
-  const alignmentAxis = getAlignmentAxis(placement);
-  const alignLength = getAxisLength(alignmentAxis);
-  const side = getSide(placement);
-  const isVertical = sideAxis === 'y';
-  const commonX = reference.x + reference.width / 2 - floating.width / 2;
-  const commonY = reference.y + reference.height / 2 - floating.height / 2;
-  const commonAlign = reference[alignLength] / 2 - floating[alignLength] / 2;
-  let coords;
-  switch (side) {
-    case 'top':
-      coords = {
-        x: commonX,
-        y: reference.y - floating.height
-      };
-      break;
-    case 'bottom':
-      coords = {
-        x: commonX,
-        y: reference.y + reference.height
-      };
-      break;
-    case 'right':
-      coords = {
-        x: reference.x + reference.width,
-        y: commonY
-      };
-      break;
-    case 'left':
-      coords = {
-        x: reference.x - floating.width,
-        y: commonY
-      };
-      break;
-    default:
-      coords = {
-        x: reference.x,
-        y: reference.y
-      };
-  }
-  switch (getAlignment(placement)) {
-    case 'start':
-      coords[alignmentAxis] -= commonAlign * (rtl && isVertical ? -1 : 1);
-      break;
-    case 'end':
-      coords[alignmentAxis] += commonAlign * (rtl && isVertical ? -1 : 1);
-      break;
-  }
-  return coords;
-}
-
-/**
- * Computes the `x` and `y` coordinates that will place the floating element
- * next to a given reference element.
- *
- * This export does not have any `platform` interface logic. You will need to
- * write one for the platform you are using Floating UI with.
- */
-const computePosition$1 = async (reference, floating, config) => {
-  const {
-    placement = 'bottom',
-    strategy = 'absolute',
-    middleware = [],
-    platform
-  } = config;
-  const validMiddleware = middleware.filter(Boolean);
-  const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(floating));
-  let rects = await platform.getElementRects({
-    reference,
-    floating,
-    strategy
-  });
-  let {
-    x,
-    y
-  } = computeCoordsFromPlacement(rects, placement, rtl);
-  let statefulPlacement = placement;
-  let middlewareData = {};
-  let resetCount = 0;
-  for (let i = 0; i < validMiddleware.length; i++) {
-    const {
-      name,
-      fn
-    } = validMiddleware[i];
-    const {
-      x: nextX,
-      y: nextY,
-      data,
-      reset
-    } = await fn({
-      x,
-      y,
-      initialPlacement: placement,
-      placement: statefulPlacement,
-      strategy,
-      middlewareData,
-      rects,
-      platform,
-      elements: {
-        reference,
-        floating
-      }
-    });
-    x = nextX != null ? nextX : x;
-    y = nextY != null ? nextY : y;
-    middlewareData = {
-      ...middlewareData,
-      [name]: {
-        ...middlewareData[name],
-        ...data
-      }
-    };
-    if (reset && resetCount <= 50) {
-      resetCount++;
-      if (typeof reset === 'object') {
-        if (reset.placement) {
-          statefulPlacement = reset.placement;
-        }
-        if (reset.rects) {
-          rects = reset.rects === true ? await platform.getElementRects({
-            reference,
-            floating,
-            strategy
-          }) : reset.rects;
-        }
-        ({
-          x,
-          y
-        } = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
-      }
-      i = -1;
-    }
-  }
-  return {
-    x,
-    y,
-    placement: statefulPlacement,
-    strategy,
-    middlewareData
-  };
+var PromTextarea = function (_a) {
+    var name = _a.name, label = _a.label; _a.isLoad; _a.styleTitle; var styleWrapper = _a.styleWrapper, props = __rest(_a, ["name", "label", "isLoad", "styleTitle", "styleWrapper"]);
+    var control = useFormContext().control;
+    return (jsxRuntimeExports.jsx(PromFormFiled, { control: control, name: name, render: function (_a) {
+            var field = _a.field, fieldState = _a.fieldState;
+            return (jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [label && (jsxRuntimeExports.jsx(PromLabel, { className: "block text-sm font-medium", children: label })), jsxRuntimeExports.jsx("textarea", __assign({}, field, { "data-slot": "textarea", className: cn("border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm", styleWrapper) }, props)), fieldState.error && (jsxRuntimeExports.jsx("p", { className: "text-red-500 text-sm mt-1", children: fieldState.error.message }))] }));
+        } }));
 };
 
-/**
- * Resolves with an object of overflow side offsets that determine how much the
- * element is overflowing a given clipping boundary on each side.
- * - positive = overflowing the boundary by that number of pixels
- * - negative = how many pixels left before it will overflow
- * - 0 = lies flush with the boundary
- * @see https://floating-ui.com/docs/detectOverflow
- */
-async function detectOverflow(state, options) {
-  var _await$platform$isEle;
-  if (options === void 0) {
-    options = {};
-  }
-  const {
-    x,
-    y,
-    platform,
-    rects,
-    elements,
-    strategy
-  } = state;
-  const {
-    boundary = 'clippingAncestors',
-    rootBoundary = 'viewport',
-    elementContext = 'floating',
-    altBoundary = false,
-    padding = 0
-  } = evaluate(options, state);
-  const paddingObject = getPaddingObject(padding);
-  const altContext = elementContext === 'floating' ? 'reference' : 'floating';
-  const element = elements[altBoundary ? altContext : elementContext];
-  const clippingClientRect = rectToClientRect(await platform.getClippingRect({
-    element: ((_await$platform$isEle = await (platform.isElement == null ? void 0 : platform.isElement(element))) != null ? _await$platform$isEle : true) ? element : element.contextElement || (await (platform.getDocumentElement == null ? void 0 : platform.getDocumentElement(elements.floating))),
-    boundary,
-    rootBoundary,
-    strategy
-  }));
-  const rect = elementContext === 'floating' ? {
-    x,
-    y,
-    width: rects.floating.width,
-    height: rects.floating.height
-  } : rects.reference;
-  const offsetParent = await (platform.getOffsetParent == null ? void 0 : platform.getOffsetParent(elements.floating));
-  const offsetScale = (await (platform.isElement == null ? void 0 : platform.isElement(offsetParent))) ? (await (platform.getScale == null ? void 0 : platform.getScale(offsetParent))) || {
-    x: 1,
-    y: 1
-  } : {
-    x: 1,
-    y: 1
-  };
-  const elementClientRect = rectToClientRect(platform.convertOffsetParentRelativeRectToViewportRelativeRect ? await platform.convertOffsetParentRelativeRectToViewportRelativeRect({
-    elements,
-    rect,
-    offsetParent,
-    strategy
-  }) : rect);
-  return {
-    top: (clippingClientRect.top - elementClientRect.top + paddingObject.top) / offsetScale.y,
-    bottom: (elementClientRect.bottom - clippingClientRect.bottom + paddingObject.bottom) / offsetScale.y,
-    left: (clippingClientRect.left - elementClientRect.left + paddingObject.left) / offsetScale.x,
-    right: (elementClientRect.right - clippingClientRect.right + paddingObject.right) / offsetScale.x
-  };
-}
-
-/**
- * Provides data to position an inner element of the floating element so that it
- * appears centered to the reference element.
- * @see https://floating-ui.com/docs/arrow
- */
-const arrow$3 = options => ({
-  name: 'arrow',
-  options,
-  async fn(state) {
-    const {
-      x,
-      y,
-      placement,
-      rects,
-      platform,
-      elements,
-      middlewareData
-    } = state;
-    // Since `element` is required, we don't Partial<> the type.
-    const {
-      element,
-      padding = 0
-    } = evaluate(options, state) || {};
-    if (element == null) {
-      return {};
-    }
-    const paddingObject = getPaddingObject(padding);
-    const coords = {
-      x,
-      y
-    };
-    const axis = getAlignmentAxis(placement);
-    const length = getAxisLength(axis);
-    const arrowDimensions = await platform.getDimensions(element);
-    const isYAxis = axis === 'y';
-    const minProp = isYAxis ? 'top' : 'left';
-    const maxProp = isYAxis ? 'bottom' : 'right';
-    const clientProp = isYAxis ? 'clientHeight' : 'clientWidth';
-    const endDiff = rects.reference[length] + rects.reference[axis] - coords[axis] - rects.floating[length];
-    const startDiff = coords[axis] - rects.reference[axis];
-    const arrowOffsetParent = await (platform.getOffsetParent == null ? void 0 : platform.getOffsetParent(element));
-    let clientSize = arrowOffsetParent ? arrowOffsetParent[clientProp] : 0;
-
-    // DOM platform can return `window` as the `offsetParent`.
-    if (!clientSize || !(await (platform.isElement == null ? void 0 : platform.isElement(arrowOffsetParent)))) {
-      clientSize = elements.floating[clientProp] || rects.floating[length];
-    }
-    const centerToReference = endDiff / 2 - startDiff / 2;
-
-    // If the padding is large enough that it causes the arrow to no longer be
-    // centered, modify the padding so that it is centered.
-    const largestPossiblePadding = clientSize / 2 - arrowDimensions[length] / 2 - 1;
-    const minPadding = min(paddingObject[minProp], largestPossiblePadding);
-    const maxPadding = min(paddingObject[maxProp], largestPossiblePadding);
-
-    // Make sure the arrow doesn't overflow the floating element if the center
-    // point is outside the floating element's bounds.
-    const min$1 = minPadding;
-    const max = clientSize - arrowDimensions[length] - maxPadding;
-    const center = clientSize / 2 - arrowDimensions[length] / 2 + centerToReference;
-    const offset = clamp(min$1, center, max);
-
-    // If the reference is small enough that the arrow's padding causes it to
-    // to point to nothing for an aligned placement, adjust the offset of the
-    // floating element itself. To ensure `shift()` continues to take action,
-    // a single reset is performed when this is true.
-    const shouldAddOffset = !middlewareData.arrow && getAlignment(placement) != null && center !== offset && rects.reference[length] / 2 - (center < min$1 ? minPadding : maxPadding) - arrowDimensions[length] / 2 < 0;
-    const alignmentOffset = shouldAddOffset ? center < min$1 ? center - min$1 : center - max : 0;
-    return {
-      [axis]: coords[axis] + alignmentOffset,
-      data: {
-        [axis]: offset,
-        centerOffset: center - offset - alignmentOffset,
-        ...(shouldAddOffset && {
-          alignmentOffset
-        })
-      },
-      reset: shouldAddOffset
-    };
-  }
-});
-
-/**
- * Optimizes the visibility of the floating element by flipping the `placement`
- * in order to keep it in view when the preferred placement(s) will overflow the
- * clipping boundary. Alternative to `autoPlacement`.
- * @see https://floating-ui.com/docs/flip
- */
-const flip$2 = function (options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    name: 'flip',
-    options,
-    async fn(state) {
-      var _middlewareData$arrow, _middlewareData$flip;
-      const {
-        placement,
-        middlewareData,
-        rects,
-        initialPlacement,
-        platform,
-        elements
-      } = state;
-      const {
-        mainAxis: checkMainAxis = true,
-        crossAxis: checkCrossAxis = true,
-        fallbackPlacements: specifiedFallbackPlacements,
-        fallbackStrategy = 'bestFit',
-        fallbackAxisSideDirection = 'none',
-        flipAlignment = true,
-        ...detectOverflowOptions
-      } = evaluate(options, state);
-
-      // If a reset by the arrow was caused due to an alignment offset being
-      // added, we should skip any logic now since `flip()` has already done its
-      // work.
-      // https://github.com/floating-ui/floating-ui/issues/2549#issuecomment-1719601643
-      if ((_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
-        return {};
-      }
-      const side = getSide(placement);
-      const initialSideAxis = getSideAxis(initialPlacement);
-      const isBasePlacement = getSide(initialPlacement) === initialPlacement;
-      const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating));
-      const fallbackPlacements = specifiedFallbackPlacements || (isBasePlacement || !flipAlignment ? [getOppositePlacement(initialPlacement)] : getExpandedPlacements(initialPlacement));
-      const hasFallbackAxisSideDirection = fallbackAxisSideDirection !== 'none';
-      if (!specifiedFallbackPlacements && hasFallbackAxisSideDirection) {
-        fallbackPlacements.push(...getOppositeAxisPlacements(initialPlacement, flipAlignment, fallbackAxisSideDirection, rtl));
-      }
-      const placements = [initialPlacement, ...fallbackPlacements];
-      const overflow = await detectOverflow(state, detectOverflowOptions);
-      const overflows = [];
-      let overflowsData = ((_middlewareData$flip = middlewareData.flip) == null ? void 0 : _middlewareData$flip.overflows) || [];
-      if (checkMainAxis) {
-        overflows.push(overflow[side]);
-      }
-      if (checkCrossAxis) {
-        const sides = getAlignmentSides(placement, rects, rtl);
-        overflows.push(overflow[sides[0]], overflow[sides[1]]);
-      }
-      overflowsData = [...overflowsData, {
-        placement,
-        overflows
-      }];
-
-      // One or more sides is overflowing.
-      if (!overflows.every(side => side <= 0)) {
-        var _middlewareData$flip2, _overflowsData$filter;
-        const nextIndex = (((_middlewareData$flip2 = middlewareData.flip) == null ? void 0 : _middlewareData$flip2.index) || 0) + 1;
-        const nextPlacement = placements[nextIndex];
-        if (nextPlacement) {
-          const ignoreCrossAxisOverflow = checkCrossAxis === 'alignment' ? initialSideAxis !== getSideAxis(nextPlacement) : false;
-          if (!ignoreCrossAxisOverflow ||
-          // We leave the current main axis only if every placement on that axis
-          // overflows the main axis.
-          overflowsData.every(d => getSideAxis(d.placement) === initialSideAxis ? d.overflows[0] > 0 : true)) {
-            // Try next placement and re-run the lifecycle.
-            return {
-              data: {
-                index: nextIndex,
-                overflows: overflowsData
-              },
-              reset: {
-                placement: nextPlacement
-              }
-            };
-          }
-        }
-
-        // First, find the candidates that fit on the mainAxis side of overflow,
-        // then find the placement that fits the best on the main crossAxis side.
-        let resetPlacement = (_overflowsData$filter = overflowsData.filter(d => d.overflows[0] <= 0).sort((a, b) => a.overflows[1] - b.overflows[1])[0]) == null ? void 0 : _overflowsData$filter.placement;
-
-        // Otherwise fallback.
-        if (!resetPlacement) {
-          switch (fallbackStrategy) {
-            case 'bestFit':
-              {
-                var _overflowsData$filter2;
-                const placement = (_overflowsData$filter2 = overflowsData.filter(d => {
-                  if (hasFallbackAxisSideDirection) {
-                    const currentSideAxis = getSideAxis(d.placement);
-                    return currentSideAxis === initialSideAxis ||
-                    // Create a bias to the `y` side axis due to horizontal
-                    // reading directions favoring greater width.
-                    currentSideAxis === 'y';
-                  }
-                  return true;
-                }).map(d => [d.placement, d.overflows.filter(overflow => overflow > 0).reduce((acc, overflow) => acc + overflow, 0)]).sort((a, b) => a[1] - b[1])[0]) == null ? void 0 : _overflowsData$filter2[0];
-                if (placement) {
-                  resetPlacement = placement;
-                }
-                break;
-              }
-            case 'initialPlacement':
-              resetPlacement = initialPlacement;
-              break;
-          }
-        }
-        if (placement !== resetPlacement) {
-          return {
-            reset: {
-              placement: resetPlacement
-            }
-          };
-        }
-      }
-      return {};
-    }
-  };
+var PromSwitchField = function (_a) {
+    var name = _a.name, label = _a.label, error = _a.error; _a.errorMsg; var _b = _a.isLoad, isLoad = _b === void 0 ? false : _b; _a.disabled; var _d = _a.errorDisplay, errorDisplay = _d === void 0 ? true : _d, props = __rest(_a, ["name", "label", "error", "errorMsg", "isLoad", "disabled", "errorDisplay"]);
+    var control = useFormContext().control;
+    return (jsxRuntimeExports.jsx(PromFormFiled, { name: name, control: control, render: function (_a) {
+            var field = _a.field, fieldState = _a.fieldState;
+            return (jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: !isLoad ? (jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-3", children: [jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [jsxRuntimeExports.jsx(PromSwitch, __assign({ id: name, checked: field.value, onCheckedChange: field.onChange }, props)), label && jsxRuntimeExports.jsx(PromLabel, { htmlFor: name, children: label })] }), errorDisplay && fieldState.error && (jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: error ? (error(fieldState.error.message)) : (jsxRuntimeExports.jsx("p", { className: "text-red-500 text-sm mt-1", children: fieldState.error.message })) }))] })) : (jsxRuntimeExports.jsx(PromSkeleton, { className: "w-10 h-2" })) }));
+        } }));
 };
-
-function getSideOffsets(overflow, rect) {
-  return {
-    top: overflow.top - rect.height,
-    right: overflow.right - rect.width,
-    bottom: overflow.bottom - rect.height,
-    left: overflow.left - rect.width
-  };
-}
-function isAnySideFullyClipped(overflow) {
-  return sides.some(side => overflow[side] >= 0);
-}
-/**
- * Provides data to hide the floating element in applicable situations, such as
- * when it is not in the same clipping context as the reference element.
- * @see https://floating-ui.com/docs/hide
- */
-const hide$2 = function (options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    name: 'hide',
-    options,
-    async fn(state) {
-      const {
-        rects
-      } = state;
-      const {
-        strategy = 'referenceHidden',
-        ...detectOverflowOptions
-      } = evaluate(options, state);
-      switch (strategy) {
-        case 'referenceHidden':
-          {
-            const overflow = await detectOverflow(state, {
-              ...detectOverflowOptions,
-              elementContext: 'reference'
-            });
-            const offsets = getSideOffsets(overflow, rects.reference);
-            return {
-              data: {
-                referenceHiddenOffsets: offsets,
-                referenceHidden: isAnySideFullyClipped(offsets)
-              }
-            };
-          }
-        case 'escaped':
-          {
-            const overflow = await detectOverflow(state, {
-              ...detectOverflowOptions,
-              altBoundary: true
-            });
-            const offsets = getSideOffsets(overflow, rects.floating);
-            return {
-              data: {
-                escapedOffsets: offsets,
-                escaped: isAnySideFullyClipped(offsets)
-              }
-            };
-          }
-        default:
-          {
-            return {};
-          }
-      }
-    }
-  };
-};
-
-const originSides = /*#__PURE__*/new Set(['left', 'top']);
-
-// For type backwards-compatibility, the `OffsetOptions` type was also
-// Derivable.
-
-async function convertValueToCoords(state, options) {
-  const {
-    placement,
-    platform,
-    elements
-  } = state;
-  const rtl = await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating));
-  const side = getSide(placement);
-  const alignment = getAlignment(placement);
-  const isVertical = getSideAxis(placement) === 'y';
-  const mainAxisMulti = originSides.has(side) ? -1 : 1;
-  const crossAxisMulti = rtl && isVertical ? -1 : 1;
-  const rawValue = evaluate(options, state);
-
-  // eslint-disable-next-line prefer-const
-  let {
-    mainAxis,
-    crossAxis,
-    alignmentAxis
-  } = typeof rawValue === 'number' ? {
-    mainAxis: rawValue,
-    crossAxis: 0,
-    alignmentAxis: null
-  } : {
-    mainAxis: rawValue.mainAxis || 0,
-    crossAxis: rawValue.crossAxis || 0,
-    alignmentAxis: rawValue.alignmentAxis
-  };
-  if (alignment && typeof alignmentAxis === 'number') {
-    crossAxis = alignment === 'end' ? alignmentAxis * -1 : alignmentAxis;
-  }
-  return isVertical ? {
-    x: crossAxis * crossAxisMulti,
-    y: mainAxis * mainAxisMulti
-  } : {
-    x: mainAxis * mainAxisMulti,
-    y: crossAxis * crossAxisMulti
-  };
-}
-
-/**
- * Modifies the placement by translating the floating element along the
- * specified axes.
- * A number (shorthand for `mainAxis` or distance), or an axes configuration
- * object may be passed.
- * @see https://floating-ui.com/docs/offset
- */
-const offset$2 = function (options) {
-  if (options === void 0) {
-    options = 0;
-  }
-  return {
-    name: 'offset',
-    options,
-    async fn(state) {
-      var _middlewareData$offse, _middlewareData$arrow;
-      const {
-        x,
-        y,
-        placement,
-        middlewareData
-      } = state;
-      const diffCoords = await convertValueToCoords(state, options);
-
-      // If the placement is the same and the arrow caused an alignment offset
-      // then we don't need to change the positioning coordinates.
-      if (placement === ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse.placement) && (_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
-        return {};
-      }
-      return {
-        x: x + diffCoords.x,
-        y: y + diffCoords.y,
-        data: {
-          ...diffCoords,
-          placement
-        }
-      };
-    }
-  };
-};
-
-/**
- * Optimizes the visibility of the floating element by shifting it in order to
- * keep it in view when it will overflow the clipping boundary.
- * @see https://floating-ui.com/docs/shift
- */
-const shift$2 = function (options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    name: 'shift',
-    options,
-    async fn(state) {
-      const {
-        x,
-        y,
-        placement
-      } = state;
-      const {
-        mainAxis: checkMainAxis = true,
-        crossAxis: checkCrossAxis = false,
-        limiter = {
-          fn: _ref => {
-            let {
-              x,
-              y
-            } = _ref;
-            return {
-              x,
-              y
-            };
-          }
-        },
-        ...detectOverflowOptions
-      } = evaluate(options, state);
-      const coords = {
-        x,
-        y
-      };
-      const overflow = await detectOverflow(state, detectOverflowOptions);
-      const crossAxis = getSideAxis(getSide(placement));
-      const mainAxis = getOppositeAxis(crossAxis);
-      let mainAxisCoord = coords[mainAxis];
-      let crossAxisCoord = coords[crossAxis];
-      if (checkMainAxis) {
-        const minSide = mainAxis === 'y' ? 'top' : 'left';
-        const maxSide = mainAxis === 'y' ? 'bottom' : 'right';
-        const min = mainAxisCoord + overflow[minSide];
-        const max = mainAxisCoord - overflow[maxSide];
-        mainAxisCoord = clamp(min, mainAxisCoord, max);
-      }
-      if (checkCrossAxis) {
-        const minSide = crossAxis === 'y' ? 'top' : 'left';
-        const maxSide = crossAxis === 'y' ? 'bottom' : 'right';
-        const min = crossAxisCoord + overflow[minSide];
-        const max = crossAxisCoord - overflow[maxSide];
-        crossAxisCoord = clamp(min, crossAxisCoord, max);
-      }
-      const limitedCoords = limiter.fn({
-        ...state,
-        [mainAxis]: mainAxisCoord,
-        [crossAxis]: crossAxisCoord
-      });
-      return {
-        ...limitedCoords,
-        data: {
-          x: limitedCoords.x - x,
-          y: limitedCoords.y - y,
-          enabled: {
-            [mainAxis]: checkMainAxis,
-            [crossAxis]: checkCrossAxis
-          }
-        }
-      };
-    }
-  };
-};
-/**
- * Built-in `limiter` that will stop `shift()` at a certain point.
- */
-const limitShift$2 = function (options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    options,
-    fn(state) {
-      const {
-        x,
-        y,
-        placement,
-        rects,
-        middlewareData
-      } = state;
-      const {
-        offset = 0,
-        mainAxis: checkMainAxis = true,
-        crossAxis: checkCrossAxis = true
-      } = evaluate(options, state);
-      const coords = {
-        x,
-        y
-      };
-      const crossAxis = getSideAxis(placement);
-      const mainAxis = getOppositeAxis(crossAxis);
-      let mainAxisCoord = coords[mainAxis];
-      let crossAxisCoord = coords[crossAxis];
-      const rawOffset = evaluate(offset, state);
-      const computedOffset = typeof rawOffset === 'number' ? {
-        mainAxis: rawOffset,
-        crossAxis: 0
-      } : {
-        mainAxis: 0,
-        crossAxis: 0,
-        ...rawOffset
-      };
-      if (checkMainAxis) {
-        const len = mainAxis === 'y' ? 'height' : 'width';
-        const limitMin = rects.reference[mainAxis] - rects.floating[len] + computedOffset.mainAxis;
-        const limitMax = rects.reference[mainAxis] + rects.reference[len] - computedOffset.mainAxis;
-        if (mainAxisCoord < limitMin) {
-          mainAxisCoord = limitMin;
-        } else if (mainAxisCoord > limitMax) {
-          mainAxisCoord = limitMax;
-        }
-      }
-      if (checkCrossAxis) {
-        var _middlewareData$offse, _middlewareData$offse2;
-        const len = mainAxis === 'y' ? 'width' : 'height';
-        const isOriginSide = originSides.has(getSide(placement));
-        const limitMin = rects.reference[crossAxis] - rects.floating[len] + (isOriginSide ? ((_middlewareData$offse = middlewareData.offset) == null ? void 0 : _middlewareData$offse[crossAxis]) || 0 : 0) + (isOriginSide ? 0 : computedOffset.crossAxis);
-        const limitMax = rects.reference[crossAxis] + rects.reference[len] + (isOriginSide ? 0 : ((_middlewareData$offse2 = middlewareData.offset) == null ? void 0 : _middlewareData$offse2[crossAxis]) || 0) - (isOriginSide ? computedOffset.crossAxis : 0);
-        if (crossAxisCoord < limitMin) {
-          crossAxisCoord = limitMin;
-        } else if (crossAxisCoord > limitMax) {
-          crossAxisCoord = limitMax;
-        }
-      }
-      return {
-        [mainAxis]: mainAxisCoord,
-        [crossAxis]: crossAxisCoord
-      };
-    }
-  };
-};
-
-/**
- * Provides data that allows you to change the size of the floating element —
- * for instance, prevent it from overflowing the clipping boundary or match the
- * width of the reference element.
- * @see https://floating-ui.com/docs/size
- */
-const size$2 = function (options) {
-  if (options === void 0) {
-    options = {};
-  }
-  return {
-    name: 'size',
-    options,
-    async fn(state) {
-      var _state$middlewareData, _state$middlewareData2;
-      const {
-        placement,
-        rects,
-        platform,
-        elements
-      } = state;
-      const {
-        apply = () => {},
-        ...detectOverflowOptions
-      } = evaluate(options, state);
-      const overflow = await detectOverflow(state, detectOverflowOptions);
-      const side = getSide(placement);
-      const alignment = getAlignment(placement);
-      const isYAxis = getSideAxis(placement) === 'y';
-      const {
-        width,
-        height
-      } = rects.floating;
-      let heightSide;
-      let widthSide;
-      if (side === 'top' || side === 'bottom') {
-        heightSide = side;
-        widthSide = alignment === ((await (platform.isRTL == null ? void 0 : platform.isRTL(elements.floating))) ? 'start' : 'end') ? 'left' : 'right';
-      } else {
-        widthSide = side;
-        heightSide = alignment === 'end' ? 'top' : 'bottom';
-      }
-      const maximumClippingHeight = height - overflow.top - overflow.bottom;
-      const maximumClippingWidth = width - overflow.left - overflow.right;
-      const overflowAvailableHeight = min(height - overflow[heightSide], maximumClippingHeight);
-      const overflowAvailableWidth = min(width - overflow[widthSide], maximumClippingWidth);
-      const noShift = !state.middlewareData.shift;
-      let availableHeight = overflowAvailableHeight;
-      let availableWidth = overflowAvailableWidth;
-      if ((_state$middlewareData = state.middlewareData.shift) != null && _state$middlewareData.enabled.x) {
-        availableWidth = maximumClippingWidth;
-      }
-      if ((_state$middlewareData2 = state.middlewareData.shift) != null && _state$middlewareData2.enabled.y) {
-        availableHeight = maximumClippingHeight;
-      }
-      if (noShift && !alignment) {
-        const xMin = max(overflow.left, 0);
-        const xMax = max(overflow.right, 0);
-        const yMin = max(overflow.top, 0);
-        const yMax = max(overflow.bottom, 0);
-        if (isYAxis) {
-          availableWidth = width - 2 * (xMin !== 0 || xMax !== 0 ? xMin + xMax : max(overflow.left, overflow.right));
-        } else {
-          availableHeight = height - 2 * (yMin !== 0 || yMax !== 0 ? yMin + yMax : max(overflow.top, overflow.bottom));
-        }
-      }
-      await apply({
-        ...state,
-        availableWidth,
-        availableHeight
-      });
-      const nextDimensions = await platform.getDimensions(elements.floating);
-      if (width !== nextDimensions.width || height !== nextDimensions.height) {
-        return {
-          reset: {
-            rects: true
-          }
-        };
-      }
-      return {};
-    }
-  };
-};
-
-function hasWindow() {
-  return typeof window !== 'undefined';
-}
-function getNodeName(node) {
-  if (isNode(node)) {
-    return (node.nodeName || '').toLowerCase();
-  }
-  // Mocked nodes in testing environments may not be instances of Node. By
-  // returning `#document` an infinite loop won't occur.
-  // https://github.com/floating-ui/floating-ui/issues/2317
-  return '#document';
-}
-function getWindow(node) {
-  var _node$ownerDocument;
-  return (node == null || (_node$ownerDocument = node.ownerDocument) == null ? void 0 : _node$ownerDocument.defaultView) || window;
-}
-function getDocumentElement(node) {
-  var _ref;
-  return (_ref = (isNode(node) ? node.ownerDocument : node.document) || window.document) == null ? void 0 : _ref.documentElement;
-}
-function isNode(value) {
-  if (!hasWindow()) {
-    return false;
-  }
-  return value instanceof Node || value instanceof getWindow(value).Node;
-}
-function isElement(value) {
-  if (!hasWindow()) {
-    return false;
-  }
-  return value instanceof Element || value instanceof getWindow(value).Element;
-}
-function isHTMLElement(value) {
-  if (!hasWindow()) {
-    return false;
-  }
-  return value instanceof HTMLElement || value instanceof getWindow(value).HTMLElement;
-}
-function isShadowRoot(value) {
-  if (!hasWindow() || typeof ShadowRoot === 'undefined') {
-    return false;
-  }
-  return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
-}
-const invalidOverflowDisplayValues = /*#__PURE__*/new Set(['inline', 'contents']);
-function isOverflowElement(element) {
-  const {
-    overflow,
-    overflowX,
-    overflowY,
-    display
-  } = getComputedStyle$1(element);
-  return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && !invalidOverflowDisplayValues.has(display);
-}
-const tableElements = /*#__PURE__*/new Set(['table', 'td', 'th']);
-function isTableElement(element) {
-  return tableElements.has(getNodeName(element));
-}
-const topLayerSelectors = [':popover-open', ':modal'];
-function isTopLayer(element) {
-  return topLayerSelectors.some(selector => {
-    try {
-      return element.matches(selector);
-    } catch (_e) {
-      return false;
-    }
-  });
-}
-const transformProperties = ['transform', 'translate', 'scale', 'rotate', 'perspective'];
-const willChangeValues = ['transform', 'translate', 'scale', 'rotate', 'perspective', 'filter'];
-const containValues = ['paint', 'layout', 'strict', 'content'];
-function isContainingBlock(elementOrCss) {
-  const webkit = isWebKit();
-  const css = isElement(elementOrCss) ? getComputedStyle$1(elementOrCss) : elementOrCss;
-
-  // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
-  // https://drafts.csswg.org/css-transforms-2/#individual-transforms
-  return transformProperties.some(value => css[value] ? css[value] !== 'none' : false) || (css.containerType ? css.containerType !== 'normal' : false) || !webkit && (css.backdropFilter ? css.backdropFilter !== 'none' : false) || !webkit && (css.filter ? css.filter !== 'none' : false) || willChangeValues.some(value => (css.willChange || '').includes(value)) || containValues.some(value => (css.contain || '').includes(value));
-}
-function getContainingBlock(element) {
-  let currentNode = getParentNode(element);
-  while (isHTMLElement(currentNode) && !isLastTraversableNode(currentNode)) {
-    if (isContainingBlock(currentNode)) {
-      return currentNode;
-    } else if (isTopLayer(currentNode)) {
-      return null;
-    }
-    currentNode = getParentNode(currentNode);
-  }
-  return null;
-}
-function isWebKit() {
-  if (typeof CSS === 'undefined' || !CSS.supports) return false;
-  return CSS.supports('-webkit-backdrop-filter', 'none');
-}
-const lastTraversableNodeNames = /*#__PURE__*/new Set(['html', 'body', '#document']);
-function isLastTraversableNode(node) {
-  return lastTraversableNodeNames.has(getNodeName(node));
-}
-function getComputedStyle$1(element) {
-  return getWindow(element).getComputedStyle(element);
-}
-function getNodeScroll(element) {
-  if (isElement(element)) {
-    return {
-      scrollLeft: element.scrollLeft,
-      scrollTop: element.scrollTop
-    };
-  }
-  return {
-    scrollLeft: element.scrollX,
-    scrollTop: element.scrollY
-  };
-}
-function getParentNode(node) {
-  if (getNodeName(node) === 'html') {
-    return node;
-  }
-  const result =
-  // Step into the shadow DOM of the parent of a slotted node.
-  node.assignedSlot ||
-  // DOM Element detected.
-  node.parentNode ||
-  // ShadowRoot detected.
-  isShadowRoot(node) && node.host ||
-  // Fallback.
-  getDocumentElement(node);
-  return isShadowRoot(result) ? result.host : result;
-}
-function getNearestOverflowAncestor(node) {
-  const parentNode = getParentNode(node);
-  if (isLastTraversableNode(parentNode)) {
-    return node.ownerDocument ? node.ownerDocument.body : node.body;
-  }
-  if (isHTMLElement(parentNode) && isOverflowElement(parentNode)) {
-    return parentNode;
-  }
-  return getNearestOverflowAncestor(parentNode);
-}
-function getOverflowAncestors(node, list, traverseIframes) {
-  var _node$ownerDocument2;
-  if (list === void 0) {
-    list = [];
-  }
-  if (traverseIframes === void 0) {
-    traverseIframes = true;
-  }
-  const scrollableAncestor = getNearestOverflowAncestor(node);
-  const isBody = scrollableAncestor === ((_node$ownerDocument2 = node.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
-  const win = getWindow(scrollableAncestor);
-  if (isBody) {
-    const frameElement = getFrameElement(win);
-    return list.concat(win, win.visualViewport || [], isOverflowElement(scrollableAncestor) ? scrollableAncestor : [], frameElement && traverseIframes ? getOverflowAncestors(frameElement) : []);
-  }
-  return list.concat(scrollableAncestor, getOverflowAncestors(scrollableAncestor, [], traverseIframes));
-}
-function getFrameElement(win) {
-  return win.parent && Object.getPrototypeOf(win.parent) ? win.frameElement : null;
-}
-
-function getCssDimensions(element) {
-  const css = getComputedStyle$1(element);
-  // In testing environments, the `width` and `height` properties are empty
-  // strings for SVG elements, returning NaN. Fallback to `0` in this case.
-  let width = parseFloat(css.width) || 0;
-  let height = parseFloat(css.height) || 0;
-  const hasOffset = isHTMLElement(element);
-  const offsetWidth = hasOffset ? element.offsetWidth : width;
-  const offsetHeight = hasOffset ? element.offsetHeight : height;
-  const shouldFallback = round(width) !== offsetWidth || round(height) !== offsetHeight;
-  if (shouldFallback) {
-    width = offsetWidth;
-    height = offsetHeight;
-  }
-  return {
-    width,
-    height,
-    $: shouldFallback
-  };
-}
-
-function unwrapElement(element) {
-  return !isElement(element) ? element.contextElement : element;
-}
-
-function getScale(element) {
-  const domElement = unwrapElement(element);
-  if (!isHTMLElement(domElement)) {
-    return createCoords(1);
-  }
-  const rect = domElement.getBoundingClientRect();
-  const {
-    width,
-    height,
-    $
-  } = getCssDimensions(domElement);
-  let x = ($ ? round(rect.width) : rect.width) / width;
-  let y = ($ ? round(rect.height) : rect.height) / height;
-
-  // 0, NaN, or Infinity should always fallback to 1.
-
-  if (!x || !Number.isFinite(x)) {
-    x = 1;
-  }
-  if (!y || !Number.isFinite(y)) {
-    y = 1;
-  }
-  return {
-    x,
-    y
-  };
-}
-
-const noOffsets = /*#__PURE__*/createCoords(0);
-function getVisualOffsets(element) {
-  const win = getWindow(element);
-  if (!isWebKit() || !win.visualViewport) {
-    return noOffsets;
-  }
-  return {
-    x: win.visualViewport.offsetLeft,
-    y: win.visualViewport.offsetTop
-  };
-}
-function shouldAddVisualOffsets(element, isFixed, floatingOffsetParent) {
-  if (isFixed === void 0) {
-    isFixed = false;
-  }
-  if (!floatingOffsetParent || isFixed && floatingOffsetParent !== getWindow(element)) {
-    return false;
-  }
-  return isFixed;
-}
-
-function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetParent) {
-  if (includeScale === void 0) {
-    includeScale = false;
-  }
-  if (isFixedStrategy === void 0) {
-    isFixedStrategy = false;
-  }
-  const clientRect = element.getBoundingClientRect();
-  const domElement = unwrapElement(element);
-  let scale = createCoords(1);
-  if (includeScale) {
-    if (offsetParent) {
-      if (isElement(offsetParent)) {
-        scale = getScale(offsetParent);
-      }
-    } else {
-      scale = getScale(element);
-    }
-  }
-  const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : createCoords(0);
-  let x = (clientRect.left + visualOffsets.x) / scale.x;
-  let y = (clientRect.top + visualOffsets.y) / scale.y;
-  let width = clientRect.width / scale.x;
-  let height = clientRect.height / scale.y;
-  if (domElement) {
-    const win = getWindow(domElement);
-    const offsetWin = offsetParent && isElement(offsetParent) ? getWindow(offsetParent) : offsetParent;
-    let currentWin = win;
-    let currentIFrame = getFrameElement(currentWin);
-    while (currentIFrame && offsetParent && offsetWin !== currentWin) {
-      const iframeScale = getScale(currentIFrame);
-      const iframeRect = currentIFrame.getBoundingClientRect();
-      const css = getComputedStyle$1(currentIFrame);
-      const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css.paddingLeft)) * iframeScale.x;
-      const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css.paddingTop)) * iframeScale.y;
-      x *= iframeScale.x;
-      y *= iframeScale.y;
-      width *= iframeScale.x;
-      height *= iframeScale.y;
-      x += left;
-      y += top;
-      currentWin = getWindow(currentIFrame);
-      currentIFrame = getFrameElement(currentWin);
-    }
-  }
-  return rectToClientRect({
-    width,
-    height,
-    x,
-    y
-  });
-}
-
-// If <html> has a CSS width greater than the viewport, then this will be
-// incorrect for RTL.
-function getWindowScrollBarX(element, rect) {
-  const leftScroll = getNodeScroll(element).scrollLeft;
-  if (!rect) {
-    return getBoundingClientRect(getDocumentElement(element)).left + leftScroll;
-  }
-  return rect.left + leftScroll;
-}
-
-function getHTMLOffset(documentElement, scroll) {
-  const htmlRect = documentElement.getBoundingClientRect();
-  const x = htmlRect.left + scroll.scrollLeft - getWindowScrollBarX(documentElement, htmlRect);
-  const y = htmlRect.top + scroll.scrollTop;
-  return {
-    x,
-    y
-  };
-}
-
-function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
-  let {
-    elements,
-    rect,
-    offsetParent,
-    strategy
-  } = _ref;
-  const isFixed = strategy === 'fixed';
-  const documentElement = getDocumentElement(offsetParent);
-  const topLayer = elements ? isTopLayer(elements.floating) : false;
-  if (offsetParent === documentElement || topLayer && isFixed) {
-    return rect;
-  }
-  let scroll = {
-    scrollLeft: 0,
-    scrollTop: 0
-  };
-  let scale = createCoords(1);
-  const offsets = createCoords(0);
-  const isOffsetParentAnElement = isHTMLElement(offsetParent);
-  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
-    if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
-      scroll = getNodeScroll(offsetParent);
-    }
-    if (isHTMLElement(offsetParent)) {
-      const offsetRect = getBoundingClientRect(offsetParent);
-      scale = getScale(offsetParent);
-      offsets.x = offsetRect.x + offsetParent.clientLeft;
-      offsets.y = offsetRect.y + offsetParent.clientTop;
-    }
-  }
-  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
-  return {
-    width: rect.width * scale.x,
-    height: rect.height * scale.y,
-    x: rect.x * scale.x - scroll.scrollLeft * scale.x + offsets.x + htmlOffset.x,
-    y: rect.y * scale.y - scroll.scrollTop * scale.y + offsets.y + htmlOffset.y
-  };
-}
-
-function getClientRects(element) {
-  return Array.from(element.getClientRects());
-}
-
-// Gets the entire size of the scrollable document area, even extending outside
-// of the `<html>` and `<body>` rect bounds if horizontally scrollable.
-function getDocumentRect(element) {
-  const html = getDocumentElement(element);
-  const scroll = getNodeScroll(element);
-  const body = element.ownerDocument.body;
-  const width = max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
-  const height = max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
-  let x = -scroll.scrollLeft + getWindowScrollBarX(element);
-  const y = -scroll.scrollTop;
-  if (getComputedStyle$1(body).direction === 'rtl') {
-    x += max(html.clientWidth, body.clientWidth) - width;
-  }
-  return {
-    width,
-    height,
-    x,
-    y
-  };
-}
-
-// Safety check: ensure the scrollbar space is reasonable in case this
-// calculation is affected by unusual styles.
-// Most scrollbars leave 15-18px of space.
-const SCROLLBAR_MAX = 25;
-function getViewportRect(element, strategy) {
-  const win = getWindow(element);
-  const html = getDocumentElement(element);
-  const visualViewport = win.visualViewport;
-  let width = html.clientWidth;
-  let height = html.clientHeight;
-  let x = 0;
-  let y = 0;
-  if (visualViewport) {
-    width = visualViewport.width;
-    height = visualViewport.height;
-    const visualViewportBased = isWebKit();
-    if (!visualViewportBased || visualViewportBased && strategy === 'fixed') {
-      x = visualViewport.offsetLeft;
-      y = visualViewport.offsetTop;
-    }
-  }
-  const windowScrollbarX = getWindowScrollBarX(html);
-  // <html> `overflow: hidden` + `scrollbar-gutter: stable` reduces the
-  // visual width of the <html> but this is not considered in the size
-  // of `html.clientWidth`.
-  if (windowScrollbarX <= 0) {
-    const doc = html.ownerDocument;
-    const body = doc.body;
-    const bodyStyles = getComputedStyle(body);
-    const bodyMarginInline = doc.compatMode === 'CSS1Compat' ? parseFloat(bodyStyles.marginLeft) + parseFloat(bodyStyles.marginRight) || 0 : 0;
-    const clippingStableScrollbarWidth = Math.abs(html.clientWidth - body.clientWidth - bodyMarginInline);
-    if (clippingStableScrollbarWidth <= SCROLLBAR_MAX) {
-      width -= clippingStableScrollbarWidth;
-    }
-  } else if (windowScrollbarX <= SCROLLBAR_MAX) {
-    // If the <body> scrollbar is on the left, the width needs to be extended
-    // by the scrollbar amount so there isn't extra space on the right.
-    width += windowScrollbarX;
-  }
-  return {
-    width,
-    height,
-    x,
-    y
-  };
-}
-
-const absoluteOrFixed = /*#__PURE__*/new Set(['absolute', 'fixed']);
-// Returns the inner client rect, subtracting scrollbars if present.
-function getInnerBoundingClientRect(element, strategy) {
-  const clientRect = getBoundingClientRect(element, true, strategy === 'fixed');
-  const top = clientRect.top + element.clientTop;
-  const left = clientRect.left + element.clientLeft;
-  const scale = isHTMLElement(element) ? getScale(element) : createCoords(1);
-  const width = element.clientWidth * scale.x;
-  const height = element.clientHeight * scale.y;
-  const x = left * scale.x;
-  const y = top * scale.y;
-  return {
-    width,
-    height,
-    x,
-    y
-  };
-}
-function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) {
-  let rect;
-  if (clippingAncestor === 'viewport') {
-    rect = getViewportRect(element, strategy);
-  } else if (clippingAncestor === 'document') {
-    rect = getDocumentRect(getDocumentElement(element));
-  } else if (isElement(clippingAncestor)) {
-    rect = getInnerBoundingClientRect(clippingAncestor, strategy);
-  } else {
-    const visualOffsets = getVisualOffsets(element);
-    rect = {
-      x: clippingAncestor.x - visualOffsets.x,
-      y: clippingAncestor.y - visualOffsets.y,
-      width: clippingAncestor.width,
-      height: clippingAncestor.height
-    };
-  }
-  return rectToClientRect(rect);
-}
-function hasFixedPositionAncestor(element, stopNode) {
-  const parentNode = getParentNode(element);
-  if (parentNode === stopNode || !isElement(parentNode) || isLastTraversableNode(parentNode)) {
-    return false;
-  }
-  return getComputedStyle$1(parentNode).position === 'fixed' || hasFixedPositionAncestor(parentNode, stopNode);
-}
-
-// A "clipping ancestor" is an `overflow` element with the characteristic of
-// clipping (or hiding) child elements. This returns all clipping ancestors
-// of the given element up the tree.
-function getClippingElementAncestors(element, cache) {
-  const cachedResult = cache.get(element);
-  if (cachedResult) {
-    return cachedResult;
-  }
-  let result = getOverflowAncestors(element, [], false).filter(el => isElement(el) && getNodeName(el) !== 'body');
-  let currentContainingBlockComputedStyle = null;
-  const elementIsFixed = getComputedStyle$1(element).position === 'fixed';
-  let currentNode = elementIsFixed ? getParentNode(element) : element;
-
-  // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
-  while (isElement(currentNode) && !isLastTraversableNode(currentNode)) {
-    const computedStyle = getComputedStyle$1(currentNode);
-    const currentNodeIsContaining = isContainingBlock(currentNode);
-    if (!currentNodeIsContaining && computedStyle.position === 'fixed') {
-      currentContainingBlockComputedStyle = null;
-    }
-    const shouldDropCurrentNode = elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === 'static' && !!currentContainingBlockComputedStyle && absoluteOrFixed.has(currentContainingBlockComputedStyle.position) || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode);
-    if (shouldDropCurrentNode) {
-      // Drop non-containing blocks.
-      result = result.filter(ancestor => ancestor !== currentNode);
-    } else {
-      // Record last containing block for next iteration.
-      currentContainingBlockComputedStyle = computedStyle;
-    }
-    currentNode = getParentNode(currentNode);
-  }
-  cache.set(element, result);
-  return result;
-}
-
-// Gets the maximum area that the element is visible in due to any number of
-// clipping ancestors.
-function getClippingRect(_ref) {
-  let {
-    element,
-    boundary,
-    rootBoundary,
-    strategy
-  } = _ref;
-  const elementClippingAncestors = boundary === 'clippingAncestors' ? isTopLayer(element) ? [] : getClippingElementAncestors(element, this._c) : [].concat(boundary);
-  const clippingAncestors = [...elementClippingAncestors, rootBoundary];
-  const firstClippingAncestor = clippingAncestors[0];
-  const clippingRect = clippingAncestors.reduce((accRect, clippingAncestor) => {
-    const rect = getClientRectFromClippingAncestor(element, clippingAncestor, strategy);
-    accRect.top = max(rect.top, accRect.top);
-    accRect.right = min(rect.right, accRect.right);
-    accRect.bottom = min(rect.bottom, accRect.bottom);
-    accRect.left = max(rect.left, accRect.left);
-    return accRect;
-  }, getClientRectFromClippingAncestor(element, firstClippingAncestor, strategy));
-  return {
-    width: clippingRect.right - clippingRect.left,
-    height: clippingRect.bottom - clippingRect.top,
-    x: clippingRect.left,
-    y: clippingRect.top
-  };
-}
-
-function getDimensions(element) {
-  const {
-    width,
-    height
-  } = getCssDimensions(element);
-  return {
-    width,
-    height
-  };
-}
-
-function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
-  const isOffsetParentAnElement = isHTMLElement(offsetParent);
-  const documentElement = getDocumentElement(offsetParent);
-  const isFixed = strategy === 'fixed';
-  const rect = getBoundingClientRect(element, true, isFixed, offsetParent);
-  let scroll = {
-    scrollLeft: 0,
-    scrollTop: 0
-  };
-  const offsets = createCoords(0);
-
-  // If the <body> scrollbar appears on the left (e.g. RTL systems). Use
-  // Firefox with layout.scrollbar.side = 3 in about:config to test this.
-  function setLeftRTLScrollbarOffset() {
-    offsets.x = getWindowScrollBarX(documentElement);
-  }
-  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
-    if (getNodeName(offsetParent) !== 'body' || isOverflowElement(documentElement)) {
-      scroll = getNodeScroll(offsetParent);
-    }
-    if (isOffsetParentAnElement) {
-      const offsetRect = getBoundingClientRect(offsetParent, true, isFixed, offsetParent);
-      offsets.x = offsetRect.x + offsetParent.clientLeft;
-      offsets.y = offsetRect.y + offsetParent.clientTop;
-    } else if (documentElement) {
-      setLeftRTLScrollbarOffset();
-    }
-  }
-  if (isFixed && !isOffsetParentAnElement && documentElement) {
-    setLeftRTLScrollbarOffset();
-  }
-  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
-  const x = rect.left + scroll.scrollLeft - offsets.x - htmlOffset.x;
-  const y = rect.top + scroll.scrollTop - offsets.y - htmlOffset.y;
-  return {
-    x,
-    y,
-    width: rect.width,
-    height: rect.height
-  };
-}
-
-function isStaticPositioned(element) {
-  return getComputedStyle$1(element).position === 'static';
-}
-
-function getTrueOffsetParent(element, polyfill) {
-  if (!isHTMLElement(element) || getComputedStyle$1(element).position === 'fixed') {
-    return null;
-  }
-  if (polyfill) {
-    return polyfill(element);
-  }
-  let rawOffsetParent = element.offsetParent;
-
-  // Firefox returns the <html> element as the offsetParent if it's non-static,
-  // while Chrome and Safari return the <body> element. The <body> element must
-  // be used to perform the correct calculations even if the <html> element is
-  // non-static.
-  if (getDocumentElement(element) === rawOffsetParent) {
-    rawOffsetParent = rawOffsetParent.ownerDocument.body;
-  }
-  return rawOffsetParent;
-}
-
-// Gets the closest ancestor positioned element. Handles some edge cases,
-// such as table ancestors and cross browser bugs.
-function getOffsetParent(element, polyfill) {
-  const win = getWindow(element);
-  if (isTopLayer(element)) {
-    return win;
-  }
-  if (!isHTMLElement(element)) {
-    let svgOffsetParent = getParentNode(element);
-    while (svgOffsetParent && !isLastTraversableNode(svgOffsetParent)) {
-      if (isElement(svgOffsetParent) && !isStaticPositioned(svgOffsetParent)) {
-        return svgOffsetParent;
-      }
-      svgOffsetParent = getParentNode(svgOffsetParent);
-    }
-    return win;
-  }
-  let offsetParent = getTrueOffsetParent(element, polyfill);
-  while (offsetParent && isTableElement(offsetParent) && isStaticPositioned(offsetParent)) {
-    offsetParent = getTrueOffsetParent(offsetParent, polyfill);
-  }
-  if (offsetParent && isLastTraversableNode(offsetParent) && isStaticPositioned(offsetParent) && !isContainingBlock(offsetParent)) {
-    return win;
-  }
-  return offsetParent || getContainingBlock(element) || win;
-}
-
-const getElementRects = async function (data) {
-  const getOffsetParentFn = this.getOffsetParent || getOffsetParent;
-  const getDimensionsFn = this.getDimensions;
-  const floatingDimensions = await getDimensionsFn(data.floating);
-  return {
-    reference: getRectRelativeToOffsetParent(data.reference, await getOffsetParentFn(data.floating), data.strategy),
-    floating: {
-      x: 0,
-      y: 0,
-      width: floatingDimensions.width,
-      height: floatingDimensions.height
-    }
-  };
-};
-
-function isRTL(element) {
-  return getComputedStyle$1(element).direction === 'rtl';
-}
-
-const platform = {
-  convertOffsetParentRelativeRectToViewportRelativeRect,
-  getDocumentElement,
-  getClippingRect,
-  getOffsetParent,
-  getElementRects,
-  getClientRects,
-  getDimensions,
-  getScale,
-  isElement,
-  isRTL
-};
-
-function rectsAreEqual(a, b) {
-  return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
-}
-
-// https://samthor.au/2021/observing-dom/
-function observeMove(element, onMove) {
-  let io = null;
-  let timeoutId;
-  const root = getDocumentElement(element);
-  function cleanup() {
-    var _io;
-    clearTimeout(timeoutId);
-    (_io = io) == null || _io.disconnect();
-    io = null;
-  }
-  function refresh(skip, threshold) {
-    if (skip === void 0) {
-      skip = false;
-    }
-    if (threshold === void 0) {
-      threshold = 1;
-    }
-    cleanup();
-    const elementRectForRootMargin = element.getBoundingClientRect();
-    const {
-      left,
-      top,
-      width,
-      height
-    } = elementRectForRootMargin;
-    if (!skip) {
-      onMove();
-    }
-    if (!width || !height) {
-      return;
-    }
-    const insetTop = floor(top);
-    const insetRight = floor(root.clientWidth - (left + width));
-    const insetBottom = floor(root.clientHeight - (top + height));
-    const insetLeft = floor(left);
-    const rootMargin = -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px";
-    const options = {
-      rootMargin,
-      threshold: max(0, min(1, threshold)) || 1
-    };
-    let isFirstUpdate = true;
-    function handleObserve(entries) {
-      const ratio = entries[0].intersectionRatio;
-      if (ratio !== threshold) {
-        if (!isFirstUpdate) {
-          return refresh();
-        }
-        if (!ratio) {
-          // If the reference is clipped, the ratio is 0. Throttle the refresh
-          // to prevent an infinite loop of updates.
-          timeoutId = setTimeout(() => {
-            refresh(false, 1e-7);
-          }, 1000);
-        } else {
-          refresh(false, ratio);
-        }
-      }
-      if (ratio === 1 && !rectsAreEqual(elementRectForRootMargin, element.getBoundingClientRect())) {
-        // It's possible that even though the ratio is reported as 1, the
-        // element is not actually fully within the IntersectionObserver's root
-        // area anymore. This can happen under performance constraints. This may
-        // be a bug in the browser's IntersectionObserver implementation. To
-        // work around this, we compare the element's bounding rect now with
-        // what it was at the time we created the IntersectionObserver. If they
-        // are not equal then the element moved, so we refresh.
-        refresh();
-      }
-      isFirstUpdate = false;
-    }
-
-    // Older browsers don't support a `document` as the root and will throw an
-    // error.
-    try {
-      io = new IntersectionObserver(handleObserve, {
-        ...options,
-        // Handle <iframe>s
-        root: root.ownerDocument
-      });
-    } catch (_e) {
-      io = new IntersectionObserver(handleObserve, options);
-    }
-    io.observe(element);
-  }
-  refresh(true);
-  return cleanup;
-}
-
-/**
- * Automatically updates the position of the floating element when necessary.
- * Should only be called when the floating element is mounted on the DOM or
- * visible on the screen.
- * @returns cleanup function that should be invoked when the floating element is
- * removed from the DOM or hidden from the screen.
- * @see https://floating-ui.com/docs/autoUpdate
- */
-function autoUpdate(reference, floating, update, options) {
-  if (options === void 0) {
-    options = {};
-  }
-  const {
-    ancestorScroll = true,
-    ancestorResize = true,
-    elementResize = typeof ResizeObserver === 'function',
-    layoutShift = typeof IntersectionObserver === 'function',
-    animationFrame = false
-  } = options;
-  const referenceEl = unwrapElement(reference);
-  const ancestors = ancestorScroll || ancestorResize ? [...(referenceEl ? getOverflowAncestors(referenceEl) : []), ...getOverflowAncestors(floating)] : [];
-  ancestors.forEach(ancestor => {
-    ancestorScroll && ancestor.addEventListener('scroll', update, {
-      passive: true
-    });
-    ancestorResize && ancestor.addEventListener('resize', update);
-  });
-  const cleanupIo = referenceEl && layoutShift ? observeMove(referenceEl, update) : null;
-  let reobserveFrame = -1;
-  let resizeObserver = null;
-  if (elementResize) {
-    resizeObserver = new ResizeObserver(_ref => {
-      let [firstEntry] = _ref;
-      if (firstEntry && firstEntry.target === referenceEl && resizeObserver) {
-        // Prevent update loops when using the `size` middleware.
-        // https://github.com/floating-ui/floating-ui/issues/1740
-        resizeObserver.unobserve(floating);
-        cancelAnimationFrame(reobserveFrame);
-        reobserveFrame = requestAnimationFrame(() => {
-          var _resizeObserver;
-          (_resizeObserver = resizeObserver) == null || _resizeObserver.observe(floating);
-        });
-      }
-      update();
-    });
-    if (referenceEl && !animationFrame) {
-      resizeObserver.observe(referenceEl);
-    }
-    resizeObserver.observe(floating);
-  }
-  let frameId;
-  let prevRefRect = animationFrame ? getBoundingClientRect(reference) : null;
-  if (animationFrame) {
-    frameLoop();
-  }
-  function frameLoop() {
-    const nextRefRect = getBoundingClientRect(reference);
-    if (prevRefRect && !rectsAreEqual(prevRefRect, nextRefRect)) {
-      update();
-    }
-    prevRefRect = nextRefRect;
-    frameId = requestAnimationFrame(frameLoop);
-  }
-  update();
-  return () => {
-    var _resizeObserver2;
-    ancestors.forEach(ancestor => {
-      ancestorScroll && ancestor.removeEventListener('scroll', update);
-      ancestorResize && ancestor.removeEventListener('resize', update);
-    });
-    cleanupIo == null || cleanupIo();
-    (_resizeObserver2 = resizeObserver) == null || _resizeObserver2.disconnect();
-    resizeObserver = null;
-    if (animationFrame) {
-      cancelAnimationFrame(frameId);
-    }
-  };
-}
-
-/**
- * Modifies the placement by translating the floating element along the
- * specified axes.
- * A number (shorthand for `mainAxis` or distance), or an axes configuration
- * object may be passed.
- * @see https://floating-ui.com/docs/offset
- */
-const offset$1 = offset$2;
-
-/**
- * Optimizes the visibility of the floating element by shifting it in order to
- * keep it in view when it will overflow the clipping boundary.
- * @see https://floating-ui.com/docs/shift
- */
-const shift$1 = shift$2;
-
-/**
- * Optimizes the visibility of the floating element by flipping the `placement`
- * in order to keep it in view when the preferred placement(s) will overflow the
- * clipping boundary. Alternative to `autoPlacement`.
- * @see https://floating-ui.com/docs/flip
- */
-const flip$1 = flip$2;
-
-/**
- * Provides data that allows you to change the size of the floating element —
- * for instance, prevent it from overflowing the clipping boundary or match the
- * width of the reference element.
- * @see https://floating-ui.com/docs/size
- */
-const size$1 = size$2;
-
-/**
- * Provides data to hide the floating element in applicable situations, such as
- * when it is not in the same clipping context as the reference element.
- * @see https://floating-ui.com/docs/hide
- */
-const hide$1 = hide$2;
-
-/**
- * Provides data to position an inner element of the floating element so that it
- * appears centered to the reference element.
- * @see https://floating-ui.com/docs/arrow
- */
-const arrow$2 = arrow$3;
-
-/**
- * Built-in `limiter` that will stop `shift()` at a certain point.
- */
-const limitShift$1 = limitShift$2;
-
-/**
- * Computes the `x` and `y` coordinates that will place the floating element
- * next to a given reference element.
- */
-const computePosition = (reference, floating, options) => {
-  // This caches the expensive `getClippingElementAncestors` function so that
-  // multiple lifecycle resets re-use the same result. It only lives for a
-  // single call. If other functions become expensive, we can add them as well.
-  const cache = new Map();
-  const mergedOptions = {
-    platform,
-    ...options
-  };
-  const platformWithCache = {
-    ...mergedOptions.platform,
-    _c: cache
-  };
-  return computePosition$1(reference, floating, {
-    ...mergedOptions,
-    platform: platformWithCache
-  });
-};
-
-var isClient = typeof document !== 'undefined';
-
-var noop = function noop() {};
-var index = isClient ? useLayoutEffect : noop;
-
-// Fork of `fast-deep-equal` that only does the comparisons we need and compares
-// functions
-function deepEqual(a, b) {
-  if (a === b) {
-    return true;
-  }
-  if (typeof a !== typeof b) {
-    return false;
-  }
-  if (typeof a === 'function' && a.toString() === b.toString()) {
-    return true;
-  }
-  let length;
-  let i;
-  let keys;
-  if (a && b && typeof a === 'object') {
-    if (Array.isArray(a)) {
-      length = a.length;
-      if (length !== b.length) return false;
-      for (i = length; i-- !== 0;) {
-        if (!deepEqual(a[i], b[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-    keys = Object.keys(a);
-    length = keys.length;
-    if (length !== Object.keys(b).length) {
-      return false;
-    }
-    for (i = length; i-- !== 0;) {
-      if (!{}.hasOwnProperty.call(b, keys[i])) {
-        return false;
-      }
-    }
-    for (i = length; i-- !== 0;) {
-      const key = keys[i];
-      if (key === '_owner' && a.$$typeof) {
-        continue;
-      }
-      if (!deepEqual(a[key], b[key])) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return a !== a && b !== b;
-}
-
-function getDPR(element) {
-  if (typeof window === 'undefined') {
-    return 1;
-  }
-  const win = element.ownerDocument.defaultView || window;
-  return win.devicePixelRatio || 1;
-}
-
-function roundByDPR(element, value) {
-  const dpr = getDPR(element);
-  return Math.round(value * dpr) / dpr;
-}
-
-function useLatestRef(value) {
-  const ref = React.useRef(value);
-  index(() => {
-    ref.current = value;
-  });
-  return ref;
-}
-
-/**
- * Provides data to position a floating element.
- * @see https://floating-ui.com/docs/useFloating
- */
-function useFloating(options) {
-  if (options === void 0) {
-    options = {};
-  }
-  const {
-    placement = 'bottom',
-    strategy = 'absolute',
-    middleware = [],
-    platform,
-    elements: {
-      reference: externalReference,
-      floating: externalFloating
-    } = {},
-    transform = true,
-    whileElementsMounted,
-    open
-  } = options;
-  const [data, setData] = React.useState({
-    x: 0,
-    y: 0,
-    strategy,
-    placement,
-    middlewareData: {},
-    isPositioned: false
-  });
-  const [latestMiddleware, setLatestMiddleware] = React.useState(middleware);
-  if (!deepEqual(latestMiddleware, middleware)) {
-    setLatestMiddleware(middleware);
-  }
-  const [_reference, _setReference] = React.useState(null);
-  const [_floating, _setFloating] = React.useState(null);
-  const setReference = React.useCallback(node => {
-    if (node !== referenceRef.current) {
-      referenceRef.current = node;
-      _setReference(node);
-    }
-  }, []);
-  const setFloating = React.useCallback(node => {
-    if (node !== floatingRef.current) {
-      floatingRef.current = node;
-      _setFloating(node);
-    }
-  }, []);
-  const referenceEl = externalReference || _reference;
-  const floatingEl = externalFloating || _floating;
-  const referenceRef = React.useRef(null);
-  const floatingRef = React.useRef(null);
-  const dataRef = React.useRef(data);
-  const hasWhileElementsMounted = whileElementsMounted != null;
-  const whileElementsMountedRef = useLatestRef(whileElementsMounted);
-  const platformRef = useLatestRef(platform);
-  const openRef = useLatestRef(open);
-  const update = React.useCallback(() => {
-    if (!referenceRef.current || !floatingRef.current) {
-      return;
-    }
-    const config = {
-      placement,
-      strategy,
-      middleware: latestMiddleware
-    };
-    if (platformRef.current) {
-      config.platform = platformRef.current;
-    }
-    computePosition(referenceRef.current, floatingRef.current, config).then(data => {
-      const fullData = {
-        ...data,
-        // The floating element's position may be recomputed while it's closed
-        // but still mounted (such as when transitioning out). To ensure
-        // `isPositioned` will be `false` initially on the next open, avoid
-        // setting it to `true` when `open === false` (must be specified).
-        isPositioned: openRef.current !== false
-      };
-      if (isMountedRef.current && !deepEqual(dataRef.current, fullData)) {
-        dataRef.current = fullData;
-        ReactDOM.flushSync(() => {
-          setData(fullData);
-        });
-      }
-    });
-  }, [latestMiddleware, placement, strategy, platformRef, openRef]);
-  index(() => {
-    if (open === false && dataRef.current.isPositioned) {
-      dataRef.current.isPositioned = false;
-      setData(data => ({
-        ...data,
-        isPositioned: false
-      }));
-    }
-  }, [open]);
-  const isMountedRef = React.useRef(false);
-  index(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-  index(() => {
-    if (referenceEl) referenceRef.current = referenceEl;
-    if (floatingEl) floatingRef.current = floatingEl;
-    if (referenceEl && floatingEl) {
-      if (whileElementsMountedRef.current) {
-        return whileElementsMountedRef.current(referenceEl, floatingEl, update);
-      }
-      update();
-    }
-  }, [referenceEl, floatingEl, update, whileElementsMountedRef, hasWhileElementsMounted]);
-  const refs = React.useMemo(() => ({
-    reference: referenceRef,
-    floating: floatingRef,
-    setReference,
-    setFloating
-  }), [setReference, setFloating]);
-  const elements = React.useMemo(() => ({
-    reference: referenceEl,
-    floating: floatingEl
-  }), [referenceEl, floatingEl]);
-  const floatingStyles = React.useMemo(() => {
-    const initialStyles = {
-      position: strategy,
-      left: 0,
-      top: 0
-    };
-    if (!elements.floating) {
-      return initialStyles;
-    }
-    const x = roundByDPR(elements.floating, data.x);
-    const y = roundByDPR(elements.floating, data.y);
-    if (transform) {
-      return {
-        ...initialStyles,
-        transform: "translate(" + x + "px, " + y + "px)",
-        ...(getDPR(elements.floating) >= 1.5 && {
-          willChange: 'transform'
-        })
-      };
-    }
-    return {
-      position: strategy,
-      left: x,
-      top: y
-    };
-  }, [strategy, transform, elements.floating, data.x, data.y]);
-  return React.useMemo(() => ({
-    ...data,
-    update,
-    refs,
-    elements,
-    floatingStyles
-  }), [data, update, refs, elements, floatingStyles]);
-}
-
-/**
- * Provides data to position an inner element of the floating element so that it
- * appears centered to the reference element.
- * This wraps the core `arrow` middleware to allow React refs as the element.
- * @see https://floating-ui.com/docs/arrow
- */
-const arrow$1 = options => {
-  function isRef(value) {
-    return {}.hasOwnProperty.call(value, 'current');
-  }
-  return {
-    name: 'arrow',
-    options,
-    fn(state) {
-      const {
-        element,
-        padding
-      } = typeof options === 'function' ? options(state) : options;
-      if (element && isRef(element)) {
-        if (element.current != null) {
-          return arrow$2({
-            element: element.current,
-            padding
-          }).fn(state);
-        }
-        return {};
-      }
-      if (element) {
-        return arrow$2({
-          element,
-          padding
-        }).fn(state);
-      }
-      return {};
-    }
-  };
-};
-
-/**
- * Modifies the placement by translating the floating element along the
- * specified axes.
- * A number (shorthand for `mainAxis` or distance), or an axes configuration
- * object may be passed.
- * @see https://floating-ui.com/docs/offset
- */
-const offset = (options, deps) => ({
-  ...offset$1(options),
-  options: [options, deps]
-});
-
-/**
- * Optimizes the visibility of the floating element by shifting it in order to
- * keep it in view when it will overflow the clipping boundary.
- * @see https://floating-ui.com/docs/shift
- */
-const shift = (options, deps) => ({
-  ...shift$1(options),
-  options: [options, deps]
-});
-
-/**
- * Built-in `limiter` that will stop `shift()` at a certain point.
- */
-const limitShift = (options, deps) => ({
-  ...limitShift$1(options),
-  options: [options, deps]
-});
-
-/**
- * Optimizes the visibility of the floating element by flipping the `placement`
- * in order to keep it in view when the preferred placement(s) will overflow the
- * clipping boundary. Alternative to `autoPlacement`.
- * @see https://floating-ui.com/docs/flip
- */
-const flip = (options, deps) => ({
-  ...flip$1(options),
-  options: [options, deps]
-});
-
-/**
- * Provides data that allows you to change the size of the floating element —
- * for instance, prevent it from overflowing the clipping boundary or match the
- * width of the reference element.
- * @see https://floating-ui.com/docs/size
- */
-const size = (options, deps) => ({
-  ...size$1(options),
-  options: [options, deps]
-});
-
-/**
- * Provides data to hide the floating element in applicable situations, such as
- * when it is not in the same clipping context as the reference element.
- * @see https://floating-ui.com/docs/hide
- */
-const hide = (options, deps) => ({
-  ...hide$1(options),
-  options: [options, deps]
-});
-
-/**
- * Provides data to position an inner element of the floating element so that it
- * appears centered to the reference element.
- * This wraps the core `arrow` middleware to allow React refs as the element.
- * @see https://floating-ui.com/docs/arrow
- */
-const arrow = (options, deps) => ({
-  ...arrow$1(options),
-  options: [options, deps]
-});
-
-// src/arrow.tsx
-var NAME$1 = "Arrow";
-var Arrow$1 = React.forwardRef((props, forwardedRef) => {
-  const { children, width = 10, height = 5, ...arrowProps } = props;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Primitive.svg,
-    {
-      ...arrowProps,
-      ref: forwardedRef,
-      width,
-      height,
-      viewBox: "0 0 30 10",
-      preserveAspectRatio: "none",
-      children: props.asChild ? children : /* @__PURE__ */ jsxRuntimeExports.jsx("polygon", { points: "0,0 30,0 15,10" })
-    }
-  );
-});
-Arrow$1.displayName = NAME$1;
-var Root = Arrow$1;
-
-var POPPER_NAME = "Popper";
-var [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
-var [PopperProvider, usePopperContext] = createPopperContext(POPPER_NAME);
-var Popper = (props) => {
-  const { __scopePopper, children } = props;
-  const [anchor, setAnchor] = React.useState(null);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
-};
-Popper.displayName = POPPER_NAME;
-var ANCHOR_NAME = "PopperAnchor";
-var PopperAnchor = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopePopper, virtualRef, ...anchorProps } = props;
-    const context = usePopperContext(ANCHOR_NAME, __scopePopper);
-    const ref = React.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    const anchorRef = React.useRef(null);
-    React.useEffect(() => {
-      const previousAnchor = anchorRef.current;
-      anchorRef.current = virtualRef?.current || ref.current;
-      if (previousAnchor !== anchorRef.current) {
-        context.onAnchorChange(anchorRef.current);
-      }
-    });
-    return virtualRef ? null : /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...anchorProps, ref: composedRefs });
-  }
-);
-PopperAnchor.displayName = ANCHOR_NAME;
-var CONTENT_NAME$1 = "PopperContent";
-var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$1);
-var PopperContent = React.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      __scopePopper,
-      side = "bottom",
-      sideOffset = 0,
-      align = "center",
-      alignOffset = 0,
-      arrowPadding = 0,
-      avoidCollisions = true,
-      collisionBoundary = [],
-      collisionPadding: collisionPaddingProp = 0,
-      sticky = "partial",
-      hideWhenDetached = false,
-      updatePositionStrategy = "optimized",
-      onPlaced,
-      ...contentProps
-    } = props;
-    const context = usePopperContext(CONTENT_NAME$1, __scopePopper);
-    const [content, setContent] = React.useState(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [arrow$1, setArrow] = React.useState(null);
-    const arrowSize = useSize(arrow$1);
-    const arrowWidth = arrowSize?.width ?? 0;
-    const arrowHeight = arrowSize?.height ?? 0;
-    const desiredPlacement = side + (align !== "center" ? "-" + align : "");
-    const collisionPadding = typeof collisionPaddingProp === "number" ? collisionPaddingProp : { top: 0, right: 0, bottom: 0, left: 0, ...collisionPaddingProp };
-    const boundary = Array.isArray(collisionBoundary) ? collisionBoundary : [collisionBoundary];
-    const hasExplicitBoundaries = boundary.length > 0;
-    const detectOverflowOptions = {
-      padding: collisionPadding,
-      boundary: boundary.filter(isNotNull),
-      // with `strategy: 'fixed'`, this is the only way to get it to respect boundaries
-      altBoundary: hasExplicitBoundaries
-    };
-    const { refs, floatingStyles, placement, isPositioned, middlewareData } = useFloating({
-      // default to `fixed` strategy so users don't have to pick and we also avoid focus scroll issues
-      strategy: "fixed",
-      placement: desiredPlacement,
-      whileElementsMounted: (...args) => {
-        const cleanup = autoUpdate(...args, {
-          animationFrame: updatePositionStrategy === "always"
-        });
-        return cleanup;
-      },
-      elements: {
-        reference: context.anchor
-      },
-      middleware: [
-        offset({ mainAxis: sideOffset + arrowHeight, alignmentAxis: alignOffset }),
-        avoidCollisions && shift({
-          mainAxis: true,
-          crossAxis: false,
-          limiter: sticky === "partial" ? limitShift() : void 0,
-          ...detectOverflowOptions
-        }),
-        avoidCollisions && flip({ ...detectOverflowOptions }),
-        size({
-          ...detectOverflowOptions,
-          apply: ({ elements, rects, availableWidth, availableHeight }) => {
-            const { width: anchorWidth, height: anchorHeight } = rects.reference;
-            const contentStyle = elements.floating.style;
-            contentStyle.setProperty("--radix-popper-available-width", `${availableWidth}px`);
-            contentStyle.setProperty("--radix-popper-available-height", `${availableHeight}px`);
-            contentStyle.setProperty("--radix-popper-anchor-width", `${anchorWidth}px`);
-            contentStyle.setProperty("--radix-popper-anchor-height", `${anchorHeight}px`);
-          }
-        }),
-        arrow$1 && arrow({ element: arrow$1, padding: arrowPadding }),
-        transformOrigin({ arrowWidth, arrowHeight }),
-        hideWhenDetached && hide({ strategy: "referenceHidden", ...detectOverflowOptions })
-      ]
-    });
-    const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
-    const handlePlaced = useCallbackRef$1(onPlaced);
-    useLayoutEffect2(() => {
-      if (isPositioned) {
-        handlePlaced?.();
-      }
-    }, [isPositioned, handlePlaced]);
-    const arrowX = middlewareData.arrow?.x;
-    const arrowY = middlewareData.arrow?.y;
-    const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
-    const [contentZIndex, setContentZIndex] = React.useState();
-    useLayoutEffect2(() => {
-      if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
-    }, [content]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "div",
-      {
-        ref: refs.setFloating,
-        "data-radix-popper-content-wrapper": "",
-        style: {
-          ...floatingStyles,
-          transform: isPositioned ? floatingStyles.transform : "translate(0, -200%)",
-          // keep off the page when measuring
-          minWidth: "max-content",
-          zIndex: contentZIndex,
-          ["--radix-popper-transform-origin"]: [
-            middlewareData.transformOrigin?.x,
-            middlewareData.transformOrigin?.y
-          ].join(" "),
-          // hide the content if using the hide middleware and should be hidden
-          // set visibility to hidden and disable pointer events so the UI behaves
-          // as if the PopperContent isn't there at all
-          ...middlewareData.hide?.referenceHidden && {
-            visibility: "hidden",
-            pointerEvents: "none"
-          }
-        },
-        dir: props.dir,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          PopperContentProvider,
-          {
-            scope: __scopePopper,
-            placedSide,
-            onArrowChange: setArrow,
-            arrowX,
-            arrowY,
-            shouldHideArrow: cannotCenterArrow,
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Primitive.div,
-              {
-                "data-side": placedSide,
-                "data-align": placedAlign,
-                ...contentProps,
-                ref: composedRefs,
-                style: {
-                  ...contentProps.style,
-                  // if the PopperContent hasn't been placed yet (not all measurements done)
-                  // we prevent animations so that users's animation don't kick in too early referring wrong sides
-                  animation: !isPositioned ? "none" : void 0
-                }
-              }
-            )
-          }
-        )
-      }
-    );
-  }
-);
-PopperContent.displayName = CONTENT_NAME$1;
-var ARROW_NAME$1 = "PopperArrow";
-var OPPOSITE_SIDE = {
-  top: "bottom",
-  right: "left",
-  bottom: "top",
-  left: "right"
-};
-var PopperArrow = React.forwardRef(function PopperArrow2(props, forwardedRef) {
-  const { __scopePopper, ...arrowProps } = props;
-  const contentContext = useContentContext(ARROW_NAME$1, __scopePopper);
-  const baseSide = OPPOSITE_SIDE[contentContext.placedSide];
-  return (
-    // we have to use an extra wrapper because `ResizeObserver` (used by `useSize`)
-    // doesn't report size as we'd expect on SVG elements.
-    // it reports their bounding box which is effectively the largest path inside the SVG.
-    /* @__PURE__ */ jsxRuntimeExports.jsx(
-      "span",
-      {
-        ref: contentContext.onArrowChange,
-        style: {
-          position: "absolute",
-          left: contentContext.arrowX,
-          top: contentContext.arrowY,
-          [baseSide]: 0,
-          transformOrigin: {
-            top: "",
-            right: "0 0",
-            bottom: "center 0",
-            left: "100% 0"
-          }[contentContext.placedSide],
-          transform: {
-            top: "translateY(100%)",
-            right: "translateY(50%) rotate(90deg) translateX(-50%)",
-            bottom: `rotate(180deg)`,
-            left: "translateY(50%) rotate(-90deg) translateX(50%)"
-          }[contentContext.placedSide],
-          visibility: contentContext.shouldHideArrow ? "hidden" : void 0
-        },
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Root,
-          {
-            ...arrowProps,
-            ref: forwardedRef,
-            style: {
-              ...arrowProps.style,
-              // ensures the element can be measured correctly (mostly for if SVG)
-              display: "block"
-            }
-          }
-        )
-      }
-    )
-  );
-});
-PopperArrow.displayName = ARROW_NAME$1;
-function isNotNull(value) {
-  return value !== null;
-}
-var transformOrigin = (options) => ({
-  name: "transformOrigin",
-  options,
-  fn(data) {
-    const { placement, rects, middlewareData } = data;
-    const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
-    const isArrowHidden = cannotCenterArrow;
-    const arrowWidth = isArrowHidden ? 0 : options.arrowWidth;
-    const arrowHeight = isArrowHidden ? 0 : options.arrowHeight;
-    const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
-    const noArrowAlign = { start: "0%", center: "50%", end: "100%" }[placedAlign];
-    const arrowXCenter = (middlewareData.arrow?.x ?? 0) + arrowWidth / 2;
-    const arrowYCenter = (middlewareData.arrow?.y ?? 0) + arrowHeight / 2;
-    let x = "";
-    let y = "";
-    if (placedSide === "bottom") {
-      x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
-      y = `${-arrowHeight}px`;
-    } else if (placedSide === "top") {
-      x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
-      y = `${rects.floating.height + arrowHeight}px`;
-    } else if (placedSide === "right") {
-      x = `${-arrowHeight}px`;
-      y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
-    } else if (placedSide === "left") {
-      x = `${rects.floating.width + arrowHeight}px`;
-      y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
-    }
-    return { data: { x, y } };
-  }
-});
-function getSideAndAlignFromPlacement(placement) {
-  const [side, align = "center"] = placement.split("-");
-  return [side, align];
-}
-var Root2$1 = Popper;
-var Anchor = PopperAnchor;
-var Content = PopperContent;
-var Arrow = PopperArrow;
-
-var PORTAL_NAME$1 = "Portal";
-var Portal$1 = React.forwardRef((props, forwardedRef) => {
-  const { container: containerProp, ...portalProps } = props;
-  const [mounted, setMounted] = React.useState(false);
-  useLayoutEffect2(() => setMounted(true), []);
-  const container = containerProp || mounted && globalThis?.document?.body;
-  return container ? ReactDOM__default.createPortal(/* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...portalProps, ref: forwardedRef }), container) : null;
-});
-Portal$1.displayName = PORTAL_NAME$1;
-
-// src/visually-hidden.tsx
-var VISUALLY_HIDDEN_STYLES = Object.freeze({
-  // See: https://github.com/twbs/bootstrap/blob/main/scss/mixins/_visually-hidden.scss
-  position: "absolute",
-  border: 0,
-  width: 1,
-  height: 1,
-  padding: 0,
-  margin: -1,
-  overflow: "hidden",
-  clip: "rect(0, 0, 0, 0)",
-  whiteSpace: "nowrap",
-  wordWrap: "normal"
-});
-var NAME = "VisuallyHidden";
-var VisuallyHidden = React.forwardRef(
-  (props, forwardedRef) => {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.span,
-      {
-        ...props,
-        ref: forwardedRef,
-        style: { ...VISUALLY_HIDDEN_STYLES, ...props.style }
-      }
-    );
-  }
-);
-VisuallyHidden.displayName = NAME;
-
-var getDefaultParent = function (originalTarget) {
-    if (typeof document === 'undefined') {
-        return null;
-    }
-    var sampleTarget = Array.isArray(originalTarget) ? originalTarget[0] : originalTarget;
-    return sampleTarget.ownerDocument.body;
-};
-var counterMap = new WeakMap();
-var uncontrolledNodes = new WeakMap();
-var markerMap = {};
-var lockCount = 0;
-var unwrapHost = function (node) {
-    return node && (node.host || unwrapHost(node.parentNode));
-};
-var correctTargets = function (parent, targets) {
-    return targets
-        .map(function (target) {
-        if (parent.contains(target)) {
-            return target;
-        }
-        var correctedTarget = unwrapHost(target);
-        if (correctedTarget && parent.contains(correctedTarget)) {
-            return correctedTarget;
-        }
-        console.error('aria-hidden', target, 'in not contained inside', parent, '. Doing nothing');
-        return null;
-    })
-        .filter(function (x) { return Boolean(x); });
-};
-/**
- * Marks everything except given node(or nodes) as aria-hidden
- * @param {Element | Element[]} originalTarget - elements to keep on the page
- * @param [parentNode] - top element, defaults to document.body
- * @param {String} [markerName] - a special attribute to mark every node
- * @param {String} [controlAttribute] - html Attribute to control
- * @return {Undo} undo command
- */
-var applyAttributeToOthers = function (originalTarget, parentNode, markerName, controlAttribute) {
-    var targets = correctTargets(parentNode, Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
-    if (!markerMap[markerName]) {
-        markerMap[markerName] = new WeakMap();
-    }
-    var markerCounter = markerMap[markerName];
-    var hiddenNodes = [];
-    var elementsToKeep = new Set();
-    var elementsToStop = new Set(targets);
-    var keep = function (el) {
-        if (!el || elementsToKeep.has(el)) {
-            return;
-        }
-        elementsToKeep.add(el);
-        keep(el.parentNode);
-    };
-    targets.forEach(keep);
-    var deep = function (parent) {
-        if (!parent || elementsToStop.has(parent)) {
-            return;
-        }
-        Array.prototype.forEach.call(parent.children, function (node) {
-            if (elementsToKeep.has(node)) {
-                deep(node);
-            }
-            else {
-                try {
-                    var attr = node.getAttribute(controlAttribute);
-                    var alreadyHidden = attr !== null && attr !== 'false';
-                    var counterValue = (counterMap.get(node) || 0) + 1;
-                    var markerValue = (markerCounter.get(node) || 0) + 1;
-                    counterMap.set(node, counterValue);
-                    markerCounter.set(node, markerValue);
-                    hiddenNodes.push(node);
-                    if (counterValue === 1 && alreadyHidden) {
-                        uncontrolledNodes.set(node, true);
-                    }
-                    if (markerValue === 1) {
-                        node.setAttribute(markerName, 'true');
-                    }
-                    if (!alreadyHidden) {
-                        node.setAttribute(controlAttribute, 'true');
-                    }
-                }
-                catch (e) {
-                    console.error('aria-hidden: cannot operate on ', node, e);
-                }
-            }
-        });
-    };
-    deep(parentNode);
-    elementsToKeep.clear();
-    lockCount++;
-    return function () {
-        hiddenNodes.forEach(function (node) {
-            var counterValue = counterMap.get(node) - 1;
-            var markerValue = markerCounter.get(node) - 1;
-            counterMap.set(node, counterValue);
-            markerCounter.set(node, markerValue);
-            if (!counterValue) {
-                if (!uncontrolledNodes.has(node)) {
-                    node.removeAttribute(controlAttribute);
-                }
-                uncontrolledNodes.delete(node);
-            }
-            if (!markerValue) {
-                node.removeAttribute(markerName);
-            }
-        });
-        lockCount--;
-        if (!lockCount) {
-            // clear
-            counterMap = new WeakMap();
-            counterMap = new WeakMap();
-            uncontrolledNodes = new WeakMap();
-            markerMap = {};
-        }
-    };
-};
-/**
- * Marks everything except given node(or nodes) as aria-hidden
- * @param {Element | Element[]} originalTarget - elements to keep on the page
- * @param [parentNode] - top element, defaults to document.body
- * @param {String} [markerName] - a special attribute to mark every node
- * @return {Undo} undo command
- */
-var hideOthers = function (originalTarget, parentNode, markerName) {
-    if (markerName === void 0) { markerName = 'data-aria-hidden'; }
-    var targets = Array.from(Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
-    var activeParentNode = getDefaultParent(originalTarget);
-    if (!activeParentNode) {
-        return function () { return null; };
-    }
-    // we should not hide aria-live elements - https://github.com/theKashey/aria-hidden/issues/10
-    // and script elements, as they have no impact on accessibility.
-    targets.push.apply(targets, Array.from(activeParentNode.querySelectorAll('[aria-live], script')));
-    return applyAttributeToOthers(targets, activeParentNode, markerName, 'aria-hidden');
-};
-
-var zeroRightClassName = 'right-scroll-bar-position';
-var fullWidthClassName = 'width-before-scroll-bar';
-var noScrollbarsClassName = 'with-scroll-bars-hidden';
-/**
- * Name of a CSS variable containing the amount of "hidden" scrollbar
- * ! might be undefined ! use will fallback!
- */
-var removedBarSizeVariable = '--removed-body-scroll-bar-size';
-
-/**
- * Assigns a value for a given ref, no matter of the ref format
- * @param {RefObject} ref - a callback function or ref object
- * @param value - a new value
- *
- * @see https://github.com/theKashey/use-callback-ref#assignref
- * @example
- * const refObject = useRef();
- * const refFn = (ref) => {....}
- *
- * assignRef(refObject, "refValue");
- * assignRef(refFn, "refValue");
- */
-function assignRef(ref, value) {
-    if (typeof ref === 'function') {
-        ref(value);
-    }
-    else if (ref) {
-        ref.current = value;
-    }
-    return ref;
-}
-
-/**
- * creates a MutableRef with ref change callback
- * @param initialValue - initial ref value
- * @param {Function} callback - a callback to run when value changes
- *
- * @example
- * const ref = useCallbackRef(0, (newValue, oldValue) => console.log(oldValue, '->', newValue);
- * ref.current = 1;
- * // prints 0 -> 1
- *
- * @see https://reactjs.org/docs/hooks-reference.html#useref
- * @see https://github.com/theKashey/use-callback-ref#usecallbackref---to-replace-reactuseref
- * @returns {MutableRefObject}
- */
-function useCallbackRef(initialValue, callback) {
-    var ref = useState(function () { return ({
-        // value
-        value: initialValue,
-        // last callback
-        callback: callback,
-        // "memoized" public interface
-        facade: {
-            get current() {
-                return ref.value;
-            },
-            set current(value) {
-                var last = ref.value;
-                if (last !== value) {
-                    ref.value = value;
-                    ref.callback(value, last);
-                }
-            },
-        },
-    }); })[0];
-    // update callback
-    ref.callback = callback;
-    return ref.facade;
-}
-
-var useIsomorphicLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
-var currentValues = new WeakMap();
-/**
- * Merges two or more refs together providing a single interface to set their value
- * @param {RefObject|Ref} refs
- * @returns {MutableRefObject} - a new ref, which translates all changes to {refs}
- *
- * @see {@link mergeRefs} a version without buit-in memoization
- * @see https://github.com/theKashey/use-callback-ref#usemergerefs
- * @example
- * const Component = React.forwardRef((props, ref) => {
- *   const ownRef = useRef();
- *   const domRef = useMergeRefs([ref, ownRef]); // 👈 merge together
- *   return <div ref={domRef}>...</div>
- * }
- */
-function useMergeRefs(refs, defaultValue) {
-    var callbackRef = useCallbackRef(null, function (newValue) {
-        return refs.forEach(function (ref) { return assignRef(ref, newValue); });
-    });
-    // handle refs changes - added or removed
-    useIsomorphicLayoutEffect(function () {
-        var oldValue = currentValues.get(callbackRef);
-        if (oldValue) {
-            var prevRefs_1 = new Set(oldValue);
-            var nextRefs_1 = new Set(refs);
-            var current_1 = callbackRef.current;
-            prevRefs_1.forEach(function (ref) {
-                if (!nextRefs_1.has(ref)) {
-                    assignRef(ref, null);
-                }
-            });
-            nextRefs_1.forEach(function (ref) {
-                if (!prevRefs_1.has(ref)) {
-                    assignRef(ref, current_1);
-                }
-            });
-        }
-        currentValues.set(callbackRef, refs);
-    }, [refs]);
-    return callbackRef;
-}
-
-function ItoI(a) {
-    return a;
-}
-function innerCreateMedium(defaults, middleware) {
-    if (middleware === void 0) { middleware = ItoI; }
-    var buffer = [];
-    var assigned = false;
-    var medium = {
-        read: function () {
-            if (assigned) {
-                throw new Error('Sidecar: could not `read` from an `assigned` medium. `read` could be used only with `useMedium`.');
-            }
-            if (buffer.length) {
-                return buffer[buffer.length - 1];
-            }
-            return defaults;
-        },
-        useMedium: function (data) {
-            var item = middleware(data, assigned);
-            buffer.push(item);
-            return function () {
-                buffer = buffer.filter(function (x) { return x !== item; });
-            };
-        },
-        assignSyncMedium: function (cb) {
-            assigned = true;
-            while (buffer.length) {
-                var cbs = buffer;
-                buffer = [];
-                cbs.forEach(cb);
-            }
-            buffer = {
-                push: function (x) { return cb(x); },
-                filter: function () { return buffer; },
-            };
-        },
-        assignMedium: function (cb) {
-            assigned = true;
-            var pendingQueue = [];
-            if (buffer.length) {
-                var cbs = buffer;
-                buffer = [];
-                cbs.forEach(cb);
-                pendingQueue = buffer;
-            }
-            var executeQueue = function () {
-                var cbs = pendingQueue;
-                pendingQueue = [];
-                cbs.forEach(cb);
-            };
-            var cycle = function () { return Promise.resolve().then(executeQueue); };
-            cycle();
-            buffer = {
-                push: function (x) {
-                    pendingQueue.push(x);
-                    cycle();
-                },
-                filter: function (filter) {
-                    pendingQueue = pendingQueue.filter(filter);
-                    return buffer;
-                },
-            };
-        },
-    };
-    return medium;
-}
-// eslint-disable-next-line @typescript-eslint/ban-types
-function createSidecarMedium(options) {
-    if (options === void 0) { options = {}; }
-    var medium = innerCreateMedium(null);
-    medium.options = __assign({ async: true, ssr: false }, options);
-    return medium;
-}
-
-var SideCar$1 = function (_a) {
-    var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
-    if (!sideCar) {
-        throw new Error('Sidecar: please provide `sideCar` property to import the right car');
-    }
-    var Target = sideCar.read();
-    if (!Target) {
-        throw new Error('Sidecar medium not found');
-    }
-    return React.createElement(Target, __assign({}, rest));
-};
-SideCar$1.isSideCarExport = true;
-function exportSidecar(medium, exported) {
-    medium.useMedium(exported);
-    return SideCar$1;
-}
-
-var effectCar = createSidecarMedium();
-
-var nothing = function () {
-    return;
-};
-/**
- * Removes scrollbar from the page and contain the scroll within the Lock
- */
-var RemoveScroll = React.forwardRef(function (props, parentRef) {
-    var ref = React.useRef(null);
-    var _a = React.useState({
-        onScrollCapture: nothing,
-        onWheelCapture: nothing,
-        onTouchMoveCapture: nothing,
-    }), callbacks = _a[0], setCallbacks = _a[1];
-    var forwardProps = props.forwardProps, children = props.children, className = props.className, removeScrollBar = props.removeScrollBar, enabled = props.enabled, shards = props.shards, sideCar = props.sideCar, noRelative = props.noRelative, noIsolation = props.noIsolation, inert = props.inert, allowPinchZoom = props.allowPinchZoom, _b = props.as, Container = _b === void 0 ? 'div' : _b, gapMode = props.gapMode, rest = __rest(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
-    var SideCar = sideCar;
-    var containerRef = useMergeRefs([ref, parentRef]);
-    var containerProps = __assign(__assign({}, rest), callbacks);
-    return (React.createElement(React.Fragment, null,
-        enabled && (React.createElement(SideCar, { sideCar: effectCar, removeScrollBar: removeScrollBar, shards: shards, noRelative: noRelative, noIsolation: noIsolation, inert: inert, setCallbacks: setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode: gapMode })),
-        forwardProps ? (React.cloneElement(React.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef }))) : (React.createElement(Container, __assign({}, containerProps, { className: className, ref: containerRef }), children))));
-});
-RemoveScroll.defaultProps = {
-    enabled: true,
-    removeScrollBar: true,
-    inert: false,
-};
-RemoveScroll.classNames = {
-    fullWidth: fullWidthClassName,
-    zeroRight: zeroRightClassName,
-};
-
-var getNonce = function () {
-    if (typeof __webpack_nonce__ !== 'undefined') {
-        return __webpack_nonce__;
-    }
-    return undefined;
-};
-
-function makeStyleTag() {
-    if (!document)
-        return null;
-    var tag = document.createElement('style');
-    tag.type = 'text/css';
-    var nonce = getNonce();
-    if (nonce) {
-        tag.setAttribute('nonce', nonce);
-    }
-    return tag;
-}
-function injectStyles(tag, css) {
-    // @ts-ignore
-    if (tag.styleSheet) {
-        // @ts-ignore
-        tag.styleSheet.cssText = css;
-    }
-    else {
-        tag.appendChild(document.createTextNode(css));
-    }
-}
-function insertStyleTag(tag) {
-    var head = document.head || document.getElementsByTagName('head')[0];
-    head.appendChild(tag);
-}
-var stylesheetSingleton = function () {
-    var counter = 0;
-    var stylesheet = null;
-    return {
-        add: function (style) {
-            if (counter == 0) {
-                if ((stylesheet = makeStyleTag())) {
-                    injectStyles(stylesheet, style);
-                    insertStyleTag(stylesheet);
-                }
-            }
-            counter++;
-        },
-        remove: function () {
-            counter--;
-            if (!counter && stylesheet) {
-                stylesheet.parentNode && stylesheet.parentNode.removeChild(stylesheet);
-                stylesheet = null;
-            }
-        },
-    };
-};
-
-/**
- * creates a hook to control style singleton
- * @see {@link styleSingleton} for a safer component version
- * @example
- * ```tsx
- * const useStyle = styleHookSingleton();
- * ///
- * useStyle('body { overflow: hidden}');
- */
-var styleHookSingleton = function () {
-    var sheet = stylesheetSingleton();
-    return function (styles, isDynamic) {
-        React.useEffect(function () {
-            sheet.add(styles);
-            return function () {
-                sheet.remove();
-            };
-        }, [styles && isDynamic]);
-    };
-};
-
-/**
- * create a Component to add styles on demand
- * - styles are added when first instance is mounted
- * - styles are removed when the last instance is unmounted
- * - changing styles in runtime does nothing unless dynamic is set. But with multiple components that can lead to the undefined behavior
- */
-var styleSingleton = function () {
-    var useStyle = styleHookSingleton();
-    var Sheet = function (_a) {
-        var styles = _a.styles, dynamic = _a.dynamic;
-        useStyle(styles, dynamic);
-        return null;
-    };
-    return Sheet;
-};
-
-var zeroGap = {
-    left: 0,
-    top: 0,
-    right: 0,
-    gap: 0,
-};
-var parse$1 = function (x) { return parseInt(x || '', 10) || 0; };
-var getOffset = function (gapMode) {
-    var cs = window.getComputedStyle(document.body);
-    var left = cs[gapMode === 'padding' ? 'paddingLeft' : 'marginLeft'];
-    var top = cs[gapMode === 'padding' ? 'paddingTop' : 'marginTop'];
-    var right = cs[gapMode === 'padding' ? 'paddingRight' : 'marginRight'];
-    return [parse$1(left), parse$1(top), parse$1(right)];
-};
-var getGapWidth = function (gapMode) {
-    if (gapMode === void 0) { gapMode = 'margin'; }
-    if (typeof window === 'undefined') {
-        return zeroGap;
-    }
-    var offsets = getOffset(gapMode);
-    var documentWidth = document.documentElement.clientWidth;
-    var windowWidth = window.innerWidth;
-    return {
-        left: offsets[0],
-        top: offsets[1],
-        right: offsets[2],
-        gap: Math.max(0, windowWidth - documentWidth + offsets[2] - offsets[0]),
-    };
-};
-
-var Style = styleSingleton();
-var lockAttribute = 'data-scroll-locked';
-// important tip - once we measure scrollBar width and remove them
-// we could not repeat this operation
-// thus we are using style-singleton - only the first "yet correct" style will be applied.
-var getStyles = function (_a, allowRelative, gapMode, important) {
-    var left = _a.left, top = _a.top, right = _a.right, gap = _a.gap;
-    if (gapMode === void 0) { gapMode = 'margin'; }
-    return "\n  .".concat(noScrollbarsClassName, " {\n   overflow: hidden ").concat(important, ";\n   padding-right: ").concat(gap, "px ").concat(important, ";\n  }\n  body[").concat(lockAttribute, "] {\n    overflow: hidden ").concat(important, ";\n    overscroll-behavior: contain;\n    ").concat([
-        allowRelative && "position: relative ".concat(important, ";"),
-        gapMode === 'margin' &&
-            "\n    padding-left: ".concat(left, "px;\n    padding-top: ").concat(top, "px;\n    padding-right: ").concat(right, "px;\n    margin-left:0;\n    margin-top:0;\n    margin-right: ").concat(gap, "px ").concat(important, ";\n    "),
-        gapMode === 'padding' && "padding-right: ".concat(gap, "px ").concat(important, ";"),
-    ]
-        .filter(Boolean)
-        .join(''), "\n  }\n  \n  .").concat(zeroRightClassName, " {\n    right: ").concat(gap, "px ").concat(important, ";\n  }\n  \n  .").concat(fullWidthClassName, " {\n    margin-right: ").concat(gap, "px ").concat(important, ";\n  }\n  \n  .").concat(zeroRightClassName, " .").concat(zeroRightClassName, " {\n    right: 0 ").concat(important, ";\n  }\n  \n  .").concat(fullWidthClassName, " .").concat(fullWidthClassName, " {\n    margin-right: 0 ").concat(important, ";\n  }\n  \n  body[").concat(lockAttribute, "] {\n    ").concat(removedBarSizeVariable, ": ").concat(gap, "px;\n  }\n");
-};
-var getCurrentUseCounter = function () {
-    var counter = parseInt(document.body.getAttribute(lockAttribute) || '0', 10);
-    return isFinite(counter) ? counter : 0;
-};
-var useLockAttribute = function () {
-    React.useEffect(function () {
-        document.body.setAttribute(lockAttribute, (getCurrentUseCounter() + 1).toString());
-        return function () {
-            var newCounter = getCurrentUseCounter() - 1;
-            if (newCounter <= 0) {
-                document.body.removeAttribute(lockAttribute);
-            }
-            else {
-                document.body.setAttribute(lockAttribute, newCounter.toString());
-            }
-        };
-    }, []);
-};
-/**
- * Removes page scrollbar and blocks page scroll when mounted
- */
-var RemoveScrollBar = function (_a) {
-    var noRelative = _a.noRelative, noImportant = _a.noImportant, _b = _a.gapMode, gapMode = _b === void 0 ? 'margin' : _b;
-    useLockAttribute();
-    /*
-     gap will be measured on every component mount
-     however it will be used only by the "first" invocation
-     due to singleton nature of <Style
-     */
-    var gap = React.useMemo(function () { return getGapWidth(gapMode); }, [gapMode]);
-    return React.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? '!important' : '') });
-};
-
-var passiveSupported = false;
-if (typeof window !== 'undefined') {
-    try {
-        var options = Object.defineProperty({}, 'passive', {
-            get: function () {
-                passiveSupported = true;
-                return true;
-            },
-        });
-        // @ts-ignore
-        window.addEventListener('test', options, options);
-        // @ts-ignore
-        window.removeEventListener('test', options, options);
-    }
-    catch (err) {
-        passiveSupported = false;
-    }
-}
-var nonPassive = passiveSupported ? { passive: false } : false;
-
-var alwaysContainsScroll = function (node) {
-    // textarea will always _contain_ scroll inside self. It only can be hidden
-    return node.tagName === 'TEXTAREA';
-};
-var elementCanBeScrolled = function (node, overflow) {
-    if (!(node instanceof Element)) {
-        return false;
-    }
-    var styles = window.getComputedStyle(node);
-    return (
-    // not-not-scrollable
-    styles[overflow] !== 'hidden' &&
-        // contains scroll inside self
-        !(styles.overflowY === styles.overflowX && !alwaysContainsScroll(node) && styles[overflow] === 'visible'));
-};
-var elementCouldBeVScrolled = function (node) { return elementCanBeScrolled(node, 'overflowY'); };
-var elementCouldBeHScrolled = function (node) { return elementCanBeScrolled(node, 'overflowX'); };
-var locationCouldBeScrolled = function (axis, node) {
-    var ownerDocument = node.ownerDocument;
-    var current = node;
-    do {
-        // Skip over shadow root
-        if (typeof ShadowRoot !== 'undefined' && current instanceof ShadowRoot) {
-            current = current.host;
-        }
-        var isScrollable = elementCouldBeScrolled(axis, current);
-        if (isScrollable) {
-            var _a = getScrollVariables(axis, current), scrollHeight = _a[1], clientHeight = _a[2];
-            if (scrollHeight > clientHeight) {
-                return true;
-            }
-        }
-        current = current.parentNode;
-    } while (current && current !== ownerDocument.body);
-    return false;
-};
-var getVScrollVariables = function (_a) {
-    var scrollTop = _a.scrollTop, scrollHeight = _a.scrollHeight, clientHeight = _a.clientHeight;
-    return [
-        scrollTop,
-        scrollHeight,
-        clientHeight,
-    ];
-};
-var getHScrollVariables = function (_a) {
-    var scrollLeft = _a.scrollLeft, scrollWidth = _a.scrollWidth, clientWidth = _a.clientWidth;
-    return [
-        scrollLeft,
-        scrollWidth,
-        clientWidth,
-    ];
-};
-var elementCouldBeScrolled = function (axis, node) {
-    return axis === 'v' ? elementCouldBeVScrolled(node) : elementCouldBeHScrolled(node);
-};
-var getScrollVariables = function (axis, node) {
-    return axis === 'v' ? getVScrollVariables(node) : getHScrollVariables(node);
-};
-var getDirectionFactor = function (axis, direction) {
-    /**
-     * If the element's direction is rtl (right-to-left), then scrollLeft is 0 when the scrollbar is at its rightmost position,
-     * and then increasingly negative as you scroll towards the end of the content.
-     * @see https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollLeft
-     */
-    return axis === 'h' && direction === 'rtl' ? -1 : 1;
-};
-var handleScroll = function (axis, endTarget, event, sourceDelta, noOverscroll) {
-    var directionFactor = getDirectionFactor(axis, window.getComputedStyle(endTarget).direction);
-    var delta = directionFactor * sourceDelta;
-    // find scrollable target
-    var target = event.target;
-    var targetInLock = endTarget.contains(target);
-    var shouldCancelScroll = false;
-    var isDeltaPositive = delta > 0;
-    var availableScroll = 0;
-    var availableScrollTop = 0;
-    do {
-        if (!target) {
-            break;
-        }
-        var _a = getScrollVariables(axis, target), position = _a[0], scroll_1 = _a[1], capacity = _a[2];
-        var elementScroll = scroll_1 - capacity - directionFactor * position;
-        if (position || elementScroll) {
-            if (elementCouldBeScrolled(axis, target)) {
-                availableScroll += elementScroll;
-                availableScrollTop += position;
-            }
-        }
-        var parent_1 = target.parentNode;
-        // we will "bubble" from ShadowDom in case we are, or just to the parent in normal case
-        // this is the same logic used in focus-lock
-        target = (parent_1 && parent_1.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? parent_1.host : parent_1);
-    } while (
-    // portaled content
-    (!targetInLock && target !== document.body) ||
-        // self content
-        (targetInLock && (endTarget.contains(target) || endTarget === target)));
-    // handle epsilon around 0 (non standard zoom levels)
-    if (isDeltaPositive &&
-        ((Math.abs(availableScroll) < 1) || (false))) {
-        shouldCancelScroll = true;
-    }
-    else if (!isDeltaPositive &&
-        ((Math.abs(availableScrollTop) < 1) || (false))) {
-        shouldCancelScroll = true;
-    }
-    return shouldCancelScroll;
-};
-
-var getTouchXY = function (event) {
-    return 'changedTouches' in event ? [event.changedTouches[0].clientX, event.changedTouches[0].clientY] : [0, 0];
-};
-var getDeltaXY = function (event) { return [event.deltaX, event.deltaY]; };
-var extractRef = function (ref) {
-    return ref && 'current' in ref ? ref.current : ref;
-};
-var deltaCompare = function (x, y) { return x[0] === y[0] && x[1] === y[1]; };
-var generateStyle = function (id) { return "\n  .block-interactivity-".concat(id, " {pointer-events: none;}\n  .allow-interactivity-").concat(id, " {pointer-events: all;}\n"); };
-var idCounter = 0;
-var lockStack = [];
-function RemoveScrollSideCar(props) {
-    var shouldPreventQueue = React.useRef([]);
-    var touchStartRef = React.useRef([0, 0]);
-    var activeAxis = React.useRef();
-    var id = React.useState(idCounter++)[0];
-    var Style = React.useState(styleSingleton)[0];
-    var lastProps = React.useRef(props);
-    React.useEffect(function () {
-        lastProps.current = props;
-    }, [props]);
-    React.useEffect(function () {
-        if (props.inert) {
-            document.body.classList.add("block-interactivity-".concat(id));
-            var allow_1 = __spreadArray([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
-            allow_1.forEach(function (el) { return el.classList.add("allow-interactivity-".concat(id)); });
-            return function () {
-                document.body.classList.remove("block-interactivity-".concat(id));
-                allow_1.forEach(function (el) { return el.classList.remove("allow-interactivity-".concat(id)); });
-            };
-        }
-        return;
-    }, [props.inert, props.lockRef.current, props.shards]);
-    var shouldCancelEvent = React.useCallback(function (event, parent) {
-        if (('touches' in event && event.touches.length === 2) || (event.type === 'wheel' && event.ctrlKey)) {
-            return !lastProps.current.allowPinchZoom;
-        }
-        var touch = getTouchXY(event);
-        var touchStart = touchStartRef.current;
-        var deltaX = 'deltaX' in event ? event.deltaX : touchStart[0] - touch[0];
-        var deltaY = 'deltaY' in event ? event.deltaY : touchStart[1] - touch[1];
-        var currentAxis;
-        var target = event.target;
-        var moveDirection = Math.abs(deltaX) > Math.abs(deltaY) ? 'h' : 'v';
-        // allow horizontal touch move on Range inputs. They will not cause any scroll
-        if ('touches' in event && moveDirection === 'h' && target.type === 'range') {
-            return false;
-        }
-        // allow drag selection (iOS); check if selection's anchorNode is the same as target or contains target
-        var selection = window.getSelection();
-        var anchorNode = selection && selection.anchorNode;
-        var isTouchingSelection = anchorNode ? anchorNode === target || anchorNode.contains(target) : false;
-        if (isTouchingSelection) {
-            return false;
-        }
-        var canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
-        if (!canBeScrolledInMainDirection) {
-            return true;
-        }
-        if (canBeScrolledInMainDirection) {
-            currentAxis = moveDirection;
-        }
-        else {
-            currentAxis = moveDirection === 'v' ? 'h' : 'v';
-            canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
-            // other axis might be not scrollable
-        }
-        if (!canBeScrolledInMainDirection) {
-            return false;
-        }
-        if (!activeAxis.current && 'changedTouches' in event && (deltaX || deltaY)) {
-            activeAxis.current = currentAxis;
-        }
-        if (!currentAxis) {
-            return true;
-        }
-        var cancelingAxis = activeAxis.current || currentAxis;
-        return handleScroll(cancelingAxis, parent, event, cancelingAxis === 'h' ? deltaX : deltaY);
-    }, []);
-    var shouldPrevent = React.useCallback(function (_event) {
-        var event = _event;
-        if (!lockStack.length || lockStack[lockStack.length - 1] !== Style) {
-            // not the last active
-            return;
-        }
-        var delta = 'deltaY' in event ? getDeltaXY(event) : getTouchXY(event);
-        var sourceEvent = shouldPreventQueue.current.filter(function (e) { return e.name === event.type && (e.target === event.target || event.target === e.shadowParent) && deltaCompare(e.delta, delta); })[0];
-        // self event, and should be canceled
-        if (sourceEvent && sourceEvent.should) {
-            if (event.cancelable) {
-                event.preventDefault();
-            }
-            return;
-        }
-        // outside or shard event
-        if (!sourceEvent) {
-            var shardNodes = (lastProps.current.shards || [])
-                .map(extractRef)
-                .filter(Boolean)
-                .filter(function (node) { return node.contains(event.target); });
-            var shouldStop = shardNodes.length > 0 ? shouldCancelEvent(event, shardNodes[0]) : !lastProps.current.noIsolation;
-            if (shouldStop) {
-                if (event.cancelable) {
-                    event.preventDefault();
-                }
-            }
-        }
-    }, []);
-    var shouldCancel = React.useCallback(function (name, delta, target, should) {
-        var event = { name: name, delta: delta, target: target, should: should, shadowParent: getOutermostShadowParent(target) };
-        shouldPreventQueue.current.push(event);
-        setTimeout(function () {
-            shouldPreventQueue.current = shouldPreventQueue.current.filter(function (e) { return e !== event; });
-        }, 1);
-    }, []);
-    var scrollTouchStart = React.useCallback(function (event) {
-        touchStartRef.current = getTouchXY(event);
-        activeAxis.current = undefined;
-    }, []);
-    var scrollWheel = React.useCallback(function (event) {
-        shouldCancel(event.type, getDeltaXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
-    }, []);
-    var scrollTouchMove = React.useCallback(function (event) {
-        shouldCancel(event.type, getTouchXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
-    }, []);
-    React.useEffect(function () {
-        lockStack.push(Style);
-        props.setCallbacks({
-            onScrollCapture: scrollWheel,
-            onWheelCapture: scrollWheel,
-            onTouchMoveCapture: scrollTouchMove,
-        });
-        document.addEventListener('wheel', shouldPrevent, nonPassive);
-        document.addEventListener('touchmove', shouldPrevent, nonPassive);
-        document.addEventListener('touchstart', scrollTouchStart, nonPassive);
-        return function () {
-            lockStack = lockStack.filter(function (inst) { return inst !== Style; });
-            document.removeEventListener('wheel', shouldPrevent, nonPassive);
-            document.removeEventListener('touchmove', shouldPrevent, nonPassive);
-            document.removeEventListener('touchstart', scrollTouchStart, nonPassive);
-        };
-    }, []);
-    var removeScrollBar = props.removeScrollBar, inert = props.inert;
-    return (React.createElement(React.Fragment, null,
-        inert ? React.createElement(Style, { styles: generateStyle(id) }) : null,
-        removeScrollBar ? React.createElement(RemoveScrollBar, { noRelative: props.noRelative, gapMode: props.gapMode }) : null));
-}
-function getOutermostShadowParent(node) {
-    var shadowParent = null;
-    while (node !== null) {
-        if (node instanceof ShadowRoot) {
-            shadowParent = node.host;
-            node = node.host;
-        }
-        node = node.parentNode;
-    }
-    return shadowParent;
-}
-
-var SideCar = exportSidecar(effectCar, RemoveScrollSideCar);
-
-var ReactRemoveScroll = React.forwardRef(function (props, ref) { return (React.createElement(RemoveScroll, __assign({}, props, { ref: ref, sideCar: SideCar }))); });
-ReactRemoveScroll.classNames = RemoveScroll.classNames;
-
-var OPEN_KEYS = [" ", "Enter", "ArrowUp", "ArrowDown"];
-var SELECTION_KEYS = [" ", "Enter"];
-var SELECT_NAME = "Select";
-var [Collection, useCollection, createCollectionScope] = createCollection(SELECT_NAME);
-var [createSelectContext] = createContextScope(SELECT_NAME, [
-  createCollectionScope,
-  createPopperScope
-]);
-var usePopperScope = createPopperScope();
-var [SelectProvider, useSelectContext] = createSelectContext(SELECT_NAME);
-var [SelectNativeOptionsProvider, useSelectNativeOptionsContext] = createSelectContext(SELECT_NAME);
-var Select = (props) => {
-  const {
-    __scopeSelect,
-    children,
-    open: openProp,
-    defaultOpen,
-    onOpenChange,
-    value: valueProp,
-    defaultValue,
-    onValueChange,
-    dir,
-    name,
-    autoComplete,
-    disabled,
-    required,
-    form
-  } = props;
-  const popperScope = usePopperScope(__scopeSelect);
-  const [trigger, setTrigger] = React.useState(null);
-  const [valueNode, setValueNode] = React.useState(null);
-  const [valueNodeHasChildren, setValueNodeHasChildren] = React.useState(false);
-  const direction = useDirection(dir);
-  const [open, setOpen] = useControllableState({
-    prop: openProp,
-    defaultProp: defaultOpen ?? false,
-    onChange: onOpenChange,
-    caller: SELECT_NAME
-  });
-  const [value, setValue] = useControllableState({
-    prop: valueProp,
-    defaultProp: defaultValue,
-    onChange: onValueChange,
-    caller: SELECT_NAME
-  });
-  const triggerPointerDownPosRef = React.useRef(null);
-  const isFormControl = trigger ? form || !!trigger.closest("form") : true;
-  const [nativeOptionsSet, setNativeOptionsSet] = React.useState(/* @__PURE__ */ new Set());
-  const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Root2$1, { ...popperScope, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    SelectProvider,
-    {
-      required,
-      scope: __scopeSelect,
-      trigger,
-      onTriggerChange: setTrigger,
-      valueNode,
-      onValueNodeChange: setValueNode,
-      valueNodeHasChildren,
-      onValueNodeHasChildrenChange: setValueNodeHasChildren,
-      contentId: useId(),
-      value,
-      onValueChange: setValue,
-      open,
-      onOpenChange: setOpen,
-      dir: direction,
-      triggerPointerDownPosRef,
-      disabled,
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Provider, { scope: __scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          SelectNativeOptionsProvider,
-          {
-            scope: props.__scopeSelect,
-            onNativeOptionAdd: React.useCallback((option) => {
-              setNativeOptionsSet((prev) => new Set(prev).add(option));
-            }, []),
-            onNativeOptionRemove: React.useCallback((option) => {
-              setNativeOptionsSet((prev) => {
-                const optionsSet = new Set(prev);
-                optionsSet.delete(option);
-                return optionsSet;
-              });
-            }, []),
-            children
-          }
-        ) }),
-        isFormControl ? /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          SelectBubbleInput,
-          {
-            "aria-hidden": true,
-            required,
-            tabIndex: -1,
-            name,
-            autoComplete,
-            value,
-            onChange: (event) => setValue(event.target.value),
-            disabled,
-            form,
-            children: [
-              value === void 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "" }) : null,
-              Array.from(nativeOptionsSet)
-            ]
-          },
-          nativeSelectKey
-        ) : null
-      ]
-    }
-  ) });
-};
-Select.displayName = SELECT_NAME;
-var TRIGGER_NAME = "SelectTrigger";
-var SelectTrigger = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, disabled = false, ...triggerProps } = props;
-    const popperScope = usePopperScope(__scopeSelect);
-    const context = useSelectContext(TRIGGER_NAME, __scopeSelect);
-    const isDisabled = context.disabled || disabled;
-    const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
-    const getItems = useCollection(__scopeSelect);
-    const pointerTypeRef = React.useRef("touch");
-    const [searchRef, handleTypeaheadSearch, resetTypeahead] = useTypeaheadSearch((search) => {
-      const enabledItems = getItems().filter((item) => !item.disabled);
-      const currentItem = enabledItems.find((item) => item.value === context.value);
-      const nextItem = findNextItem(enabledItems, search, currentItem);
-      if (nextItem !== void 0) {
-        context.onValueChange(nextItem.value);
-      }
-    });
-    const handleOpen = (pointerEvent) => {
-      if (!isDisabled) {
-        context.onOpenChange(true);
-        resetTypeahead();
-      }
-      if (pointerEvent) {
-        context.triggerPointerDownPosRef.current = {
-          x: Math.round(pointerEvent.pageX),
-          y: Math.round(pointerEvent.pageY)
-        };
-      }
-    };
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Anchor, { asChild: true, ...popperScope, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.button,
-      {
-        type: "button",
-        role: "combobox",
-        "aria-controls": context.contentId,
-        "aria-expanded": context.open,
-        "aria-required": context.required,
-        "aria-autocomplete": "none",
-        dir: context.dir,
-        "data-state": context.open ? "open" : "closed",
-        disabled: isDisabled,
-        "data-disabled": isDisabled ? "" : void 0,
-        "data-placeholder": shouldShowPlaceholder(context.value) ? "" : void 0,
-        ...triggerProps,
-        ref: composedRefs,
-        onClick: composeEventHandlers(triggerProps.onClick, (event) => {
-          event.currentTarget.focus();
-          if (pointerTypeRef.current !== "mouse") {
-            handleOpen(event);
-          }
-        }),
-        onPointerDown: composeEventHandlers(triggerProps.onPointerDown, (event) => {
-          pointerTypeRef.current = event.pointerType;
-          const target = event.target;
-          if (target.hasPointerCapture(event.pointerId)) {
-            target.releasePointerCapture(event.pointerId);
-          }
-          if (event.button === 0 && event.ctrlKey === false && event.pointerType === "mouse") {
-            handleOpen(event);
-            event.preventDefault();
-          }
-        }),
-        onKeyDown: composeEventHandlers(triggerProps.onKeyDown, (event) => {
-          const isTypingAhead = searchRef.current !== "";
-          const isModifierKey = event.ctrlKey || event.altKey || event.metaKey;
-          if (!isModifierKey && event.key.length === 1) handleTypeaheadSearch(event.key);
-          if (isTypingAhead && event.key === " ") return;
-          if (OPEN_KEYS.includes(event.key)) {
-            handleOpen();
-            event.preventDefault();
-          }
-        })
-      }
-    ) });
-  }
-);
-SelectTrigger.displayName = TRIGGER_NAME;
-var VALUE_NAME = "SelectValue";
-var SelectValue = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, className, style, children, placeholder = "", ...valueProps } = props;
-    const context = useSelectContext(VALUE_NAME, __scopeSelect);
-    const { onValueNodeHasChildrenChange } = context;
-    const hasChildren = children !== void 0;
-    const composedRefs = useComposedRefs(forwardedRef, context.onValueNodeChange);
-    useLayoutEffect2(() => {
-      onValueNodeHasChildrenChange(hasChildren);
-    }, [onValueNodeHasChildrenChange, hasChildren]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.span,
-      {
-        ...valueProps,
-        ref: composedRefs,
-        style: { pointerEvents: "none" },
-        children: shouldShowPlaceholder(context.value) ? /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: placeholder }) : children
-      }
-    );
-  }
-);
-SelectValue.displayName = VALUE_NAME;
-var ICON_NAME = "SelectIcon";
-var SelectIcon = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, children, ...iconProps } = props;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.span, { "aria-hidden": true, ...iconProps, ref: forwardedRef, children: children || "\u25BC" });
-  }
-);
-SelectIcon.displayName = ICON_NAME;
-var PORTAL_NAME = "SelectPortal";
-var SelectPortal = (props) => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Portal$1, { asChild: true, ...props });
-};
-SelectPortal.displayName = PORTAL_NAME;
-var CONTENT_NAME = "SelectContent";
-var SelectContent = React.forwardRef(
-  (props, forwardedRef) => {
-    const context = useSelectContext(CONTENT_NAME, props.__scopeSelect);
-    const [fragment, setFragment] = React.useState();
-    useLayoutEffect2(() => {
-      setFragment(new DocumentFragment());
-    }, []);
-    if (!context.open) {
-      const frag = fragment;
-      return frag ? ReactDOM.createPortal(
-        /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContentProvider, { scope: props.__scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Slot, { scope: props.__scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: props.children }) }) }),
-        frag
-      ) : null;
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(SelectContentImpl, { ...props, ref: forwardedRef });
-  }
-);
-SelectContent.displayName = CONTENT_NAME;
-var CONTENT_MARGIN = 10;
-var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME);
-var CONTENT_IMPL_NAME = "SelectContentImpl";
-var Slot = createSlot("SelectContent.RemoveScroll");
-var SelectContentImpl = React.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      __scopeSelect,
-      position = "item-aligned",
-      onCloseAutoFocus,
-      onEscapeKeyDown,
-      onPointerDownOutside,
-      //
-      // PopperContent props
-      side,
-      sideOffset,
-      align,
-      alignOffset,
-      arrowPadding,
-      collisionBoundary,
-      collisionPadding,
-      sticky,
-      hideWhenDetached,
-      avoidCollisions,
-      //
-      ...contentProps
-    } = props;
-    const context = useSelectContext(CONTENT_NAME, __scopeSelect);
-    const [content, setContent] = React.useState(null);
-    const [viewport, setViewport] = React.useState(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [selectedItem, setSelectedItem] = React.useState(null);
-    const [selectedItemText, setSelectedItemText] = React.useState(
-      null
-    );
-    const getItems = useCollection(__scopeSelect);
-    const [isPositioned, setIsPositioned] = React.useState(false);
-    const firstValidItemFoundRef = React.useRef(false);
-    React.useEffect(() => {
-      if (content) return hideOthers(content);
-    }, [content]);
-    useFocusGuards();
-    const focusFirst = React.useCallback(
-      (candidates) => {
-        const [firstItem, ...restItems] = getItems().map((item) => item.ref.current);
-        const [lastItem] = restItems.slice(-1);
-        const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement;
-        for (const candidate of candidates) {
-          if (candidate === PREVIOUSLY_FOCUSED_ELEMENT) return;
-          candidate?.scrollIntoView({ block: "nearest" });
-          if (candidate === firstItem && viewport) viewport.scrollTop = 0;
-          if (candidate === lastItem && viewport) viewport.scrollTop = viewport.scrollHeight;
-          candidate?.focus();
-          if (document.activeElement !== PREVIOUSLY_FOCUSED_ELEMENT) return;
-        }
-      },
-      [getItems, viewport]
-    );
-    const focusSelectedItem = React.useCallback(
-      () => focusFirst([selectedItem, content]),
-      [focusFirst, selectedItem, content]
-    );
-    React.useEffect(() => {
-      if (isPositioned) {
-        focusSelectedItem();
-      }
-    }, [isPositioned, focusSelectedItem]);
-    const { onOpenChange, triggerPointerDownPosRef } = context;
-    React.useEffect(() => {
-      if (content) {
-        let pointerMoveDelta = { x: 0, y: 0 };
-        const handlePointerMove = (event) => {
-          pointerMoveDelta = {
-            x: Math.abs(Math.round(event.pageX) - (triggerPointerDownPosRef.current?.x ?? 0)),
-            y: Math.abs(Math.round(event.pageY) - (triggerPointerDownPosRef.current?.y ?? 0))
-          };
-        };
-        const handlePointerUp = (event) => {
-          if (pointerMoveDelta.x <= 10 && pointerMoveDelta.y <= 10) {
-            event.preventDefault();
-          } else {
-            if (!content.contains(event.target)) {
-              onOpenChange(false);
-            }
-          }
-          document.removeEventListener("pointermove", handlePointerMove);
-          triggerPointerDownPosRef.current = null;
-        };
-        if (triggerPointerDownPosRef.current !== null) {
-          document.addEventListener("pointermove", handlePointerMove);
-          document.addEventListener("pointerup", handlePointerUp, { capture: true, once: true });
-        }
-        return () => {
-          document.removeEventListener("pointermove", handlePointerMove);
-          document.removeEventListener("pointerup", handlePointerUp, { capture: true });
-        };
-      }
-    }, [content, onOpenChange, triggerPointerDownPosRef]);
-    React.useEffect(() => {
-      const close = () => onOpenChange(false);
-      window.addEventListener("blur", close);
-      window.addEventListener("resize", close);
-      return () => {
-        window.removeEventListener("blur", close);
-        window.removeEventListener("resize", close);
-      };
-    }, [onOpenChange]);
-    const [searchRef, handleTypeaheadSearch] = useTypeaheadSearch((search) => {
-      const enabledItems = getItems().filter((item) => !item.disabled);
-      const currentItem = enabledItems.find((item) => item.ref.current === document.activeElement);
-      const nextItem = findNextItem(enabledItems, search, currentItem);
-      if (nextItem) {
-        setTimeout(() => nextItem.ref.current.focus());
-      }
-    });
-    const itemRefCallback = React.useCallback(
-      (node, value, disabled) => {
-        const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
-        const isSelectedItem = context.value !== void 0 && context.value === value;
-        if (isSelectedItem || isFirstValidItem) {
-          setSelectedItem(node);
-          if (isFirstValidItem) firstValidItemFoundRef.current = true;
-        }
-      },
-      [context.value]
-    );
-    const handleItemLeave = React.useCallback(() => content?.focus(), [content]);
-    const itemTextRefCallback = React.useCallback(
-      (node, value, disabled) => {
-        const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
-        const isSelectedItem = context.value !== void 0 && context.value === value;
-        if (isSelectedItem || isFirstValidItem) {
-          setSelectedItemText(node);
-        }
-      },
-      [context.value]
-    );
-    const SelectPosition = position === "popper" ? SelectPopperPosition : SelectItemAlignedPosition;
-    const popperContentProps = SelectPosition === SelectPopperPosition ? {
-      side,
-      sideOffset,
-      align,
-      alignOffset,
-      arrowPadding,
-      collisionBoundary,
-      collisionPadding,
-      sticky,
-      hideWhenDetached,
-      avoidCollisions
-    } : {};
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      SelectContentProvider,
-      {
-        scope: __scopeSelect,
-        content,
-        viewport,
-        onViewportChange: setViewport,
-        itemRefCallback,
-        selectedItem,
-        onItemLeave: handleItemLeave,
-        itemTextRefCallback,
-        focusSelectedItem,
-        selectedItemText,
-        position,
-        isPositioned,
-        searchRef,
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(ReactRemoveScroll, { as: Slot, allowPinchZoom: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FocusScope,
-          {
-            asChild: true,
-            trapped: context.open,
-            onMountAutoFocus: (event) => {
-              event.preventDefault();
-            },
-            onUnmountAutoFocus: composeEventHandlers(onCloseAutoFocus, (event) => {
-              context.trigger?.focus({ preventScroll: true });
-              event.preventDefault();
-            }),
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              DismissableLayer,
-              {
-                asChild: true,
-                disableOutsidePointerEvents: true,
-                onEscapeKeyDown,
-                onPointerDownOutside,
-                onFocusOutside: (event) => event.preventDefault(),
-                onDismiss: () => context.onOpenChange(false),
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  SelectPosition,
-                  {
-                    role: "listbox",
-                    id: context.contentId,
-                    "data-state": context.open ? "open" : "closed",
-                    dir: context.dir,
-                    onContextMenu: (event) => event.preventDefault(),
-                    ...contentProps,
-                    ...popperContentProps,
-                    onPlaced: () => setIsPositioned(true),
-                    ref: composedRefs,
-                    style: {
-                      // flex layout so we can place the scroll buttons properly
-                      display: "flex",
-                      flexDirection: "column",
-                      // reset the outline by default as the content MAY get focused
-                      outline: "none",
-                      ...contentProps.style
-                    },
-                    onKeyDown: composeEventHandlers(contentProps.onKeyDown, (event) => {
-                      const isModifierKey = event.ctrlKey || event.altKey || event.metaKey;
-                      if (event.key === "Tab") event.preventDefault();
-                      if (!isModifierKey && event.key.length === 1) handleTypeaheadSearch(event.key);
-                      if (["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
-                        const items = getItems().filter((item) => !item.disabled);
-                        let candidateNodes = items.map((item) => item.ref.current);
-                        if (["ArrowUp", "End"].includes(event.key)) {
-                          candidateNodes = candidateNodes.slice().reverse();
-                        }
-                        if (["ArrowUp", "ArrowDown"].includes(event.key)) {
-                          const currentElement = event.target;
-                          const currentIndex = candidateNodes.indexOf(currentElement);
-                          candidateNodes = candidateNodes.slice(currentIndex + 1);
-                        }
-                        setTimeout(() => focusFirst(candidateNodes));
-                        event.preventDefault();
-                      }
-                    })
-                  }
-                )
-              }
-            )
-          }
-        ) })
-      }
-    );
-  }
-);
-SelectContentImpl.displayName = CONTENT_IMPL_NAME;
-var ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition";
-var SelectItemAlignedPosition = React.forwardRef((props, forwardedRef) => {
-  const { __scopeSelect, onPlaced, ...popperProps } = props;
-  const context = useSelectContext(CONTENT_NAME, __scopeSelect);
-  const contentContext = useSelectContentContext(CONTENT_NAME, __scopeSelect);
-  const [contentWrapper, setContentWrapper] = React.useState(null);
-  const [content, setContent] = React.useState(null);
-  const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-  const getItems = useCollection(__scopeSelect);
-  const shouldExpandOnScrollRef = React.useRef(false);
-  const shouldRepositionRef = React.useRef(true);
-  const { viewport, selectedItem, selectedItemText, focusSelectedItem } = contentContext;
-  const position = React.useCallback(() => {
-    if (context.trigger && context.valueNode && contentWrapper && content && viewport && selectedItem && selectedItemText) {
-      const triggerRect = context.trigger.getBoundingClientRect();
-      const contentRect = content.getBoundingClientRect();
-      const valueNodeRect = context.valueNode.getBoundingClientRect();
-      const itemTextRect = selectedItemText.getBoundingClientRect();
-      if (context.dir !== "rtl") {
-        const itemTextOffset = itemTextRect.left - contentRect.left;
-        const left = valueNodeRect.left - itemTextOffset;
-        const leftDelta = triggerRect.left - left;
-        const minContentWidth = triggerRect.width + leftDelta;
-        const contentWidth = Math.max(minContentWidth, contentRect.width);
-        const rightEdge = window.innerWidth - CONTENT_MARGIN;
-        const clampedLeft = clamp$1(left, [
-          CONTENT_MARGIN,
-          // Prevents the content from going off the starting edge of the
-          // viewport. It may still go off the ending edge, but this can be
-          // controlled by the user since they may want to manage overflow in a
-          // specific way.
-          // https://github.com/radix-ui/primitives/issues/2049
-          Math.max(CONTENT_MARGIN, rightEdge - contentWidth)
-        ]);
-        contentWrapper.style.minWidth = minContentWidth + "px";
-        contentWrapper.style.left = clampedLeft + "px";
-      } else {
-        const itemTextOffset = contentRect.right - itemTextRect.right;
-        const right = window.innerWidth - valueNodeRect.right - itemTextOffset;
-        const rightDelta = window.innerWidth - triggerRect.right - right;
-        const minContentWidth = triggerRect.width + rightDelta;
-        const contentWidth = Math.max(minContentWidth, contentRect.width);
-        const leftEdge = window.innerWidth - CONTENT_MARGIN;
-        const clampedRight = clamp$1(right, [
-          CONTENT_MARGIN,
-          Math.max(CONTENT_MARGIN, leftEdge - contentWidth)
-        ]);
-        contentWrapper.style.minWidth = minContentWidth + "px";
-        contentWrapper.style.right = clampedRight + "px";
-      }
-      const items = getItems();
-      const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
-      const itemsHeight = viewport.scrollHeight;
-      const contentStyles = window.getComputedStyle(content);
-      const contentBorderTopWidth = parseInt(contentStyles.borderTopWidth, 10);
-      const contentPaddingTop = parseInt(contentStyles.paddingTop, 10);
-      const contentBorderBottomWidth = parseInt(contentStyles.borderBottomWidth, 10);
-      const contentPaddingBottom = parseInt(contentStyles.paddingBottom, 10);
-      const fullContentHeight = contentBorderTopWidth + contentPaddingTop + itemsHeight + contentPaddingBottom + contentBorderBottomWidth;
-      const minContentHeight = Math.min(selectedItem.offsetHeight * 5, fullContentHeight);
-      const viewportStyles = window.getComputedStyle(viewport);
-      const viewportPaddingTop = parseInt(viewportStyles.paddingTop, 10);
-      const viewportPaddingBottom = parseInt(viewportStyles.paddingBottom, 10);
-      const topEdgeToTriggerMiddle = triggerRect.top + triggerRect.height / 2 - CONTENT_MARGIN;
-      const triggerMiddleToBottomEdge = availableHeight - topEdgeToTriggerMiddle;
-      const selectedItemHalfHeight = selectedItem.offsetHeight / 2;
-      const itemOffsetMiddle = selectedItem.offsetTop + selectedItemHalfHeight;
-      const contentTopToItemMiddle = contentBorderTopWidth + contentPaddingTop + itemOffsetMiddle;
-      const itemMiddleToContentBottom = fullContentHeight - contentTopToItemMiddle;
-      const willAlignWithoutTopOverflow = contentTopToItemMiddle <= topEdgeToTriggerMiddle;
-      if (willAlignWithoutTopOverflow) {
-        const isLastItem = items.length > 0 && selectedItem === items[items.length - 1].ref.current;
-        contentWrapper.style.bottom = "0px";
-        const viewportOffsetBottom = content.clientHeight - viewport.offsetTop - viewport.offsetHeight;
-        const clampedTriggerMiddleToBottomEdge = Math.max(
-          triggerMiddleToBottomEdge,
-          selectedItemHalfHeight + // viewport might have padding bottom, include it to avoid a scrollable viewport
-          (isLastItem ? viewportPaddingBottom : 0) + viewportOffsetBottom + contentBorderBottomWidth
-        );
-        const height = contentTopToItemMiddle + clampedTriggerMiddleToBottomEdge;
-        contentWrapper.style.height = height + "px";
-      } else {
-        const isFirstItem = items.length > 0 && selectedItem === items[0].ref.current;
-        contentWrapper.style.top = "0px";
-        const clampedTopEdgeToTriggerMiddle = Math.max(
-          topEdgeToTriggerMiddle,
-          contentBorderTopWidth + viewport.offsetTop + // viewport might have padding top, include it to avoid a scrollable viewport
-          (isFirstItem ? viewportPaddingTop : 0) + selectedItemHalfHeight
-        );
-        const height = clampedTopEdgeToTriggerMiddle + itemMiddleToContentBottom;
-        contentWrapper.style.height = height + "px";
-        viewport.scrollTop = contentTopToItemMiddle - topEdgeToTriggerMiddle + viewport.offsetTop;
-      }
-      contentWrapper.style.margin = `${CONTENT_MARGIN}px 0`;
-      contentWrapper.style.minHeight = minContentHeight + "px";
-      contentWrapper.style.maxHeight = availableHeight + "px";
-      onPlaced?.();
-      requestAnimationFrame(() => shouldExpandOnScrollRef.current = true);
-    }
-  }, [
-    getItems,
-    context.trigger,
-    context.valueNode,
-    contentWrapper,
-    content,
-    viewport,
-    selectedItem,
-    selectedItemText,
-    context.dir,
-    onPlaced
-  ]);
-  useLayoutEffect2(() => position(), [position]);
-  const [contentZIndex, setContentZIndex] = React.useState();
-  useLayoutEffect2(() => {
-    if (content) setContentZIndex(window.getComputedStyle(content).zIndex);
-  }, [content]);
-  const handleScrollButtonChange = React.useCallback(
-    (node) => {
-      if (node && shouldRepositionRef.current === true) {
-        position();
-        focusSelectedItem?.();
-        shouldRepositionRef.current = false;
-      }
-    },
-    [position, focusSelectedItem]
-  );
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    SelectViewportProvider,
-    {
-      scope: __scopeSelect,
-      contentWrapper,
-      shouldExpandOnScrollRef,
-      onScrollButtonChange: handleScrollButtonChange,
-      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          ref: setContentWrapper,
-          style: {
-            display: "flex",
-            flexDirection: "column",
-            position: "fixed",
-            zIndex: contentZIndex
-          },
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            Primitive.div,
-            {
-              ...popperProps,
-              ref: composedRefs,
-              style: {
-                // When we get the height of the content, it includes borders. If we were to set
-                // the height without having `boxSizing: 'border-box'` it would be too big.
-                boxSizing: "border-box",
-                // We need to ensure the content doesn't get taller than the wrapper
-                maxHeight: "100%",
-                ...popperProps.style
-              }
-            }
-          )
-        }
-      )
-    }
-  );
-});
-SelectItemAlignedPosition.displayName = ITEM_ALIGNED_POSITION_NAME;
-var POPPER_POSITION_NAME = "SelectPopperPosition";
-var SelectPopperPosition = React.forwardRef((props, forwardedRef) => {
-  const {
-    __scopeSelect,
-    align = "start",
-    collisionPadding = CONTENT_MARGIN,
-    ...popperProps
-  } = props;
-  const popperScope = usePopperScope(__scopeSelect);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Content,
-    {
-      ...popperScope,
-      ...popperProps,
-      ref: forwardedRef,
-      align,
-      collisionPadding,
-      style: {
-        // Ensure border-box for floating-ui calculations
-        boxSizing: "border-box",
-        ...popperProps.style,
-        // re-namespace exposed content custom properties
-        ...{
-          "--radix-select-content-transform-origin": "var(--radix-popper-transform-origin)",
-          "--radix-select-content-available-width": "var(--radix-popper-available-width)",
-          "--radix-select-content-available-height": "var(--radix-popper-available-height)",
-          "--radix-select-trigger-width": "var(--radix-popper-anchor-width)",
-          "--radix-select-trigger-height": "var(--radix-popper-anchor-height)"
-        }
-      }
-    }
-  );
-});
-SelectPopperPosition.displayName = POPPER_POSITION_NAME;
-var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME, {});
-var VIEWPORT_NAME = "SelectViewport";
-var SelectViewport = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, nonce, ...viewportProps } = props;
-    const contentContext = useSelectContentContext(VIEWPORT_NAME, __scopeSelect);
-    const viewportContext = useSelectViewportContext(VIEWPORT_NAME, __scopeSelect);
-    const composedRefs = useComposedRefs(forwardedRef, contentContext.onViewportChange);
-    const prevScrollTopRef = React.useRef(0);
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "style",
-        {
-          dangerouslySetInnerHTML: {
-            __html: `[data-radix-select-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-select-viewport]::-webkit-scrollbar{display:none}`
-          },
-          nonce
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Slot, { scope: __scopeSelect, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Primitive.div,
-        {
-          "data-radix-select-viewport": "",
-          role: "presentation",
-          ...viewportProps,
-          ref: composedRefs,
-          style: {
-            // we use position: 'relative' here on the `viewport` so that when we call
-            // `selectedItem.offsetTop` in calculations, the offset is relative to the viewport
-            // (independent of the scrollUpButton).
-            position: "relative",
-            flex: 1,
-            // Viewport should only be scrollable in the vertical direction.
-            // This won't work in vertical writing modes, so we'll need to
-            // revisit this if/when that is supported
-            // https://developer.chrome.com/blog/vertical-form-controls
-            overflow: "hidden auto",
-            ...viewportProps.style
-          },
-          onScroll: composeEventHandlers(viewportProps.onScroll, (event) => {
-            const viewport = event.currentTarget;
-            const { contentWrapper, shouldExpandOnScrollRef } = viewportContext;
-            if (shouldExpandOnScrollRef?.current && contentWrapper) {
-              const scrolledBy = Math.abs(prevScrollTopRef.current - viewport.scrollTop);
-              if (scrolledBy > 0) {
-                const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
-                const cssMinHeight = parseFloat(contentWrapper.style.minHeight);
-                const cssHeight = parseFloat(contentWrapper.style.height);
-                const prevHeight = Math.max(cssMinHeight, cssHeight);
-                if (prevHeight < availableHeight) {
-                  const nextHeight = prevHeight + scrolledBy;
-                  const clampedNextHeight = Math.min(availableHeight, nextHeight);
-                  const heightDiff = nextHeight - clampedNextHeight;
-                  contentWrapper.style.height = clampedNextHeight + "px";
-                  if (contentWrapper.style.bottom === "0px") {
-                    viewport.scrollTop = heightDiff > 0 ? heightDiff : 0;
-                    contentWrapper.style.justifyContent = "flex-end";
-                  }
-                }
-              }
-            }
-            prevScrollTopRef.current = viewport.scrollTop;
-          })
-        }
-      ) })
-    ] });
-  }
-);
-SelectViewport.displayName = VIEWPORT_NAME;
-var GROUP_NAME = "SelectGroup";
-var [SelectGroupContextProvider, useSelectGroupContext] = createSelectContext(GROUP_NAME);
-var SelectGroup = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...groupProps } = props;
-    const groupId = useId();
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(SelectGroupContextProvider, { scope: __scopeSelect, id: groupId, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { role: "group", "aria-labelledby": groupId, ...groupProps, ref: forwardedRef }) });
-  }
-);
-SelectGroup.displayName = GROUP_NAME;
-var LABEL_NAME = "SelectLabel";
-var SelectLabel = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...labelProps } = props;
-    const groupContext = useSelectGroupContext(LABEL_NAME, __scopeSelect);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { id: groupContext.id, ...labelProps, ref: forwardedRef });
-  }
-);
-SelectLabel.displayName = LABEL_NAME;
-var ITEM_NAME = "SelectItem";
-var [SelectItemContextProvider, useSelectItemContext] = createSelectContext(ITEM_NAME);
-var SelectItem = React.forwardRef(
-  (props, forwardedRef) => {
-    const {
-      __scopeSelect,
-      value,
-      disabled = false,
-      textValue: textValueProp,
-      ...itemProps
-    } = props;
-    const context = useSelectContext(ITEM_NAME, __scopeSelect);
-    const contentContext = useSelectContentContext(ITEM_NAME, __scopeSelect);
-    const isSelected = context.value === value;
-    const [textValue, setTextValue] = React.useState(textValueProp ?? "");
-    const [isFocused, setIsFocused] = React.useState(false);
-    const composedRefs = useComposedRefs(
-      forwardedRef,
-      (node) => contentContext.itemRefCallback?.(node, value, disabled)
-    );
-    const textId = useId();
-    const pointerTypeRef = React.useRef("touch");
-    const handleSelect = () => {
-      if (!disabled) {
-        context.onValueChange(value);
-        context.onOpenChange(false);
-      }
-    };
-    if (value === "") {
-      throw new Error(
-        "A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder."
-      );
-    }
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      SelectItemContextProvider,
-      {
-        scope: __scopeSelect,
-        value,
-        disabled,
-        textId,
-        isSelected,
-        onItemTextChange: React.useCallback((node) => {
-          setTextValue((prevTextValue) => prevTextValue || (node?.textContent ?? "").trim());
-        }, []),
-        children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Collection.ItemSlot,
-          {
-            scope: __scopeSelect,
-            value,
-            disabled,
-            textValue,
-            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              Primitive.div,
-              {
-                role: "option",
-                "aria-labelledby": textId,
-                "data-highlighted": isFocused ? "" : void 0,
-                "aria-selected": isSelected && isFocused,
-                "data-state": isSelected ? "checked" : "unchecked",
-                "aria-disabled": disabled || void 0,
-                "data-disabled": disabled ? "" : void 0,
-                tabIndex: disabled ? void 0 : -1,
-                ...itemProps,
-                ref: composedRefs,
-                onFocus: composeEventHandlers(itemProps.onFocus, () => setIsFocused(true)),
-                onBlur: composeEventHandlers(itemProps.onBlur, () => setIsFocused(false)),
-                onClick: composeEventHandlers(itemProps.onClick, () => {
-                  if (pointerTypeRef.current !== "mouse") handleSelect();
-                }),
-                onPointerUp: composeEventHandlers(itemProps.onPointerUp, () => {
-                  if (pointerTypeRef.current === "mouse") handleSelect();
-                }),
-                onPointerDown: composeEventHandlers(itemProps.onPointerDown, (event) => {
-                  pointerTypeRef.current = event.pointerType;
-                }),
-                onPointerMove: composeEventHandlers(itemProps.onPointerMove, (event) => {
-                  pointerTypeRef.current = event.pointerType;
-                  if (disabled) {
-                    contentContext.onItemLeave?.();
-                  } else if (pointerTypeRef.current === "mouse") {
-                    event.currentTarget.focus({ preventScroll: true });
-                  }
-                }),
-                onPointerLeave: composeEventHandlers(itemProps.onPointerLeave, (event) => {
-                  if (event.currentTarget === document.activeElement) {
-                    contentContext.onItemLeave?.();
-                  }
-                }),
-                onKeyDown: composeEventHandlers(itemProps.onKeyDown, (event) => {
-                  const isTypingAhead = contentContext.searchRef?.current !== "";
-                  if (isTypingAhead && event.key === " ") return;
-                  if (SELECTION_KEYS.includes(event.key)) handleSelect();
-                  if (event.key === " ") event.preventDefault();
-                })
-              }
-            )
-          }
-        )
-      }
-    );
-  }
-);
-SelectItem.displayName = ITEM_NAME;
-var ITEM_TEXT_NAME = "SelectItemText";
-var SelectItemText = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, className, style, ...itemTextProps } = props;
-    const context = useSelectContext(ITEM_TEXT_NAME, __scopeSelect);
-    const contentContext = useSelectContentContext(ITEM_TEXT_NAME, __scopeSelect);
-    const itemContext = useSelectItemContext(ITEM_TEXT_NAME, __scopeSelect);
-    const nativeOptionsContext = useSelectNativeOptionsContext(ITEM_TEXT_NAME, __scopeSelect);
-    const [itemTextNode, setItemTextNode] = React.useState(null);
-    const composedRefs = useComposedRefs(
-      forwardedRef,
-      (node) => setItemTextNode(node),
-      itemContext.onItemTextChange,
-      (node) => contentContext.itemTextRefCallback?.(node, itemContext.value, itemContext.disabled)
-    );
-    const textContent = itemTextNode?.textContent;
-    const nativeOption = React.useMemo(
-      () => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: itemContext.value, disabled: itemContext.disabled, children: textContent }, itemContext.value),
-      [itemContext.disabled, itemContext.value, textContent]
-    );
-    const { onNativeOptionAdd, onNativeOptionRemove } = nativeOptionsContext;
-    useLayoutEffect2(() => {
-      onNativeOptionAdd(nativeOption);
-      return () => onNativeOptionRemove(nativeOption);
-    }, [onNativeOptionAdd, onNativeOptionRemove, nativeOption]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.span, { id: itemContext.textId, ...itemTextProps, ref: composedRefs }),
-      itemContext.isSelected && context.valueNode && !context.valueNodeHasChildren ? ReactDOM.createPortal(itemTextProps.children, context.valueNode) : null
-    ] });
-  }
-);
-SelectItemText.displayName = ITEM_TEXT_NAME;
-var ITEM_INDICATOR_NAME = "SelectItemIndicator";
-var SelectItemIndicator = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...itemIndicatorProps } = props;
-    const itemContext = useSelectItemContext(ITEM_INDICATOR_NAME, __scopeSelect);
-    return itemContext.isSelected ? /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.span, { "aria-hidden": true, ...itemIndicatorProps, ref: forwardedRef }) : null;
-  }
-);
-SelectItemIndicator.displayName = ITEM_INDICATOR_NAME;
-var SCROLL_UP_BUTTON_NAME = "SelectScrollUpButton";
-var SelectScrollUpButton = React.forwardRef((props, forwardedRef) => {
-  const contentContext = useSelectContentContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
-  const viewportContext = useSelectViewportContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
-  const [canScrollUp, setCanScrollUp] = React.useState(false);
-  const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
-  useLayoutEffect2(() => {
-    if (contentContext.viewport && contentContext.isPositioned) {
-      let handleScroll2 = function() {
-        const canScrollUp2 = viewport.scrollTop > 0;
-        setCanScrollUp(canScrollUp2);
-      };
-      const viewport = contentContext.viewport;
-      handleScroll2();
-      viewport.addEventListener("scroll", handleScroll2);
-      return () => viewport.removeEventListener("scroll", handleScroll2);
-    }
-  }, [contentContext.viewport, contentContext.isPositioned]);
-  return canScrollUp ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-    SelectScrollButtonImpl,
-    {
-      ...props,
-      ref: composedRefs,
-      onAutoScroll: () => {
-        const { viewport, selectedItem } = contentContext;
-        if (viewport && selectedItem) {
-          viewport.scrollTop = viewport.scrollTop - selectedItem.offsetHeight;
-        }
-      }
-    }
-  ) : null;
-});
-SelectScrollUpButton.displayName = SCROLL_UP_BUTTON_NAME;
-var SCROLL_DOWN_BUTTON_NAME = "SelectScrollDownButton";
-var SelectScrollDownButton = React.forwardRef((props, forwardedRef) => {
-  const contentContext = useSelectContentContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
-  const viewportContext = useSelectViewportContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
-  const [canScrollDown, setCanScrollDown] = React.useState(false);
-  const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
-  useLayoutEffect2(() => {
-    if (contentContext.viewport && contentContext.isPositioned) {
-      let handleScroll2 = function() {
-        const maxScroll = viewport.scrollHeight - viewport.clientHeight;
-        const canScrollDown2 = Math.ceil(viewport.scrollTop) < maxScroll;
-        setCanScrollDown(canScrollDown2);
-      };
-      const viewport = contentContext.viewport;
-      handleScroll2();
-      viewport.addEventListener("scroll", handleScroll2);
-      return () => viewport.removeEventListener("scroll", handleScroll2);
-    }
-  }, [contentContext.viewport, contentContext.isPositioned]);
-  return canScrollDown ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-    SelectScrollButtonImpl,
-    {
-      ...props,
-      ref: composedRefs,
-      onAutoScroll: () => {
-        const { viewport, selectedItem } = contentContext;
-        if (viewport && selectedItem) {
-          viewport.scrollTop = viewport.scrollTop + selectedItem.offsetHeight;
-        }
-      }
-    }
-  ) : null;
-});
-SelectScrollDownButton.displayName = SCROLL_DOWN_BUTTON_NAME;
-var SelectScrollButtonImpl = React.forwardRef((props, forwardedRef) => {
-  const { __scopeSelect, onAutoScroll, ...scrollIndicatorProps } = props;
-  const contentContext = useSelectContentContext("SelectScrollButton", __scopeSelect);
-  const autoScrollTimerRef = React.useRef(null);
-  const getItems = useCollection(__scopeSelect);
-  const clearAutoScrollTimer = React.useCallback(() => {
-    if (autoScrollTimerRef.current !== null) {
-      window.clearInterval(autoScrollTimerRef.current);
-      autoScrollTimerRef.current = null;
-    }
-  }, []);
-  React.useEffect(() => {
-    return () => clearAutoScrollTimer();
-  }, [clearAutoScrollTimer]);
-  useLayoutEffect2(() => {
-    const activeItem = getItems().find((item) => item.ref.current === document.activeElement);
-    activeItem?.ref.current?.scrollIntoView({ block: "nearest" });
-  }, [getItems]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    Primitive.div,
-    {
-      "aria-hidden": true,
-      ...scrollIndicatorProps,
-      ref: forwardedRef,
-      style: { flexShrink: 0, ...scrollIndicatorProps.style },
-      onPointerDown: composeEventHandlers(scrollIndicatorProps.onPointerDown, () => {
-        if (autoScrollTimerRef.current === null) {
-          autoScrollTimerRef.current = window.setInterval(onAutoScroll, 50);
-        }
-      }),
-      onPointerMove: composeEventHandlers(scrollIndicatorProps.onPointerMove, () => {
-        contentContext.onItemLeave?.();
-        if (autoScrollTimerRef.current === null) {
-          autoScrollTimerRef.current = window.setInterval(onAutoScroll, 50);
-        }
-      }),
-      onPointerLeave: composeEventHandlers(scrollIndicatorProps.onPointerLeave, () => {
-        clearAutoScrollTimer();
-      })
-    }
-  );
-});
-var SEPARATOR_NAME = "SelectSeparator";
-var SelectSeparator = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...separatorProps } = props;
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { "aria-hidden": true, ...separatorProps, ref: forwardedRef });
-  }
-);
-SelectSeparator.displayName = SEPARATOR_NAME;
-var ARROW_NAME = "SelectArrow";
-var SelectArrow = React.forwardRef(
-  (props, forwardedRef) => {
-    const { __scopeSelect, ...arrowProps } = props;
-    const popperScope = usePopperScope(__scopeSelect);
-    const context = useSelectContext(ARROW_NAME, __scopeSelect);
-    const contentContext = useSelectContentContext(ARROW_NAME, __scopeSelect);
-    return context.open && contentContext.position === "popper" ? /* @__PURE__ */ jsxRuntimeExports.jsx(Arrow, { ...popperScope, ...arrowProps, ref: forwardedRef }) : null;
-  }
-);
-SelectArrow.displayName = ARROW_NAME;
-var BUBBLE_INPUT_NAME = "SelectBubbleInput";
-var SelectBubbleInput = React.forwardRef(
-  ({ __scopeSelect, value, ...props }, forwardedRef) => {
-    const ref = React.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    const prevValue = usePrevious(value);
-    React.useEffect(() => {
-      const select = ref.current;
-      if (!select) return;
-      const selectProto = window.HTMLSelectElement.prototype;
-      const descriptor = Object.getOwnPropertyDescriptor(
-        selectProto,
-        "value"
-      );
-      const setValue = descriptor.set;
-      if (prevValue !== value && setValue) {
-        const event = new Event("change", { bubbles: true });
-        setValue.call(select, value);
-        select.dispatchEvent(event);
-      }
-    }, [prevValue, value]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Primitive.select,
-      {
-        ...props,
-        style: { ...VISUALLY_HIDDEN_STYLES, ...props.style },
-        ref: composedRefs,
-        defaultValue: value
-      }
-    );
-  }
-);
-SelectBubbleInput.displayName = BUBBLE_INPUT_NAME;
-function shouldShowPlaceholder(value) {
-  return value === "" || value === void 0;
-}
-function useTypeaheadSearch(onSearchChange) {
-  const handleSearchChange = useCallbackRef$1(onSearchChange);
-  const searchRef = React.useRef("");
-  const timerRef = React.useRef(0);
-  const handleTypeaheadSearch = React.useCallback(
-    (key) => {
-      const search = searchRef.current + key;
-      handleSearchChange(search);
-      (function updateSearch(value) {
-        searchRef.current = value;
-        window.clearTimeout(timerRef.current);
-        if (value !== "") timerRef.current = window.setTimeout(() => updateSearch(""), 1e3);
-      })(search);
-    },
-    [handleSearchChange]
-  );
-  const resetTypeahead = React.useCallback(() => {
-    searchRef.current = "";
-    window.clearTimeout(timerRef.current);
-  }, []);
-  React.useEffect(() => {
-    return () => window.clearTimeout(timerRef.current);
-  }, []);
-  return [searchRef, handleTypeaheadSearch, resetTypeahead];
-}
-function findNextItem(items, search, currentItem) {
-  const isRepeated = search.length > 1 && Array.from(search).every((char) => char === search[0]);
-  const normalizedSearch = isRepeated ? search[0] : search;
-  const currentItemIndex = currentItem ? items.indexOf(currentItem) : -1;
-  let wrappedItems = wrapArray(items, Math.max(currentItemIndex, 0));
-  const excludeCurrentItem = normalizedSearch.length === 1;
-  if (excludeCurrentItem) wrappedItems = wrappedItems.filter((v) => v !== currentItem);
-  const nextItem = wrappedItems.find(
-    (item) => item.textValue.toLowerCase().startsWith(normalizedSearch.toLowerCase())
-  );
-  return nextItem !== currentItem ? nextItem : void 0;
-}
-function wrapArray(array, startIndex) {
-  return array.map((_, index) => array[(startIndex + index) % array.length]);
-}
-var Root2 = Select;
-var Trigger = SelectTrigger;
-var Value = SelectValue;
-var Icon$1 = SelectIcon;
-var Portal = SelectPortal;
-var Content2 = SelectContent;
-var Viewport = SelectViewport;
-var Group = SelectGroup;
-var Label = SelectLabel;
-var Item = SelectItem;
-var ItemText = SelectItemText;
-var ItemIndicator = SelectItemIndicator;
-var ScrollUpButton = SelectScrollUpButton;
-var ScrollDownButton = SelectScrollDownButton;
-var Separator = SelectSeparator;
-
-/**
- * @license lucide-react v0.562.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-const toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-const toCamelCase = (string) => string.replace(
-  /^([A-Z])|[\s-_]+(\w)/g,
-  (match, p1, p2) => p2 ? p2.toUpperCase() : p1.toLowerCase()
-);
-const toPascalCase = (string) => {
-  const camelCase = toCamelCase(string);
-  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
-};
-const mergeClasses = (...classes) => classes.filter((className, index, array) => {
-  return Boolean(className) && className.trim() !== "" && array.indexOf(className) === index;
-}).join(" ").trim();
-const hasA11yProp = (props) => {
-  for (const prop in props) {
-    if (prop.startsWith("aria-") || prop === "role" || prop === "title") {
-      return true;
-    }
-  }
-};
-
-/**
- * @license lucide-react v0.562.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-var defaultAttributes = {
-  xmlns: "http://www.w3.org/2000/svg",
-  width: 24,
-  height: 24,
-  viewBox: "0 0 24 24",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 2,
-  strokeLinecap: "round",
-  strokeLinejoin: "round"
-};
-
-/**
- * @license lucide-react v0.562.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const Icon = forwardRef(
-  ({
-    color = "currentColor",
-    size = 24,
-    strokeWidth = 2,
-    absoluteStrokeWidth,
-    className = "",
-    children,
-    iconNode,
-    ...rest
-  }, ref) => createElement(
-    "svg",
-    {
-      ref,
-      ...defaultAttributes,
-      width: size,
-      height: size,
-      stroke: color,
-      strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
-      className: mergeClasses("lucide", className),
-      ...!children && !hasA11yProp(rest) && { "aria-hidden": "true" },
-      ...rest
-    },
-    [
-      ...iconNode.map(([tag, attrs]) => createElement(tag, attrs)),
-      ...Array.isArray(children) ? children : [children]
-    ]
-  )
-);
-
-/**
- * @license lucide-react v0.562.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const createLucideIcon = (iconName, iconNode) => {
-  const Component = forwardRef(
-    ({ className, ...props }, ref) => createElement(Icon, {
-      ref,
-      iconNode,
-      className: mergeClasses(
-        `lucide-${toKebabCase(toPascalCase(iconName))}`,
-        `lucide-${iconName}`,
-        className
-      ),
-      ...props
-    })
-  );
-  Component.displayName = toPascalCase(iconName);
-  return Component;
-};
-
-/**
- * @license lucide-react v0.562.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const __iconNode$3 = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
-const Check = createLucideIcon("check", __iconNode$3);
-
-/**
- * @license lucide-react v0.562.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const __iconNode$2 = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-const ChevronDown = createLucideIcon("chevron-down", __iconNode$2);
-
-/**
- * @license lucide-react v0.562.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const __iconNode$1 = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
-const ChevronUp = createLucideIcon("chevron-up", __iconNode$1);
-
-/**
- * @license lucide-react v0.562.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-
-
-const __iconNode = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
-const LoaderCircle = createLucideIcon("loader-circle", __iconNode);
-
-function PromSelect(_a) {
-    var props = __rest(_a, []);
-    return jsxRuntimeExports.jsx(Root2, __assign({ "data-slot": "select" }, props));
-}
-function PromSelectGroup(_a) {
-    var props = __rest(_a, []);
-    return jsxRuntimeExports.jsx(Group, __assign({ "data-slot": "select-group" }, props));
-}
-function PromSelectValue(_a) {
-    var props = __rest(_a, []);
-    return jsxRuntimeExports.jsx(Value, __assign({ "data-slot": "select-value" }, props));
-}
-function PromSelectTrigger(_a) {
-    var className = _a.className, _b = _a.size, size = _b === void 0 ? "default" : _b, children = _a.children, props = __rest(_a, ["className", "size", "children"]);
-    return (jsxRuntimeExports.jsxs(Trigger, __assign({ "data-slot": "select-trigger", "data-size": size, className: cn("border-input data-placeholder:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-wrapper flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4", className) }, props, { children: [children, jsxRuntimeExports.jsx(Icon$1, { asChild: true, children: jsxRuntimeExports.jsx(ChevronDown, { className: "size-4 opacity-50" }) })] })));
-}
-function PromSelectContent(_a) {
-    var className = _a.className, children = _a.children, _b = _a.position, position = _b === void 0 ? "popper" : _b, _c = _a.align, align = _c === void 0 ? "center" : _c, props = __rest(_a, ["className", "children", "position", "align"]);
-    return (jsxRuntimeExports.jsx(Portal, { children: jsxRuntimeExports.jsxs(Content2, __assign({ "data-slot": "select-content", className: cn("bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border shadow-md", position === "popper" &&
-                "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1", className), position: position, align: align }, props, { children: [jsxRuntimeExports.jsx(PromSelectScrollUpButton, {}), jsxRuntimeExports.jsx(Viewport, { className: cn("p-1", position === "popper" &&
-                        "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"), children: children }), jsxRuntimeExports.jsx(PromSelectScrollDownButton, {})] })) }));
-}
-function PromSelectLabel(_a) {
-    var className = _a.className, props = __rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(Label, __assign({ "data-slot": "select-label", className: cn("text-muted-foreground px-2 py-1.5 text-xs", className) }, props)));
-}
-function PromSelectItem(_a) {
-    var className = _a.className, children = _a.children, props = __rest(_a, ["className", "children"]);
-    return (jsxRuntimeExports.jsxs(Item, __assign({ "data-slot": "select-item", className: cn("focus:bg-accent focus:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2", className) }, props, { children: [jsxRuntimeExports.jsx("span", { className: "absolute right-2 flex size-3.5 items-center justify-center", children: jsxRuntimeExports.jsx(ItemIndicator, { children: jsxRuntimeExports.jsx(Check, { className: "size-4" }) }) }), jsxRuntimeExports.jsx(ItemText, { children: children })] })));
-}
-function PromSelectSeparator(_a) {
-    var className = _a.className, props = __rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(Separator, __assign({ "data-slot": "select-separator", className: cn("bg-border pointer-events-none -mx-1 my-1 h-px", className) }, props)));
-}
-function PromSelectScrollUpButton(_a) {
-    var className = _a.className, props = __rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(ScrollUpButton, __assign({ "data-slot": "select-scroll-up-button", className: cn("flex cursor-default items-center justify-center py-1", className) }, props, { children: jsxRuntimeExports.jsx(ChevronUp, { className: "size-4" }) })));
-}
-function PromSelectScrollDownButton(_a) {
-    var className = _a.className, props = __rest(_a, ["className"]);
-    return (jsxRuntimeExports.jsx(ScrollDownButton, __assign({ "data-slot": "select-scroll-down-button", className: cn("flex cursor-default items-center justify-center py-1", className) }, props, { children: jsxRuntimeExports.jsx(ChevronDown, { className: "size-4" }) })));
-}
 
 var PromSelectField = function (_a) {
     var name = _a.name, label = _a.label, isLoad = _a.isLoad, options = _a.options, placeholder = _a.placeholder; _a.styleWrapper;
@@ -23949,7 +24100,7 @@ var z = /*#__PURE__*/Object.freeze({
     codec: codec,
     coerce: coerce,
     config: config,
-    core: index$1,
+    core: index,
     cuid: cuid,
     cuid2: cuid2,
     custom: custom,
@@ -23998,7 +24149,7 @@ var z = /*#__PURE__*/Object.freeze({
     lazy: lazy,
     length: _length,
     literal: literal,
-    locales: index$2,
+    locales: index$1,
     looseObject: looseObject,
     looseRecord: looseRecord,
     lowercase: _lowercase,
@@ -24097,103 +24248,5 @@ var PROM_MSG_ERROR = {
     EMPTY: "Поле обязательно для заполнения",
     INVALID_VALUES: "Недопустимые значения",
 };
-
-const falsyToString = (value)=>typeof value === "boolean" ? `${value}` : value === 0 ? "0" : value;
-const cx = clsx;
-const cva = (base, config)=>(props)=>{
-        var _config_compoundVariants;
-        if ((config === null || config === void 0 ? void 0 : config.variants) == null) return cx(base, props === null || props === void 0 ? void 0 : props.class, props === null || props === void 0 ? void 0 : props.className);
-        const { variants, defaultVariants } = config;
-        const getVariantClassNames = Object.keys(variants).map((variant)=>{
-            const variantProp = props === null || props === void 0 ? void 0 : props[variant];
-            const defaultVariantProp = defaultVariants === null || defaultVariants === void 0 ? void 0 : defaultVariants[variant];
-            if (variantProp === null) return null;
-            const variantKey = falsyToString(variantProp) || falsyToString(defaultVariantProp);
-            return variants[variant][variantKey];
-        });
-        const propsWithoutUndefined = props && Object.entries(props).reduce((acc, param)=>{
-            let [key, value] = param;
-            if (value === undefined) {
-                return acc;
-            }
-            acc[key] = value;
-            return acc;
-        }, {});
-        const getCompoundVariantClassNames = config === null || config === void 0 ? void 0 : (_config_compoundVariants = config.compoundVariants) === null || _config_compoundVariants === void 0 ? void 0 : _config_compoundVariants.reduce((acc, param)=>{
-            let { class: cvClass, className: cvClassName, ...compoundVariantOptions } = param;
-            return Object.entries(compoundVariantOptions).every((param)=>{
-                let [key, value] = param;
-                return Array.isArray(value) ? value.includes({
-                    ...defaultVariants,
-                    ...propsWithoutUndefined
-                }[key]) : ({
-                    ...defaultVariants,
-                    ...propsWithoutUndefined
-                })[key] === value;
-            }) ? [
-                ...acc,
-                cvClass,
-                cvClassName
-            ] : acc;
-        }, []);
-        return cx(base, getVariantClassNames, getCompoundVariantClassNames, props === null || props === void 0 ? void 0 : props.class, props === null || props === void 0 ? void 0 : props.className);
-    };
-
-var buttonVariants = cva("inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive", {
-    variants: {
-        variant: {
-            default: "bg-primary text-primary-foreground hover:bg-primary/90",
-            destructive: "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-            outline: "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-            secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-            ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-            link: "text-primary underline-offset-4 hover:underline",
-        },
-        size: {
-            default: "h-9 px-4 py-2 has-[>svg]:px-3",
-            sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-            lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-            icon: "size-9",
-            "icon-sm": "size-8",
-            "icon-lg": "size-10",
-        },
-    },
-    defaultVariants: {
-        variant: "default",
-        size: "default",
-    },
-});
-var skeletonVariants = cva("inline-flex rounded-md bg-muted animate-pulse", {
-    variants: {
-        variant: {
-            default: "bg-primary/20",
-            destructive: "bg-destructive/20",
-            outline: "bg-border",
-            secondary: "bg-secondary/50",
-            ghost: "bg-accent/50",
-            link: "bg-primary/20",
-        },
-        size: {
-            default: "h-9 px-4 py-2",
-            sm: "h-8 px-3",
-            lg: "h-10 px-6",
-            icon: "size-9",
-            "icon-sm": "size-8",
-            "icon-lg": "size-10",
-        },
-    },
-    defaultVariants: {
-        variant: "default",
-        size: "default",
-    },
-});
-function PromButton(_a) {
-    var size = _a.size, variant = _a.variant, children = _a.children, disabled = _a.disabled, className = _a.className, loadingText = _a.loadingText, _b = _a.isLoad, isLoad = _b === void 0 ? false : _b, _c = _a.asChild, asChild = _c === void 0 ? false : _c, _d = _a.skeleton, skeleton = _d === void 0 ? false : _d, props = __rest(_a, ["size", "variant", "children", "disabled", "className", "loadingText", "isLoad", "asChild", "skeleton"]);
-    var Comp = asChild ? Slot$1 : "button";
-    if (skeleton) {
-        return (jsxRuntimeExports.jsx("div", { "data-slot": "button-skeleton", className: cn(skeletonVariants({ variant: variant, size: size, className: className })), children: jsxRuntimeExports.jsx("span", { className: "opacity-0", children: children }) }));
-    }
-    return (jsxRuntimeExports.jsxs(Comp, __assign({ "data-slot": "button", className: cn(buttonVariants({ variant: variant, size: size, className: className })), disabled: disabled || isLoad }, props, { children: [isLoad && (jsxRuntimeExports.jsx(LoaderCircle, { className: "size-4 animate-spin", "data-slot": "button-loader" })), isLoad && loadingText ? loadingText : children] })));
-}
 
 export { PROM_MSG_ERROR, PromButton, PromFormFiled, PromFrom, PromInput, PromLabel, PromMessage, PromSelect, PromSelectContent, PromSelectField, PromSelectGroup, PromSelectItem, PromSelectLabel, PromSelectScrollDownButton, PromSelectScrollUpButton, PromSelectSeparator, PromSelectTrigger, PromSelectValue, PromSkeleton, PromSwitch, PromSwitchField, PromTextarea, promAllowedPatternEmail, promAllowedPatternNaturalNumbers, promAllowedPatternOnlyRu, promAllowedPatternPhone, promAllowedPatternPhoneWithoutPlus, promAllowedPatternUrlSocial, promMaskEmail, promMaskPhone, promMaskPhoneWithoutPlus, promMaskTelegram, promMaskWhatsapp, promSchemaPhone, promSelectFilterOptions, useCreatePromForm, usePromForm };

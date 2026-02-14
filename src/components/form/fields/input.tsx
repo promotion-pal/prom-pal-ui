@@ -1,12 +1,13 @@
 "use client";
 
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { PromLabel } from "./label";
 import { PromComponentProps, PromStyle } from "../../types";
 import { PromFormFiled } from "../form";
 import { cn } from "../../../function";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 interface PromInputProps
   extends
@@ -32,6 +33,14 @@ const PromInput: FC<PromInputProps> = ({
 }) => {
   const { control, setValue } = useFormContext();
 
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const inputType = type === "password" && showPassword ? "text" : type;
+
   const handleChange = (value: string) => {
     let processedValue = value;
 
@@ -53,29 +62,45 @@ const PromInput: FC<PromInputProps> = ({
       control={control}
       name={name}
       render={({ field, fieldState }) => (
-        <div className="space-y-2">
+        <div className="space-y-2 relative flex flex-col">
           {label && (
             <PromLabel className={cn("block text-sm font-medium", styleTitle)}>
               {label}
             </PromLabel>
           )}
 
-          <input
-            {...field}
-            {...props}
-            onChange={(e) => handleChange(e.target.value)}
-            type={type}
-            disabled={isLoad || props.disabled}
-            className={cn(
-              "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-              "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-              "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-              styleWrapper,
+          <div className="relative w-full">
+            <input
+              {...field}
+              {...props}
+              type={inputType}
+              onChange={(e) => handleChange(e.target.value)}
+              disabled={isLoad || props.disabled}
+              className={cn(
+                "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+                "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+                "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+                styleWrapper,
+              )}
+            />
+            {type === "password" && (
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                tabIndex={-1}
+                disabled={props.disabled}
+              >
+                {showPassword ? (
+                  <EyeOffIcon className="h-4 w-4" />
+                ) : (
+                  <EyeIcon className="h-4 w-4" />
+                )}
+              </button>
             )}
-          />
-
+          </div>
           {fieldState.error && (
-            <p className="text-red-500 text-sm mt-1">
+            <p className="text-red-500 text-sm mt-1 text-center w-full">
               {fieldState.error.message}
             </p>
           )}
