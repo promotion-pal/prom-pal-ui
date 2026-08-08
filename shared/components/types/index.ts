@@ -1,0 +1,1 @@
+export { CommonStyleProps } from "./style";
