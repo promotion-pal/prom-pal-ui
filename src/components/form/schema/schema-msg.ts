@@ -1,6 +1,0 @@
-const PROM_MSG_ERROR = {
-  EMPTY: "Поле обязательно для заполнения",
-  INVALID_VALUES: "Недопустимые значения",
-};
-
-export { PROM_MSG_ERROR };
