@@ -1,3 +1,3 @@
-const PromForm = () => {
+export const PromForm = () => {
   return "Это Test"
 }

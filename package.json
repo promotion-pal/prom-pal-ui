@@ -12,8 +12,8 @@
   },
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
-  "main": "index.js",
+  "main": "form/index.ts",
+  "types": "form/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
