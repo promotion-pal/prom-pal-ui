@@ -36,9 +36,9 @@ export const PromDateField = <T extends FieldValues>({
         [],
     );
     const years = useMemo(() => {
-        const currentYear = new Date().getFullYear();
-        return Array.from({ length: currentYear - 1940 + 1 }, (_, i) =>
-            String(currentYear - i),
+        const maxYear = new Date().getFullYear() + 5;
+        return Array.from({ length: maxYear - 1940 + 1 }, (_, i) =>
+            String(maxYear - i),
         );
     }, []);
 
